@@ -320,7 +320,7 @@
             <div class="cb-row" style="gap:6px;"><input type="checkbox" id="flowers-ascension" style="width:14px;height:14px;" checked onchange="recalc()"><label for="flowers-ascension">Flowers Ascension</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Forest dmg on spending buds. (8 seconds)</span></span></div>
             <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thorn" style="width:14px;height:14px;" checked onchange="recalc()"><label for="thorn">Thorn</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">20% Forest dmg to targets with thorn (Regen Pulse is bugged for this).</span></span></div>
             <div class="cb-row" style="gap:6px;"><input type="checkbox" id="wide-area-thorns" style="width:14px;height:14px;" checked onchange="recalc()"><label for="wide-area-thorns">Wide-area Thorns</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hidden 4% Elite Forest DMG (always up).</span></span></div>
-            <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x11" style="width:14px;height:14px;" checked onchange="recalc()"><label for="tree-x11">X11 Factor</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">G10 Assumed (1.5x final Lucky Strike Multiplier).</span></span></div>
+            <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x11" style="width:14px;height:14px;" checked onchange="recalc()"><label for="tree-x11">X11 Factor</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 50% Dream DMG to Lucky Strikes.</span></span></div>
             <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x4" style="width:14px;height:14px;" onchange="recalc()"><label for="tree-x4">X4 Factor</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">5% MAG Boost when you have symbiotic mark.</span></span></div>
           </div>
         </div>
@@ -2041,7 +2041,6 @@
     const genDmgBase  = getVal('gen-dmg-pct') / 100;
     const psychoscopeDreamforceBonusPct = psychoscopeDreamforceBond ? 0.02 : 0;
     const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgPct + moduleMagicDmgBonus / 100;
-    const dreamDmgPct = psychoscopeDreamforceBonusPct + getVal('dream-dmg-pct') / 100;
     let magBoostPct   = getVal('mag-boost-pct') / 100;
 
     const treeX4      = isSmiteClass && document.getElementById('tree-x4') && document.getElementById('tree-x4').checked;
@@ -2084,6 +2083,11 @@
     const luckDmgTalent = isSmiteClass && getChecked('luck-dmg-talent');
     const treeX11       = isSmiteClass && getChecked('tree-x11');
 
+    const baseDreamDmgPct = psychoscopeDreamforceBonusPct + getVal('dream-dmg-pct') / 100;
+    const dreamX11Bonus = treeX11 ?  0.50 : 0;
+    const dreamDmgPct = baseDreamDmgPct; // for standard hits
+    const dreamDmgPctLucky = baseDreamDmgPct + dreamX11Bonus; // for lucky strikes
+
     let luckyMult;
     if (isManual) {
       luckyMult = getVal('lucky-mult-display') / 100;
@@ -2098,7 +2102,7 @@
       document.getElementById('lucky-mult-display').value = multPct.toFixed(2);
     }
 
-    const luckyMultFinal  = treeX11 ? luckyMult * 1.5 : luckyMult
+    const luckyMultFinal  = luckyMult
     const luckEffectBonus = getVal('luck-effect-bonus') / 100;
     const luckEffectPct   = postWlLuckPct + luckEffectBonus;
 
@@ -2110,7 +2114,7 @@
     const defenseFreeAtk = refinedAtk + elementalAtk;
 
     const luckyGenPct  = totalGenDmgPct + luckEffectPct + foodDmgBonusPct;
-    const luckyDmgMult = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPct) * (1 + magBoostPct);
+    const luckyDmgMult = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct);
     const luckyBase    = (effectiveAtk + defenseFreeAtk + foodAtkBonus) * luckyMultFinal;
     const lsNormal     = luckyBase * luckyDmgMult;
     const lsCrit       = lsNormal * effectiveCritMult;
@@ -2146,7 +2150,7 @@
       _additionalElem: additionalElemDmg, _elemPower: elemPowerBonus, _wlElem: wlElemBonus,
       _flowers: flowersBonus, _thorn: thornBonus, _thornElite: thornEliteElem, _masteryElem: masteryElemBonus,
       _genBase: genDmgBase, _boss: bossDmgPct, _elite: eliteDmgPct, _dreamforce: dreamDmgPct,
-      _dreamforceBond: psychoscopeDreamforceBonusPct, _dreamManual: getVal('dream-dmg-pct') / 100,
+      _dreamforceBond: psychoscopeDreamforceBonusPct, _dreamManual: getVal('dream-dmg-pct') / 100, _dreamX11: dreamX11Bonus,
       _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg,
       _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _luckyGenPct: luckyGenPct, _magBoost: magBoostPct,
       _smiteSpec: smiteSpec, _treeX11: treeX11, _luckDmgTalent: luckDmgTalent,
@@ -2192,6 +2196,14 @@
       if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
       return ps.length ? ps.join(' + ') + `=${(c._dreamforce*100).toFixed(2)}%` : `${(c._dreamforce*100).toFixed(2)}%`;
     }
+    function buildDreamStrLucky(c) {
+      const ps = [];
+      if (c._dreamforceBond) ps.push(`bond ${(c._dreamforceBond*100).toFixed(2)}%`);
+      if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
+      if (c._dreamX11)       ps.push(`X11 ${(c._dreamX11*100).toFixed(2)}%`);
+      const total = c._dreamforce + c._dreamX11;
+      return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
+    }
     function buildLuckyGenStr(c) {
       const ps = [];
       if (c._genBase)     ps.push(`gen ${(c._genBase*100).toFixed(2)}%`);
@@ -2206,6 +2218,7 @@
     window._buildElemStr    = buildElemStr;
     window._buildGenStr     = buildGenStr;
     window._buildDreamStr   = buildDreamStr;
+    window._buildDreamStrLucky = buildDreamStrLucky;
     window._buildLuckyGenStr = buildLuckyGenStr;
 
     updateImagineNotes();
@@ -2215,7 +2228,7 @@
     const luTags = [];
     if (luckDmgTalent) luTags.push('Luck Talent');
     if (smiteSpec)     luTags.push('Smite ×1.5');
-    if (treeX11)       luTags.push('X11 ×1.5');
+    if (treeX11)       luTags.push('X11 +50% Dream');
     const luckyTag = luTags.length ? ` [${luTags.join(', ')}]` : '';
 
     document.getElementById('formula-preview').innerHTML =
@@ -2230,11 +2243,11 @@
       `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n\n` +
       `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
       `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">Elemental(${(elementalAtk)})</span>` + `${(c._foodAtkBonus > 0 ? ` + <span class="ffood">Food(${c._foodAtkBonus}))</span>` : '')}` +
-      `\n× <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(2)}%${treeX11?' × 1.5(X11)='+((luckyMultFinal)*100).toFixed(2)+'%)':''}</span>\n` +
+      `\n× <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(2)}%)</span>\n` +
       `× <span class="fvers">(1+Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
       `× <span class="felem">(1+Elem: ${buildElemStr(c)})</span>\n` +
       `× <span class="fg">(1+Gen+LuckEff: (${buildLuckyGenStr(c)})</span>)\n` +
-      `× <span class="fdream">(1 + Dream: ${buildDreamStr(c)})</span>\n` +
+      `× <span class="fdream">(1 + Dream: ${buildDreamStrLucky(c)})</span>\n` +
       `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
       `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
 
