@@ -99,6 +99,7 @@
   .formula-box .fp { color: var(--accent-purple); }
 
   .matk-breakdown { font-size: 12px; color: var(--text-muted); font-family: 'Consolas', 'SF Mono', monospace; padding: 5px 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; line-height: 1.8; overflow-x: auto;}
+  .matk-breakdown-wrap { }
   .matk-breakdown-wrap::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(to right, transparent, var(--bg-panel)); pointer-events: none; border-radius: 0 4px 4px 0; }
   .matk-breakdown .hl { color: var(--accent); }
 
@@ -229,7 +230,7 @@
     <h1>BP<span>:</span>SR Damage Simulator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.1.0</span>
+      <span class="header-version">v0.2.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -334,7 +335,7 @@
           </div>
           <div class="field">
             <label><span class="dot dot-matk"></span><span id="module-atk-label">Module MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Sum of all ATK of your type (Atk/Matk) from module bonuses.</span></span></label>
-            <input type="number" id="adaptive-atk" value="0" oninput="recalc()">
+            <input type="number" id="adaptive-atk" value="0" readonly>
           </div>
           <div class="field">
             <label><span class="dot dot-matk"></span><span id="weapon-atk-label">Weapon MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Flat ATK/MATK from your weapon.</span></span></label>
@@ -545,9 +546,9 @@
                 <div class="cb-row" style="align-items:center; gap:8px;">
                   <input type="checkbox" id="psychoscope-main-stats" onchange="recalc()">
                   <label for="psychoscope-main-stats">Main Stats Active
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Lvl 90 = 1007, lvl 100 = 1050, for damage calculation assumes 100% uptime.</span></span>
+                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Lvl 90 = 1007, lvl 100 = 1071, for damage calculation assumes 100% uptime.</span></span>
                   </label>
-                  <input type="number" id="psychoscope-main-stats-bonus" value="1050" step="1" min="0" style="width:100px;" oninput="recalc()" title="Dreamforce Main Stats INT bonus" />
+                  <input type="number" id="psychoscope-main-stats-bonus" value="1071" step="1" min="0" style="width:100px;" oninput="recalc()" title="Dreamforce Main Stats INT bonus" />
                 </div>
                 <div class="cb-row">
                   <input type="checkbox" id="psychoscope-amplify-rare" onchange="recalc()">
@@ -645,42 +646,7 @@
         </div>
       </div>
 
-      <!-- Modules -->
-      <div class="panel">
-        <div class="panel-header"><h2>Modules</h2></div>
-        <div class="panel-body">
-          <div class="modules-list" id="modules-list"></div>
-          <button class="btn-add-skill" onclick="addModule()">+ Add Module</button>
-          <div class="note" id="modules-total-note" style="margin-top:8px; display:none;"></div>
-        </div>
-      </div>
-    
-      <div class="panel">
-        <div class="panel-header"><h2>Other Buffs</h2></div>
-        <div class="panel-body">
-          <div class="checkbox-group">
-            <div class="cb-row">
-              <input type="checkbox" id="food-enabled" onchange="onFoodToggle()" style="width:14px;height:14px;">
-              <label for="food-enabled">Food Buff</label>
-            </div>
-          </div>
-          <div id="food-inputs" style="display:none;">
-            <div class="input-row">
-              <div class="field"><label><span id="food-atk-label">MATK</span> (food)</label><input type="number" id="food-atk" value="195" step="1" oninput="recalc()"></div>
-              <div class="field"><label>Damage Bonus (food %)</label><input type="number" id="food-dmg-bonus" value="10" step="0.1" oninput="recalc()"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="panel">
-        <div class="panel-header"><h2>Live Formula</h2></div>
-        <div class="panel-body">
-          <div class="formula-box" id="formula-preview">—</div>
-        </div>
-      </div>
-
-      <!-- Lucky Strike Panel -->
+      <!-- Stats Panel -->
       <div class="panel">
         <div class="panel-header">
           <h2>Stats Panel</h2>
@@ -720,6 +686,51 @@
               <div class="lucky-stat-value avg" id="ls-avg">—</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>Other Buffs</h2></div>
+        <div class="panel-body">
+          <div class="checkbox-group">
+            <div class="cb-row">
+              <input type="checkbox" id="food-enabled" onchange="onFoodToggle()" style="width:14px;height:14px;">
+              <label for="food-enabled">Food Buff</label>
+            </div>
+          </div>
+          <div id="food-inputs" style="display:none;">
+            <div class="input-row">
+              <div class="field"><label><span id="food-atk-label">MATK</span> (food)</label><input type="number" id="food-atk" value="195" step="1" oninput="recalc()"></div>
+              <div class="field"><label>Damage Bonus (food %)</label><input type="number" id="food-dmg-bonus" value="10" step="0.1" oninput="recalc()"></div>
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label>Team Luck & Crit<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Not fully tested, Crit DMG is likely correct, but Lucky Damage values may need adjustment.</span></span></label>
+            <select id="team-luck-crit" onchange="recalc()">
+              <option value="none">None</option>
+              <option value="tier1">3.1% Crit DMG, 2% Lucky Damage (other's lvl 5)</option>
+              <option value="tier2">5.2% Crit DMG, 3.4% Lucky Damage (other's lvl 6)</option>
+              <option value="tier3">6.1% Crit DMG, 4% Lucky Damage (self lvl 5)</option>
+              <option value="tier4">10.2% Crit DMG, 6.8% Lucky Damage (self lvl 6)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-header"><h2>Live Formula</h2></div>
+        <div class="panel-body">
+          <div class="formula-box" id="formula-preview">—</div>
+        </div>
+      </div>
+
+      <!-- Modules -->
+      <div class="panel">
+        <div class="panel-header"><h2>Modules</h2></div>
+        <div class="panel-body">
+          <div class="modules-list" id="modules-list"></div>
+          <button class="btn-add-skill" onclick="addModule()">+ Add Module</button>
+          <div class="note" id="modules-total-note" style="margin-top:8px; display:none;"></div>
         </div>
       </div>
     </div>
@@ -801,11 +812,27 @@
 
   // Module data
   const MODULE_DATA = {
-    'life-wave': { name: 'Life Wave' },
+    'agile': { name: 'Agile' },
+    'agility-boost': { name: 'Agility Boost' },
+    'armor': { name: 'Armor' },
+    'attack-spd': { name: 'Attack SPD' },
     'cast-focus': { name: 'Cast Focus' },
-    'intellect-boost': { name: 'Intellect Boost' },
+    'crit-focus': { name: 'Crit Focus' },
+    'damage-stack': { name: 'Damage Stack' },
     'elite-strike': { name: 'Elite Strike' },
-    'damage-stack': { name: 'Damage Stack' }
+    'final-protection': { name: 'Final Protection' },
+    'first-aid': { name: 'First Aid' },
+    'healing-boost': { name: 'Healing Boost' },
+    'healing-enhance': { name: 'Healing Enhance' },
+    'intellect-boost': { name: 'Intellect Boost' },
+    'life-condense': { name: 'Life Condense' },
+    'life-steal': { name: 'Life Steal' },
+    'life-wave': { name: 'Life Wave' },
+    'luck-focus': { name: 'Luck Focus' },
+    'resistance': { name: 'Resistance' },
+    'special-attack': { name: 'Special Attack' },
+    'strength-boost': { name: 'Strength Boost' },
+    'team-luck-crit': { name: 'Team Luck & Crit' }
   };
 
   function getClassBases() {
@@ -1131,6 +1158,7 @@
     'food-atk',
     'food-dmg-bonus',
     'dream-dmg-pct',    
+    'team-luck-crit',
   ];
 
   // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY
@@ -1821,32 +1849,16 @@
     const psychoscopeFantasiaReconstruct = psychoscopeTree === 'fantasia-impact' && getChecked('psychoscope-fantasia-reconstruct');
 
     const intScaled    = (intBase + psychoscopeIntBonus) * (1 + intPct);
-    const adaptiveMatk = getVal('adaptive-atk');
     const weaponMatk   = getVal('base-atk');
     const matkPct      = getVal('matk-pct') / 100;
-
-    const innerFloor   = Math.floor(intScaled * 0.5 + adaptiveMatk + weaponMatk);
-    const matkBase     = Math.floor(intScaled * 0.1 + innerFloor);
-    // Muku Scout MATK% stacks additively with purple line MATK%
+    let adaptiveMatk;
+    let innerFloor;
+    let matkBase;
     const mukuMatkPct  = getMatkPctBonus() / 100;
     const totalMatkPct = matkPct + mukuMatkPct;
-    const effectiveAtk = Math.floor(matkBase * (1 + totalMatkPct));
-
-    document.getElementById('attr-atk').value          = matkBase;
-    document.getElementById('eff-matk-display').value  = effectiveAtk;
-    const matkPctSummary = mukuMatkPct > 0
-      ? `[${atkLabel}%: ${(matkPct*100).toFixed(2)}% gear + ${(mukuMatkPct*100).toFixed(2)}% Muku = ${(totalMatkPct*100).toFixed(2)}%]`
-      : `[${atkLabel}%: ${(matkPct*100).toFixed(2)}% gear = ${(totalMatkPct*100).toFixed(2)}%]`;
-
-    document.getElementById('matk-breakdown').innerHTML =
-      `FLOOR(${intScaled.toFixed(2)}×0.1 + FLOOR(${intScaled.toFixed(2)}×0.5 + ${adaptiveMatk} + ${weaponMatk}))` +
-      ` = ${matkBase}` +
-      `  →  FLOOR(${matkBase}×${(1+totalMatkPct).toFixed(3)}) = <span class="hl">${effectiveAtk}</span>` +
-      (psychoscopeIntBonus ? `  <span style="color:#ff79c6">[Psychoscope Dreamforce: +${psychoscopeIntBonus} INT]</span>` : '') +
-      `  <span style="color:var(--accent-purple)">${matkPctSummary}</span>`;
+    let effectiveAtk;
 
     const refinedAtk   = getVal('refined-atk');
-    const elementalAtk = getVal('elemental-atk');
 
     // === Defense ===
     const enemyArmour = getVal('enemy-armour', 2786);
@@ -1890,14 +1902,31 @@
 
     // === Modules — calculate bonuses from active modules ===
     let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
-    let moduleAtkBonus = 0; // ATK/MATK bonus from modules (display only)
-    let moduleMagAtkBonus = 0; // MATK-specific bonus from Intellect Boost only
+
+    // These are fully implemented buffs which directly affect damage.
+    let moduleAtkBonus = 0; // ATK bonus (physical only)
+    let moduleMatkBonus = 0; // MATK bonus (magical only)
+    let moduleAllAtkBonus = 0; // All ATK bonus (applies to both physical and magical)
+    let moduleEliteDmgBonus = 0; // Elite damage
+    let moduleMagicDmgBonus = 0; // Magic DMG bonus from Intellect Boost and Damage Stack
+    let modulePhysicalDmgBonus = 0; // Physical DMG bonus from modules
+    let moduleAllDmgBonus = 0; // Damage bonus for all damage types
+    let moduleCritDmgBonus = 0; // Crit DMG bonus from modules
+    let moduleLuckyStrikeBonus = 0; // Lucky Strike DMG Mult bonus from modules
+    let moduleSpecialAttackElemBonus = 0; // Special Attack Elemental DMG bonus
+    let autoTeamLuckCritOption = null; // Auto-update team luck/crit dropdown from the module
+
+    // These are locally calculated but not used anywhere outside the note for Modules. (if at all).
+    let moduleIntellectBonus = 0; // Intellect stat bonus
+    let moduleAgilityBonus = 0; // Agility stat bonus
+    let moduleStrengthBonus = 0; // Strength stat bonus
+    let moduleAllMainStatBonus = 0; // All Main Stat bonus (applies to all stats)
     let moduleAtkBreakdown = [];
     let moduleMatkBreakdown = [];
     let moduleCastSpeedBonus = 0; // Cast speed bonus (stored but not applied)
-    let moduleMainStatBonus = 0; // Main Stat bonus stored but not applied
-    let moduleEliteDmgBonus = 0; // Elite damage bonus stored but not applied
-    let moduleMagicDmgBonus = 0; // Magic DMG bonus from Intellect Boost and Damage Stack
+    let moduleElementalAtkBonus = 0; // All Element Attack bonus from modules
+    let moduleAttackSpdLevel = 0; // Track Attack SPD for module note
+    let strengthBoostLevel = 0; // Track Strength Boost level for armor penetration note
     
     // Calculate substat values for highest substat determination
     const substats = [
@@ -1913,21 +1942,25 @@
       const moduleType = card.dataset.selectedModule || '';
       const moduleLevel = parseInt(document.getElementById(`module-level-${id}`).value) || 0;
       
-      if (moduleType === 'life-wave' && moduleLevel >= 5) {
-        const bonus = moduleLevel === 5 ? 0.06 : 0.10; // Level 5 = 6%, Level 6 = 10%
-        const highest = substats.reduce((a, b) => a.val >= b.val ? a : b);
-        if (highest.key === 'crit')    moduleBonusCrit    += bonus;
-        if (highest.key === 'luck')    moduleBonusLuck    += bonus;
-        if (highest.key === 'mastery') moduleBonusMastery += bonus;
-        if (highest.key === 'vers')    moduleBonusVers    += bonus;
-        if (highest.key === 'haste')   moduleBonusHaste   += bonus;
+      if (moduleType === 'life-wave') {
+        const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
+        if(moduleLevel >= 5){
+          const bonus = moduleLevel === 5 ? 0.06 : 0.10;
+          const highest = substats.reduce((a, b) => a.val >= b.val ? a : b);
+          if (highest.key === 'crit')    moduleBonusCrit    += bonus;
+          if (highest.key === 'luck')    moduleBonusLuck    += bonus;
+          if (highest.key === 'mastery') moduleBonusMastery += bonus;
+          if (highest.key === 'vers')    moduleBonusVers    += bonus;
+          if (highest.key === 'haste')   moduleBonusHaste   += bonus;
+        }
       }
       
       if (moduleType === 'cast-focus' && moduleLevel > 0) {
         // ATK/MATK bonuses
         const atkBonuses = [0, 5, 10, 20, 30, 40, 50];
         const bonus = atkBonuses[moduleLevel] || 0;
-        moduleAtkBonus += bonus;
+        moduleAllAtkBonus += bonus;
         moduleAtkBreakdown.push(`Cast Focus +${bonus}`);
         
         // Cast speed bonuses (stored but not applied)
@@ -1936,15 +1969,15 @@
       }
       
       if (moduleType === 'intellect-boost' && moduleLevel > 0) {
-        // MATK bonuses only when magical is selected
+        // MATK bonuses
         const matkBonuses = [0, 5, 10, 15, 20, 25, 30];
         const bonus = matkBonuses[moduleLevel] || 0;
-        moduleMagAtkBonus += bonus;
+        moduleMatkBonus += bonus;
         moduleMatkBreakdown.push(`Intellect Boost +${bonus}`);
         
         // Intellect bonuses (stored but not applied)
         const intellectBonuses = [0, 0, 0, 10, 20, 30, 40];
-        moduleMainStatBonus += intellectBonuses[moduleLevel] || 0;
+        moduleIntellectBonus += intellectBonuses[moduleLevel] || 0;
         
         // Magic DMG bonuses
         const magicDmgBonuses = [0, 0, 0, 0, 0, 3.6, 6];
@@ -1952,31 +1985,183 @@
       }
       
       if (moduleType === 'elite-strike' && moduleLevel > 0) {
-        const atkBonuses = [0, 5, 10, 15, 20, 25, 30];
-        const bonus = atkBonuses[moduleLevel] || 0;
-        moduleAtkBonus += bonus;
+        const allAtkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const bonus = allAtkBonuses[moduleLevel] || 0;
+        moduleAllAtkBonus += bonus;
         moduleAtkBreakdown.push(`Elite Strike +${bonus}`);
 
-        const mainStatBonuses = [0, 0, 0, 10, 20, 30, 40];
-        moduleMainStatBonus += mainStatBonuses[moduleLevel] || 0;
+        const allMainStatBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
 
         const eliteDmgBonuses = [0, 0, 0, 0, 0, 3.9, 6.6];
         moduleEliteDmgBonus += eliteDmgBonuses[moduleLevel] || 0;
       }
       
       if (moduleType === 'damage-stack' && moduleLevel > 0) {
-        const atkBonuses = [0, 10, 20, 30, 40, 50, 60];
-        const bonus = atkBonuses[moduleLevel] || 0;
-        moduleAtkBonus += bonus;
+        const allAtkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const bonus = allAtkBonuses[moduleLevel] || 0;
+        moduleAllAtkBonus += bonus;
         moduleAtkBreakdown.push(`Damage Stack +${bonus}`);
 
-        const mainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
-        moduleMainStatBonus += mainStatBonuses[moduleLevel] || 0;
+        const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
 
-        const magicDmgBonuses = [0, 0, 0, 0, 0, 6.6, 11];
-        moduleMagicDmgBonus += magicDmgBonuses[moduleLevel] || 0;
+        const dmgBonuses = [0, 0, 0, 0, 0, 6.6, 11];
+        moduleAllDmgBonus += dmgBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'crit-focus' && moduleLevel > 0) {
+        // All Element Attack bonuses
+        const elementalAtkBonuses = [0, 0, 0, 20, 40, 60, 80];
+        const elementalBonus = elementalAtkBonuses[moduleLevel] || 0;
+        moduleElementalAtkBonus += elementalBonus;
+        
+        // Crit DMG bonuses
+        const critDmgBonuses = [0, 0, 0, 0, 0, 0.071, 0.12];
+        const critDmgBonus = critDmgBonuses[moduleLevel] || 0;
+        moduleCritDmgBonus += critDmgBonus;
+      }
+      
+      if (moduleType === 'luck-focus' && moduleLevel > 0) {
+        const elementalAtkBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleElementalAtkBonus += elementalAtkBonuses[moduleLevel] || 0;
+
+        const luckyStrikeBonuses = [0, 0, 0, 0, 0, 0.047, 0.078];
+        moduleLuckyStrikeBonus += luckyStrikeBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'healing-boost' && moduleLevel > 0) {
+        const matkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const intellectBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleMatkBonus += matkBonuses[moduleLevel] || 0;
+        moduleIntellectBonus += intellectBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'healing-enhance' && moduleLevel > 0) {
+        const matkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const intellectBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleMatkBonus += matkBonuses[moduleLevel] || 0;
+        moduleIntellectBonus += intellectBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'life-condense' && moduleLevel > 0) {
+        const allAtkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'first-aid' && moduleLevel > 0) {
+        const matkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const intellectBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleMatkBonus += matkBonuses[moduleLevel] || 0;
+        moduleIntellectBonus += intellectBonuses[moduleLevel] || 0;
+      }
+      
+      if (moduleType === 'strength-boost' && moduleLevel > 0) {
+        const atkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const strengthBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleAtkBonus += atkBonuses[moduleLevel] || 0;
+        moduleStrengthBonus += strengthBonuses[moduleLevel] || 0;
+        strengthBoostLevel = moduleLevel; // Track for armor penetration note
+      }
+
+      if (moduleType === 'agility-boost' && moduleLevel > 0) {
+        const atkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const agilityBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleAtkBonus += atkBonuses[moduleLevel] || 0;
+        moduleAgilityBonus += agilityBonuses[moduleLevel] || 0;
+        if (moduleLevel === 5) modulePhysicalDmgBonus += 3.6;
+        if (moduleLevel === 6) modulePhysicalDmgBonus += 6;
+      }
+
+      if (moduleType === 'resistance' && moduleLevel > 0) {
+        // Resistance currently provides no active bonuses.
+      }
+
+      if (moduleType === 'armor' && moduleLevel > 0) {
+        const elementalAtkBonuses = [0, 0, 0, 5, 10, 15, 20];
+        moduleElementalAtkBonus += elementalAtkBonuses[moduleLevel] || 0;
+      }
+
+      if (moduleType === 'attack-spd' && moduleLevel > 0) {
+        const allAtkBonuses = [0, 5, 10, 20, 30, 40, 50];
+        moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
+        moduleAttackSpdLevel = moduleLevel;
+      }
+
+      if (moduleType === 'agile' && moduleLevel > 0) {
+        const allAtkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
+        if (moduleLevel === 5) modulePhysicalDmgBonus += 6;
+        if (moduleLevel === 6) modulePhysicalDmgBonus += 10;
+      }
+
+      if (moduleType === 'final-protection' && moduleLevel > 0) {
+        const strengthBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleStrengthBonus += strengthBonuses[moduleLevel] || 0;
+      }
+
+      if (moduleType === 'life-steal' && moduleLevel > 0) {
+        const atkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const strengthBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAtkBonus += atkBonuses[moduleLevel] || 0;
+        moduleStrengthBonus += strengthBonuses[moduleLevel] || 0;
+      }
+
+      if (moduleType === 'special-attack' && moduleLevel > 0) {
+        const allAtkBonuses = [0, 5, 10, 15, 20, 25, 30];
+        const allMainStatBonuses = [0, 0, 0, 10, 20, 30, 40];
+        moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
+
+        // Special Attack Elemental DMG bonuses
+        const specialAttackElemBonuses = [0, 0, 0, 0, 0, 0.072, 0.12];
+        moduleSpecialAttackElemBonus += specialAttackElemBonuses[moduleLevel] || 0;
+      }
+
+      if (moduleType === 'team-luck-crit') {
+        const allAtkBonuses = [0, 10, 20, 30, 40, 50, 60];
+        const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
+        moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
+
+        autoTeamLuckCritOption = 'none';
+        if (moduleLevel === 5) autoTeamLuckCritOption = 'tier3';
+        if (moduleLevel === 6) autoTeamLuckCritOption = 'tier4';
       }
     });
+
+    if (autoTeamLuckCritOption !== null) {
+      const teamLuckCritSelect = document.getElementById('team-luck-crit');
+      if (teamLuckCritSelect) teamLuckCritSelect.value = autoTeamLuckCritOption;
+    }
+
+    // ATK/MATK calculations (needs updated values from modules)
+    const totalAtkBonus = moduleAtkBonus + moduleAllAtkBonus;
+    const totalMatkBonus = moduleMatkBonus + moduleAllAtkBonus;
+    const displayAtk = damageType === 'physical' ? totalAtkBonus : totalMatkBonus;
+    adaptiveMatk = displayAtk;
+    const adaptiveAtkInput = document.getElementById('adaptive-atk');
+    if (adaptiveAtkInput) adaptiveAtkInput.value = displayAtk;
+    innerFloor = Math.floor(intScaled * 0.5 + adaptiveMatk + weaponMatk);
+    matkBase = Math.floor(intScaled * 0.1 + innerFloor);
+    effectiveAtk = Math.floor(matkBase * (1 + totalMatkPct));
+    document.getElementById('attr-atk').value = matkBase;
+    document.getElementById('eff-matk-display').value = effectiveAtk;
+    matkPctSummary = mukuMatkPct > 0
+      ? `[${atkLabel}%: ${(matkPct*100).toFixed(2)}% gear + ${(mukuMatkPct*100).toFixed(2)}% Muku = ${(totalMatkPct*100).toFixed(2)}%]`
+      : `[${atkLabel}%: ${(matkPct*100).toFixed(2)}% gear = ${(totalMatkPct*100).toFixed(2)}%]`;
+    document.getElementById('matk-breakdown').innerHTML =
+      `FLOOR(${intScaled.toFixed(2)}×0.1 + FLOOR(${intScaled.toFixed(2)}×0.5 + ${adaptiveMatk} + ${weaponMatk}))` +
+      ` = ${matkBase}` +
+      `  →  FLOOR(${matkBase}×${(1+totalMatkPct).toFixed(3)}) = <span class="hl">${effectiveAtk}</span>` +
+      (psychoscopeIntBonus ? `  <span style="color:#ff79c6">[Psychoscope Dreamforce: +${psychoscopeIntBonus} INT]</span>` : '') +
+      `  <span style="color:var(--accent-purple)">${matkPctSummary}</span>`;
+
+    const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus;
 
     const psychoscopeAmplifyRare = psychoscopeTree === 'dreamforce' && getChecked('psychoscope-amplify-rare');
     let psBonusCrit = 0, psBonusLuck = 0, psBonusMastery = 0, psBonusHaste = 0;
@@ -2040,7 +2225,8 @@
     const moduleEliteDmgPct = isEliteOrBoss ? moduleEliteDmgBonus / 100 : 0;
     const genDmgBase  = getVal('gen-dmg-pct') / 100;
     const psychoscopeDreamforceBonusPct = psychoscopeDreamforceBond ? 0.02 : 0;
-    const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgPct + moduleMagicDmgBonus / 100;
+    const typeDmgPct = damageType === 'physical' ? modulePhysicalDmgBonus / 100 : moduleMagicDmgBonus / 100;
+    const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgPct + moduleAllDmgBonus / 100 + typeDmgPct;
     let magBoostPct   = getVal('mag-boost-pct') / 100;
 
     const treeX4      = isSmiteClass && document.getElementById('tree-x4') && document.getElementById('tree-x4').checked;
@@ -2074,7 +2260,18 @@
     const wlCritDmg      = getVal('wl-crit-dmg') / 100;
     const wlAtkDmg       = getVal('wl-atk-dmg') / 100;
     const wlMagicDmg     = getVal('wl-magic-dmg') / 100;
-    const effectiveCritMult = critMultPct + wlCritDmg + mukuCritDmgPct;
+
+    const teamLuckCritChoice = document.getElementById('team-luck-crit')?.value || 'none';
+    let teamCritDmgBonus = 0;
+    let teamLuckyDmgBonus = 0;
+    switch (teamLuckCritChoice) {
+      case 'tier1': teamCritDmgBonus = 0.031; teamLuckyDmgBonus = 0.02; break;
+      case 'tier2': teamCritDmgBonus = 0.052; teamLuckyDmgBonus = 0.034; break;
+      case 'tier3': teamCritDmgBonus = 0.061; teamLuckyDmgBonus = 0.04; break;
+      case 'tier4': teamCritDmgBonus = 0.102; teamLuckyDmgBonus = 0.068; break;
+    }
+
+    const effectiveCritMult = critMultPct + wlCritDmg + mukuCritDmgPct + moduleCritDmgBonus + teamCritDmgBonus;
     const totalGenDmgPct    = genDmgPct + wlAtkDmg + wlMagicDmg;
 
     // === Lucky Strike DMG Mult ===
@@ -2097,12 +2294,13 @@
       multPct += getFlamehornBonus();
       if (psychoscopeFantasiaReconstruct) multPct += 10;
       if (smiteSpec)     multPct *= 1.5;
+      multPct += moduleLuckyStrikeBonus * 100;
       multPct += getVal('lucky-mult-bonus');
       luckyMult = multPct / 100;
       document.getElementById('lucky-mult-display').value = multPct.toFixed(2);
     }
 
-    const luckyMultFinal  = luckyMult
+    const luckyMultFinal  = luckyMult;
     const luckEffectBonus = getVal('luck-effect-bonus') / 100;
     const luckEffectPct   = postWlLuckPct + luckEffectBonus;
 
@@ -2160,12 +2358,19 @@
       _foodDmgBonusPct: foodDmgBonusPct,
       _wlCritPct: wlCritBonus, _wlLuckPct: wlLuckBonus, _wlVersPct: wlVersBonus, _wlMasteryPct: wlMasteryBonus,
       _moduleMagicDmg: moduleMagicDmgBonus / 100,
+      _modulePhysicalDmg: modulePhysicalDmgBonus / 100,
+      _moduleAllDmg: moduleAllDmgBonus / 100,
       _moduleEliteDmg: moduleEliteDmgPct,
-      _moduleMainStat: moduleMainStatBonus,
+      _moduleSpecialAttackElem: moduleSpecialAttackElemBonus,
+      _moduleIntellect: moduleIntellectBonus,
+      _moduleStrength: moduleStrengthBonus,
+      _moduleAgility: moduleAgilityBonus,
+      _moduleAllMainStat: moduleAllMainStatBonus,
+      _damageType: damageType,
     };
 
     // helper: build elemental and generic detail strings
-    function buildElemStr(c) {
+    function buildElemStr(c, specialAttackBonus = 0) {
       const ps = [];
       if (c._additionalElem) ps.push(`additional ${(c._additionalElem*100).toFixed(1)}%`);
       if (c._elemPower)    ps.push(`power ${(c._elemPower*100).toFixed(2)}%`);
@@ -2174,7 +2379,9 @@
       if (c._thorn)        ps.push(`Thorn ${(c._thorn*100).toFixed(2)}%`);
       if (c._thornElite)   ps.push(`W.Thorns ${(c._thornElite*100).toFixed(2)}%`);
       if (c._masteryElem)  ps.push(`Mastery ${(c._masteryElem*100).toFixed(3)}%`);
-      return ps.length ? ps.join(' + ') + `=${(c.elemDmgPct*100).toFixed(2)}%`: `${(c.elemDmgPct*100).toFixed(2)}%`;
+      if (specialAttackBonus > 0) ps.push(`special-attack ${(specialAttackBonus*100).toFixed(2)}%`);
+      const totalElem = c.elemDmgPct + specialAttackBonus;
+      return ps.length ? ps.join(' + ') + ` = ${(totalElem*100).toFixed(2)}%`: `${(totalElem*100).toFixed(2)}%`;
     }
     function buildGenStr(c, typePct, typeLabel) {
       const ps = [];
@@ -2185,9 +2392,11 @@
       if (c._wlAtk)     ps.push(`wl-atk ${(c._wlAtk*100).toFixed(2)}%`);
       if (c._wlMagic)   ps.push(`wl-mag ${(c._wlMagic*100).toFixed(2)}%`);
       if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(2)}%`);
-      if (c._moduleMagicDmg) ps.push(`modules ${(c._moduleMagicDmg*100).toFixed(2)}%`);
+      if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(2)}%`);
+      if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(2)}%`);
+      if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(2)}%`);
       if (typePct)      ps.push(`${typeLabel} ${(typePct*100).toFixed(2)}%`);
-      const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (c._moduleMagicDmg||0) + (typePct||0);
+      const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (typePct||0);
       return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
     }
     function buildDreamStr(c) {
@@ -2212,6 +2421,9 @@
       if (c._wlAtk)       ps.push(`wl-atk ${(c._wlAtk*100).toFixed(2)}%`);
       if (c._wlMagic)     ps.push(`wl-mag ${(c._wlMagic*100).toFixed(2)}%`);
       if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(2)}%`);
+      if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(2)}%`);
+      if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(2)}%`);
+      if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(2)}%`);
       ps.push(`luck-eff ${(c.luckEffectPct*100).toFixed(2)}%`);
       return ps.length ? ps.join(' + ') + `=${(c._luckyGenPct*100).toFixed(2)}%` : `${(c._luckyGenPct*100).toFixed(2)}%`;
     }
@@ -2265,14 +2477,44 @@
     // Update modules total note
     const modulesTotalNote = document.getElementById('modules-total-note');
     if (modulesTotalNote) {
+      const totalAtkBonus = moduleAtkBonus + moduleAllAtkBonus;
+      const totalMatkBonus = moduleMatkBonus + moduleAllAtkBonus;
+      const totalIntellect = moduleIntellectBonus + moduleAllMainStatBonus;
+      const totalStrength = moduleStrengthBonus + moduleAllMainStatBonus;
+      const totalAgility = moduleAgilityBonus + moduleAllMainStatBonus;
+      const totalDamageBonus = (damageType === 'physical' ? modulePhysicalDmgBonus : moduleMagicDmgBonus) + moduleAllDmgBonus;
+      
+      const displayAtk = damageType === 'physical' ? totalAtkBonus : totalMatkBonus;
       const atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
-      const total = damageType === 'physical' ? moduleAtkBonus : moduleAtkBonus + moduleMagAtkBonus;
-      const breakdownItems = damageType === 'physical'
-        ? moduleAtkBreakdown
-        : moduleAtkBreakdown.concat(moduleMatkBreakdown);
-      if (total > 0) {
-        const breakdown = breakdownItems.length ? ` (${breakdownItems.join(' + ')})` : '';
-        modulesTotalNote.textContent = `Total ${atkLabel} from modules: ${total}${breakdown}, Not all modules supported yet, so sum ATK/MATK manually and enter in Module ATK on the left for now.`;
+      
+      if (displayAtk > 0 || totalIntellect > 0 || totalStrength > 0 || totalAgility > 0 || modulePhysicalDmgBonus > 0 || moduleAttackSpdLevel >= 5 || strengthBoostLevel >= 5) {
+        let noteParts = [];
+        if (displayAtk > 0) {
+          noteParts.push(`${atkLabel}: ${displayAtk}`);
+        }
+        if (totalIntellect > 0) {
+          noteParts.push(`Intellect: +${totalIntellect}`);
+        }
+        if (totalStrength > 0) {
+          noteParts.push(`Strength: +${totalStrength}`);
+        }
+        if (totalAgility > 0) {
+          noteParts.push(`Agility: +${totalAgility}`);
+        }
+        if (modulePhysicalDmgBonus > 0) {
+          noteParts.push(`Physical DMG: +${modulePhysicalDmgBonus}%`);
+        }
+        if (moduleAttackSpdLevel >= 5) {
+          const attackSpeed = moduleAttackSpdLevel === 5 ? 3.6 : 6;
+          noteParts.push(`Attack Speed: +${attackSpeed}% (Attack SPD Lv.${moduleAttackSpdLevel}, not directly implemented yet)`);
+        }
+        // Armor pen from Strength Boost module
+        if (strengthBoostLevel >= 5) {
+          const armorPen = strengthBoostLevel === 5 ? 11.5 : 18.8;
+          noteParts.push(`Armor Penetration: +${armorPen}% (Strength Boost Lv.${strengthBoostLevel}, not directly implemented yet)`);
+        }
+        const disclaimer = `(Main stat bonuses are expected to be in your Main Stat input (sheet value), the values shown here are just for reference)`;
+        modulesTotalNote.innerHTML = `Module Bonuses: ${noteParts.join(', ')}<br><span style="display:block; margin-top:4px;">${disclaimer}</span>`;
         modulesTotalNote.style.display = 'block';
       } else {
         modulesTotalNote.style.display = 'none';
@@ -2314,7 +2556,8 @@
     });
 
     const totalGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + effectGen;
-    const finalElemDmgPct = c.elemDmgPct + effectElem;
+    const specialAttackElemBonus = (skillType === 'special') ? (c._moduleSpecialAttackElem || 0) : 0;
+    const finalElemDmgPct = c.elemDmgPct + effectElem + specialAttackElemBonus;
     const finalDreamDmgPct = c._dreamforce + effectDream;
     const finalCritRatePct = Math.min(1, c.critRatePct + effectCritChance);
     const finalCritMult = c.critMultPct + effectCritDmg;
@@ -2347,7 +2590,7 @@
     if (formulaEl && showFormula) {
       const typeName = skillType !== 'none' ? typeLabel[skillType] : 'Skill';
       const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName) : `${(totalGen*100).toFixed(2)}%`;
-      const baseElemStr = window._buildElemStr ? window._buildElemStr(c) : `${(c.elemDmgPct*100).toFixed(2)}%`;
+      const baseElemStr = window._buildElemStr ? window._buildElemStr(c, specialAttackElemBonus) : `${((c.elemDmgPct + specialAttackElemBonus)*100).toFixed(2)}%`;
 
       const finalGenStr = effectGen !== 0
         ? `${baseGenStr} + generic ${(effectGen*100).toFixed(2)}% = ${(totalGen*100).toFixed(2)}%`
@@ -2489,7 +2732,7 @@
             ${Object.keys(MODULE_DATA).map(module => `<div class="module-option" data-value="${module}">${MODULE_DATA[module].name}</div>`).join('')}
           </div>
         </div>
-        <input type="number" class="module-level-input" id="module-level-${id}" value="0" min="0" max="6" onchange="recalc()" oninput="recalc()">
+        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="6" onchange="recalc()" oninput="recalc()">
         <button class="btn-remove" onclick="removeModule(${id})" title="Remove">✕</button>
       </div>
     `;
@@ -2566,16 +2809,26 @@
     const moduleName = option.dataset.value;
     // Store the selected module name for saving/loading
     const card = input.closest('.module-card');
+    const previousModule = card.dataset.selectedModule || '';
     card.dataset.selectedModule = moduleName;
+    if (previousModule === 'team-lucky-crit' && moduleName !== 'team-lucky-crit') {
+      const teamLuckCritSelect = document.getElementById('team-luck-crit');
+      if (teamLuckCritSelect) teamLuckCritSelect.value = 'none';
+    }
     hideModuleDropdown(dropdown);
     recalc();
     updateModuleDropdownVisibility();
   }
 
   function removeModule(id) {
-    modules = modules.filter(m => m.id !== id);
     const card = document.getElementById(`module-card-${id}`);
+    const removedModuleType = card?.dataset.selectedModule || '';
+    modules = modules.filter(m => m.id !== id);
     if (card) card.remove();
+    if (removedModuleType === 'team-lucky-crit') {
+      const teamLuckCritSelect = document.getElementById('team-luck-crit');
+      if (teamLuckCritSelect) teamLuckCritSelect.value = 'none';
+    }
     recalc();
     updateModuleDropdownVisibility();
   }
