@@ -4,224 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
-<style>
-  :root {
-    --bg: #1a1d23;
-    --bg-panel: #21252e;
-    --bg-card: #272b35;
-    --bg-input: #1a1d23;
-    --border: #363c4a;
-    --border-focus: #5b8ef0;
-    --accent: #5b8ef0;
-    --accent-red: #e05c5c;
-    --accent-green: #4caf7d;
-    --accent-gold: #d4a843;
-    --accent-purple: #9b7fe8;
-    --text: #d8dce8;
-    --text-secondary: #8b919e;
-    --text-muted: #989da8;
-    --readonly-bg: #1e2028;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
-  .container { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
-
-  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-  header h1 { font-size: 18px; font-weight: 600; }
-  header h1 span { color: var(--accent); }
-  .header-meta { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-  .header-version { font-size: 12px; color: var(--text-muted); }
-
-  /* Class + Inspiration bar */
-  .config-bar { display: flex; gap: 10px; margin-bottom: 16px; margin-top: 14px; align-items: flex-end; flex-wrap: wrap; background: var(--bg-card); border: 1px solid var(--border-focus); border-radius: 8px; padding: 14px; box-shadow: 0 6px 18px rgba(20,26,40,0.55); }
-  .config-bar .field { min-width: 180px; }
-  .config-bar .field label { color: var(--text); font-weight: 700; }
-  .config-bar select, .config-bar input { background: var(--bg-input); border-color: var(--border); color: var(--text); }
-
-  .main-grid { display: grid; grid-template-columns: 410px 1fr; gap: 16px; align-items: start; }
-
-  /* Panels */
-  .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; overflow: visible; }
-  .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: space-between; }
-  .panel-header h2 { font-size: 13px; font-weight: 600; }
-  .panel-body { padding: 14px; }
-
-  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-top: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .section-label:first-child { margin-top: 0; }
-
-  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .input-row.single { grid-template-columns: 1fr; }
-  .input-row.triple { grid-template-columns: 1fr 1fr 1fr; }
-
-  .field { display: flex; flex-direction: column; gap: 4px; }
-  .field label { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
-
-  .tag-blue { color: var(--accent); font-size: 11px; font-weight: 600; }
-  .tag-red  { color: var(--accent-red); font-size: 11px; font-weight: 600; }
-  .tag-gold { color: var(--accent-gold); font-size: 11px; }
-
-  input[type="number"], input[type="text"], select {
-    background: var(--bg-input); border: 1px solid var(--border); border-radius: 5px;
-    color: var(--text); font-family: inherit; font-size: 13px; padding: 6px 8px; width: 100%;
-    transition: border-color 0.15s; -moz-appearance: textfield;
-  }
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input:focus, select:focus { outline: none; border-color: var(--border-focus); }
-  input[readonly] { background: var(--readonly-bg); color: var(--accent); cursor: default; opacity: 0.85; }
-  select option { background: var(--bg-card); }
-
-  .type-toggle { display: flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
-  .type-toggle button { flex: 1; padding: 7px 10px; background: transparent; border: none; color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-  .type-toggle button + button { border-left: 1px solid var(--border); }
-  .type-toggle button.active-phys { background: rgba(224,92,92,0.15); color: var(--accent-red); }
-  .type-toggle button.active-mag  { background: rgba(91,142,240,0.15); color: var(--accent); }
-
-  .res-tags { display: flex; gap: 6px; margin-bottom: 4px; }
-  .res-tag { font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 500; }
-  .res-tag.phys { background: rgba(224,92,92,0.12); color: var(--accent-red); border: 1px solid rgba(224,92,92,0.2); }
-  .res-tag.mag { background: rgba(91,142,240,0.12); color: var(--accent); border: 1px solid rgba(91,142,240,0.2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
-  .res-tag.mag.inactive { background: rgba(255,255,255,0.04); color: var(--text-muted); border-color: var(--border); }
-
-  .note { font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.02); border-left: 2px solid var(--border); padding: 5px 8px; border-radius: 0 4px 4px 0; margin-top: 6px; line-height: 1.5; }
-  .note .hl { color: var(--accent); }
-
-  .tip { position: relative; display: inline-flex; cursor: help; }
-  .tip-icon { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--text-muted); color: var(--text-muted); font-size: 9px; font-style: italic; font-family: Georgia, serif; margin-left: 3px; flex-shrink: 0; }
-  .tip-box { display: none; position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); width: 220px; background: #2c3140; border: 1px solid var(--border); border-radius: 5px; padding: 7px 9px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; z-index: 50; pointer-events: none; text-align: left; font-style: normal; font-family: inherit; }
-  .tip:hover .tip-box { display: block; }
-
-  .formula-box { background: var(--bg-input); border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; font-size: 12px; color: var(--text-secondary); line-height: 1.9; font-family: 'Consolas', 'SF Mono', monospace; white-space: pre-wrap; word-break: break-word; }
-  .formula-box .fb { color: var(--accent); }
-  .formula-box .fg { color: var(--accent-green); }
-  .formula-box .fo { color: var(--accent-gold); }
-  .formula-box .fp { color: var(--accent-purple); }
-
-  .matk-breakdown { font-size: 12px; color: var(--text-muted); font-family: 'Consolas', 'SF Mono', monospace; padding: 5px 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; line-height: 1.8; overflow-x: auto;}
-  .matk-breakdown-wrap { }
-  .matk-breakdown-wrap::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(to right, transparent, var(--bg-panel)); pointer-events: none; border-radius: 0 4px 4px 0; }
-  .matk-breakdown .hl { color: var(--accent); }
-
-  /* Substat row: stat input | base% input | arrow | total% */
-  .substat-row { display: grid; grid-template-columns: 1fr 56px 18px 72px; gap: 6px; align-items: end; margin-bottom: 8px; }
-  .substat-arrow { font-size: 12px; color: var(--text-muted); text-align: center; padding-bottom: 7px; }
-  .substat-pct { background: var(--readonly-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--accent-gold); font-family: 'Consolas', 'SF Mono', monospace; font-size: 13px; padding: 6px 8px; text-align: right; white-space: nowrap; }
-  input.substat-base { background: var(--bg-input); border: 1px solid var(--border); border-radius: 5px; color: var(--text-secondary); font-family: 'Consolas', 'SF Mono', monospace; font-size: 12px; padding: 6px 6px; width: 100%; text-align: right; -moz-appearance: textfield; }
-  input.substat-base::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input.substat-base:focus { outline: none; border-color: var(--border-focus); }
-
-  /* Summary stat boxes */
-  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; text-align: center; }
-  .stat-box-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-  .stat-box-value { font-size: 17px; font-weight: 600; font-family: 'Consolas', 'SF Mono', monospace; color: var(--accent-gold); }
-  .stat-box-value.blue { color: var(--accent); }
-  .stat-box-value.red  { color: var(--accent-red); }
-
-  /* Lucky Strike dedicated panel */
-  .lucky-panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .lucky-stat-box { background: var(--bg-card); border: 1px solid rgba(155,127,232,0.25); border-radius: 6px; padding: 10px 12px; text-align: center; }
-  .lucky-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-  .lucky-stat-value { font-size: 18px; font-weight: 600; font-family: 'Consolas', 'SF Mono', monospace; color: var(--accent-purple); }
-  .lucky-stat-value.crit { color: var(--accent-red); }
-  .lucky-stat-value.avg  { color: var(--accent-green); }
-
-  /* Imagine slots */
-  .imagine-slots { display: flex; flex-direction: column; gap: 10px; }
-  .imagine-slot { display: grid; grid-template-columns: 1fr 80px; gap: 8px; align-items: end; }
-
-  /* Right column */
-  .right-col { display: flex; flex-direction: column; gap: 14px; }
-
-  /* Skill cards */
-  .skills-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-  .skill-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
-  .skill-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .skill-effects { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
-  .skill-effect-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .skill-effect-row select, .skill-effect-row input { font-size: 12px; padding: 4px 6px; }
-  .skill-effect-remove { border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 4px; padding: 2px 6px; cursor: pointer; }
-  .skill-effect-remove:hover { border-color: var(--accent); color: var(--accent); }
-  .skill-name-input { flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 14px; font-weight: 600; padding: 2px 0 4px; }
-  .skill-name-input:focus { outline: none; border-bottom-color: var(--accent); }
-  .skill-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
-  .btn-remove { background: none; border: 1px solid var(--border); color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.15s; flex-shrink: 0; }
-  .btn-remove:hover { border-color: var(--accent-red); color: var(--accent-red); }
-
-  /* Module cards */
-  .modules-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 10px; }
-  .module-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
-  .module-card-header { display: flex; align-items: center; gap: 4px; }
-  .module-select-container { position: relative; flex: 1; min-width: 140px; }
-  .module-search-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 6px 8px; font-family: inherit; font-size: 13px; cursor: pointer; }
-  .module-search-input:focus { outline: none; border-color: var(--accent); }
-  .module-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-  .module-dropdown .module-option { padding: 8px 12px; cursor: pointer; border: none; background: transparent; color: var(--text); width: 100%; text-align: left; }
-  .module-dropdown .module-option:hover { background: var(--bg-hover); }
-  .module-level-input { width: 60px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 6px 8px; font-family: inherit; font-size: 13px; text-align: center; }
-  .module-level-input:focus { outline: none; border-color: var(--accent); }
-
-  .skill-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .skill-result { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; padding: 8px 10px; background: var(--bg-input); border-radius: 5px; border: 1px solid var(--border); }
-  .result-item { display: flex; flex-direction: column; gap: 2px; }
-  .result-label { font-size: 11px; color: var(--text-muted); }
-  .result-value { font-size: 15px; font-weight: 600; font-family: 'Consolas', 'SF Mono', monospace; color: var(--accent-gold); }
-  .radio-group { display: flex; gap: 12px; align-items: center; }
-  .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text); cursor: pointer; }
-  .radio-group input[type="radio"] { margin: 0; }
-
-  .btn-add-skill { display: flex; padding: 9px; background: transparent; border: 1px dashed var(--border); border-radius: 6px; color: var(--accent); font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
-  .btn-add-skill:hover { border-color: var(--accent); background: rgba(91,142,240,0.06); }
-
-  .btn-import-skills { width: auto; padding: 8px 10px; background: transparent; border: 1px dashed #4CAF50; border-radius: 6px; color: #4CAF50; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
-  .btn-import-skills:hover { border-color: #4CAF50; background: rgba(76,175,80,0.06); }
-
-  .btn-export-skills { width: auto; padding: 8px 10px; background: transparent; border: 1px dashed #2196F3; border-radius: 6px; color: #2196F3; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
-  .btn-export-skills:hover { border-color: #2196F3; background: rgba(33,150,243,0.06); }
-
-  .checkbox-group { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
-  .cb-row { display: flex; align-items: center; gap: 8px; }
-  .cb-row input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent-purple); cursor: pointer; flex-shrink: 0; }
-  .cb-row label { font-size: 12px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 4px; }
-
-  /* Color-coded formula dots */
-  .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:3px; vertical-align:middle; flex-shrink:0; }
-  .dot-matk      { background: var(--accent); }
-  .dot-refined   { background: #f39c12; }
-  .dot-elemental { background: #06b6d4; }
-  .dot-vers      { background: var(--accent-purple); }
-  .dot-ls        { background: #ffb86c; }
-  .dot-red       { background: #e05c5c; }
-  .dot-green     { background: #4caf7d; }
-  .dot-purple    { background: #9b7fe8; }
-  .dot-cyan      { background: #06b6d4; }
-  .dot-mag       { background: #e6e358; }
-  .dot-orange    { background: #e8874a; }
-  .dot-dream     { background: #ff6b9d; }
-  
-  .fr { color: var(--accent-red); font-weight: 600; }
-  .fwhite { color: #ffffff; font-weight: 600; }
-  .fref { color: #f39c12; font-weight: 600; }
-  .felem { color: #06b6d4; font-weight: 600; }
-  .fvers { color: var(--accent-purple); font-weight: 600; }
-  .fmag { color: #e6e358; font-weight: 600; }
-  .fls { color: #ffb86c; font-weight: 600; }
-  .fdream { color: #ff6b9d; font-weight: 600; }
-  .fb { color: var(--accent); font-weight: 600; }
-
-  .formula-box, #formula-preview { color: #ffffff; }
-  .skill-formula { color: #ffffff; }
-
-  /* Skill formula box inside card */
-  .skill-formula { background:var(--bg-input); border:1px solid var(--border); border-radius:4px; padding:7px 10px; font-size:11px; color:var(--text-muted); line-height:1.8; font-family:'Consolas','SF Mono',monospace; white-space:pre-wrap; margin-top:8px; }
-  .skill-formula .fb { color:var(--accent); }
-  .skill-formula .fg { color:#4caf7d; }
-  .skill-formula .fo { color:#d4a843; }
-  .skill-formula .fp { color:#9b7fe8; }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 600px) { .skill-result { grid-template-columns: 1fr 1fr; } .lucky-panel-grid { grid-template-columns: 1fr; } }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
@@ -230,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Simulator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.2.0</span>
+      <span class="header-version">v0.3.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -328,10 +111,11 @@
 
         <!-- MATK/ATK -->
         <div class="section-label" id="matk-section-label">MATK</div>
+        <button class="btn-add-skill" onclick="openZdpsImportModal()" style="margin-bottom: 8px;">Import Stats from ZDPS</button>
         <div class="input-row triple">
           <div class="field">
-            <label><span class="dot dot-matk"></span><span id="main-attr-label">INT</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Main stat STR/AGI/INT.</span></span></label>
-            <input type="number" id="main-attr" value="500" oninput="recalc()">
+            <label><span class="dot dot-matk"></span><span id="main-attr-label">INT</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Base main stat. NOT sheet value. Click the field to open the reverse-bonus calculator.</span></span></label>
+            <input type="number" id="main-attr" value="500" readonly onclick="openBaseMainStatModal()" style="cursor:pointer; background:var(--bg-card); border:1px solid #7c3aed; border-radius:6px; color:var(--text); font-weight:700;" title="Click to calculate base main stat from sheet values">
           </div>
           <div class="field">
             <label><span class="dot dot-matk"></span><span id="module-atk-label">Module MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Sum of all ATK of your type (Atk/Matk) from module bonuses.</span></span></label>
@@ -343,6 +127,12 @@
           </div>
         </div>
         <div class="matk-breakdown-wrap"><div id="matk-breakdown" class="matk-breakdown">—</div></div>
+        <div class="input-row" style="margin-top:8px;">
+          <div class="field">
+            <label>Main Stat % bonus<span class="tip"><span class="tip-icon"style="color: yellow;">i</span><span class="tip-box">Auto Calculated when inputting Main Stat, or importing from zdps. Change with caution.</span></span></label>
+            <input type="number" id="main-stat-pct" value="0" step="0.1" oninput="recalc()">
+          </div>
+        </div>
         <div class="input-row" style="margin-top:8px;">
           <div class="field">
             <label id="attr-atk-before-label">MATK before %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">FLOOR(INT×0.1 + FLOOR(INT×0.5 + Adaptive + Weapon)).</span></span></label>
@@ -363,7 +153,7 @@
 
 
         <!-- Substats -->
-        <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+19974)+base%. Versatility uses Stat/(Stat+11206)+base%.</span></span></div>
+        <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+19975)+base%. Versatility uses Stat/(Stat+11206)+base%.</span></span></div>
         <div style="display:grid; grid-template-columns:1fr 56px 18px 72px; gap:6px; margin-bottom:4px; padding:0 0 2px 0;">
           <div style="font-size:10px;color:var(--text-muted);"></div>
           <div style="font-size:10px;color:var(--text-muted);text-align:right;">Base%</div>
@@ -372,28 +162,28 @@
         </div>
 
         <div class="substat-row">
-          <div class="field"><label>CRIT Rate Stat</label><input type="number" id="crit-rate-stat" value="0" oninput="recalc()"></div>
+          <div class="field"><label>Crit Stat</label><input type="number" id="crit-rate-stat" value="0" oninput="recalc()"></div>
           <input type="number" class="substat-base" id="base-crit-pct" value="5" step="0.1" oninput="recalc()">
           <div class="substat-arrow">→</div>
           <div class="field"><label style="font-size:10px;color:var(--text-muted);">CRIT %</label><div class="substat-pct" id="sub-crit-pct">5.00%</div></div>
         </div>
 
         <div class="substat-row">
-          <div class="field"><label>Haste Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Haste% = (Haste / (Haste + 19974)) + base% + Inspiration. Not used in any calculations, Tracked here for future use.</span></span></label><input type="number" id="haste-stat" value="0" oninput="recalc()"></div>
+          <div class="field"><label>Haste Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Haste% = (Haste / (Haste + 19975)) + base% + Inspiration. Not used in any calculations, Tracked here for future use.</span></span></label><input type="number" id="haste-stat" value="0" oninput="recalc()"></div>
           <input type="number" class="substat-base" id="base-haste-pct" value="0" step="0.1" oninput="recalc()">
           <div class="substat-arrow">→</div>
           <div class="field"><label style="font-size:10px;color:var(--text-muted);">Haste %</label><div class="substat-pct" id="sub-haste-pct">0.00%</div></div>
         </div>
 
         <div class="substat-row">
-          <div class="field"><label>Luck Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Chance% = (Luck / (Luck + 19974)) + base% + Inspiration.</span></span></label><input type="number" id="luck-stat" value="0" oninput="recalc()"></div>
+          <div class="field"><label>Luck Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Chance% = (Luck / (Luck + 19975)) + base% + Inspiration.</span></span></label><input type="number" id="luck-stat" value="0" oninput="recalc()"></div>
           <input type="number" class="substat-base" id="base-luck-pct" value="5" step="0.1" oninput="recalc()">
           <div class="substat-arrow">→</div>
           <div class="field"><label style="font-size:10px;color:var(--text-muted);">Luck %</label><div class="substat-pct" id="sub-luck-pct">5.00%</div></div>
         </div>
 
         <div class="substat-row">
-          <div class="field"><label>Mastery Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Mastery% = (Mastery / (Mastery + 19974)) + base% + Inspiration. Tracked for future use.</span></span></label><input type="number" id="mastery-stat" value="0" oninput="recalc()"></div>
+          <div class="field"><label>Mastery Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Mastery% = (Mastery / (Mastery + 19975)) + base% + Inspiration. Tracked for future use.</span></span></label><input type="number" id="mastery-stat" value="0" oninput="recalc()"></div>
           <input type="number" class="substat-base" id="base-mastery-pct" value="6" step="0.1" oninput="recalc()">
           <div class="substat-arrow">→</div>
           <div class="field"><label style="font-size:10px;color:var(--text-muted);">Mastery %</label><div class="substat-pct" id="sub-mastery-pct">6.00%</div></div>
@@ -442,7 +232,7 @@
             <input type="number" id="matk-pct" value="0" step="0.1" oninput="recalc()">
           </div>
           <div class="field">
-            <label><span class="dot dot-matk"></span><span id="int-pct-label">INT %</span></label>
+            <label><span class="dot dot-matk"></span><span id="int-pct-label">INT %</span><span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span id="int-pct-tip" class="tip-box">This is a relative field to your current setup.<br>Main stat % lines are already calculated and this should be 0%. Change this field only to test NEW main stat % lines NOT currently present in your gear.</span></span></label>
             <input type="number" id="int-pct" value="0" step="0.1" oninput="recalc()">
           </div>
         </div>
@@ -546,9 +336,9 @@
                 <div class="cb-row" style="align-items:center; gap:8px;">
                   <input type="checkbox" id="psychoscope-main-stats" onchange="recalc()">
                   <label for="psychoscope-main-stats">Main Stats Active
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Lvl 90 = 1007, lvl 100 = 1071, for damage calculation assumes 100% uptime.</span></span>
+                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">lvl 100 = 1050, for damage calculation assumes 100% uptime.</span></span>
                   </label>
-                  <input type="number" id="psychoscope-main-stats-bonus" value="1071" step="1" min="0" style="width:100px;" oninput="recalc()" title="Dreamforce Main Stats INT bonus" />
+                  <input type="number" id="psychoscope-main-stats-bonus" value="1050" step="1" min="0" style="width:100px;" oninput="recalc()" title="Dreamforce Main Stats INT bonus" />
                 </div>
                 <div class="cb-row">
                   <input type="checkbox" id="psychoscope-amplify-rare" onchange="recalc()">
@@ -779,6 +569,9 @@
   </div>
 </div>
 
+<script src="constants.js"></script>
+<script src="import_modal.js"></script>
+<script src="base_main_stat_modal.js"></script>
 <script>
   let damageType = 'physical';
   let magResEnabled = true;
@@ -792,48 +585,7 @@
 
   let atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
 
-  // Flamehorn lucky strike DMG boost by level
-  const FLAMEHORN_BOOST = [8, 10.4, 12.8, 15.2, 17.6, 20];
-  // Muku Scout MATK% / ATK% boost per level (passive = 3 stacks, active = 6 stacks)
-  const MUKU_PASSIVE_PER_STACK = [2, 2.6, 3.2, 3.8, 4.4, 5];
-  const MUKU_PASSIVE_STACKS    = 3;
-  const MUKU_ACTIVE_STACKS     = 6;
 
-  // Muku Chief bonus arrays
-  const MUKU_CHIEF_PASSIVE_CRIT_DMG = [0.10, 0.13, 0.16, 0.19, 0.22, 0.25];
-  const MUKU_CHIEF_ACTIVE_CRIT_STAT = [2040, 2688, 3136, 3584, 4032, 4480];
-  const MUKU_CHIEF_ACTIVE_CRIT_DMG = [0.30, 0.37, 0.44, 0.51, 0.58, 0.65];
-
-  // Base % by class: crit, haste, luck, mastery, vers
-  const CLASS_BASES = {
-    none:  { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
-    smite: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 4 },
-  };
-
-  // Module data
-  const MODULE_DATA = {
-    'agile': { name: 'Agile' },
-    'agility-boost': { name: 'Agility Boost' },
-    'armor': { name: 'Armor' },
-    'attack-spd': { name: 'Attack SPD' },
-    'cast-focus': { name: 'Cast Focus' },
-    'crit-focus': { name: 'Crit Focus' },
-    'damage-stack': { name: 'Damage Stack' },
-    'elite-strike': { name: 'Elite Strike' },
-    'final-protection': { name: 'Final Protection' },
-    'first-aid': { name: 'First Aid' },
-    'healing-boost': { name: 'Healing Boost' },
-    'healing-enhance': { name: 'Healing Enhance' },
-    'intellect-boost': { name: 'Intellect Boost' },
-    'life-condense': { name: 'Life Condense' },
-    'life-steal': { name: 'Life Steal' },
-    'life-wave': { name: 'Life Wave' },
-    'luck-focus': { name: 'Luck Focus' },
-    'resistance': { name: 'Resistance' },
-    'special-attack': { name: 'Special Attack' },
-    'strength-boost': { name: 'Strength Boost' },
-    'team-luck-crit': { name: 'Team Luck & Crit' }
-  };
 
   function getClassBases() {
     const cls = document.getElementById('class-select').value;
@@ -1006,30 +758,29 @@
   function updateAtkLabels() {
     const isPhysical = damageType === 'physical';
     const atkName = isPhysical ? 'ATK' : 'MATK';
-    const mainStatName = isPhysical ? 'Main Stat' : 'INT';
+    const mainStatName = isPhysical ? 'Base Main Stat' : 'BASE INT';
     atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
 
-    const maybeSet = (id, value) => {
+    const atkMatkSwap = (id, value) => {
       const el = document.getElementById(id);
       if (el) el.textContent = value;
     };
 
-    maybeSet('matk-section-label', atkName);
-    maybeSet('main-attr-label', mainStatName);
-    maybeSet('module-atk-label', `Module ${atkName}`);
-    maybeSet('weapon-atk-label', `Weapon ${atkName}`);
-    maybeSet('attr-atk-before-label', `${atkName} before %`);
-    maybeSet('eff-matk-label', `Effective ${atkName} (after %)`);
-    maybeSet('s-eff-atk-label', `Effective ${atkName}`);
-    maybeSet('s-def-atk-label', `${atkName} after Defense`);
-    maybeSet('matk-pct-label', `${atkName} %`);
-    maybeSet('int-pct-label', `${mainStatName} %`);
-    maybeSet('refined-atk-label', `Refined ${atkName}`);
-    maybeSet('muku-scout-note', `${atkName}% stacks additively with purple line ${atkName}%`);
-    maybeSet('food-atk-label', atkName);
-    maybeSet('matk-pct-tip', `Scales full base: FLOOR(base × (1+${atkName}%)).`);
-    maybeSet('int-pct-tip', `Scales ${mainStatName} before the ×0.6 conversion. Slightly stronger than ${atkName}% at high ${mainStatName}.`);
-    maybeSet('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
+    atkMatkSwap('matk-section-label', atkName);
+    atkMatkSwap('main-attr-label', mainStatName);
+    atkMatkSwap('module-atk-label', `Module ${atkName}`);
+    atkMatkSwap('weapon-atk-label', `Weapon ${atkName}`);
+    atkMatkSwap('attr-atk-before-label', `${atkName} before %`);
+    atkMatkSwap('eff-matk-label', `Effective ${atkName} (after %)`);
+    atkMatkSwap('s-eff-atk-label', `Effective ${atkName}`);
+    atkMatkSwap('s-def-atk-label', `${atkName} after Defense`);
+    atkMatkSwap('matk-pct-label', `${atkName} %`);
+    atkMatkSwap('int-pct-label', `${mainStatName} %`);
+    atkMatkSwap('refined-atk-label', `Refined ${atkName}`);
+    atkMatkSwap('muku-scout-note', `${atkName}% stacks additively with purple line ${atkName}%`);
+    atkMatkSwap('food-atk-label', atkName);
+    atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base × (1+${atkName}%)).`);
+    atkMatkSwap('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
   }
 
   function onFoodToggle() {
@@ -1091,106 +842,6 @@
     return isNaN(v) ? fallback : v;
   }
 
-  const LOCAL_STORAGE_STATE_KEY = 'bpsr-dmg-simulator-state';
-  const LOCAL_STORAGE_PROFILES_KEY = 'bpsr-dmg-simulator-profiles';
-
-  // ADD NEW FIELDS AT THE END OF THE ARRAY
-  const SAVE_FIELD_ORDER = [
-    'damageType',
-    'magResEnabled',
-    'inspiration',
-    'target-type',
-    'main-attr',
-    'adaptive-atk',
-    'base-atk',
-    'refined-atk',
-    'elemental-atk',
-    'crit-rate-stat',
-    'base-crit-pct',
-    'haste-stat',
-    'base-haste-pct',
-    'luck-stat',
-    'base-luck-pct',
-    'mastery-stat',
-    'base-mastery-pct',
-    'vers-dmg-pct',
-    'base-vers-pct',
-    'crit-mult',
-    'luck-chance-bonus',
-    'wl-crit-pct',
-    'wl-haste-pct',
-    'wl-luck-pct',
-    'wl-mastery-pct',
-    'wl-vers-pct',
-    'luck-effect-bonus',
-    'wl-elem-bonus',
-    'wl-crit-dmg',
-    'wl-atk-dmg',
-    'wl-magic-dmg',
-    'wl-atk-pct',
-    'matk-pct',
-    'int-pct',
-    'cast-speed-pct',
-    'atk-speed-pct',
-    'boss-dmg-pct',
-    'mastery-elem-dmg-pct',
-    'elem-dmg-pct',
-    'elem-power',
-    'gen-dmg-pct',
-    'elite-dmg-pct',
-    'mag-boost-pct',    
-    'type-dmg-bonus',
-    'type-dmg-expertise',
-    'type-dmg-special',
-    'type-dmg-basic',
-    'type-dmg-ultimate',
-    'lucky-mult-display',
-    'lucky-mult-bonus',
-    'lucky-mult-manual',
-    'enemy-armour',
-    'phys-resist-override',
-    'lock-crit',
-    'lock-luck',
-    'lock-mastery',
-    'lock-vers',
-    'substat-factor',
-    'food-enabled',
-    'food-atk',
-    'food-dmg-bonus',
-    'dream-dmg-pct',    
-    'team-luck-crit',
-  ];
-
-  // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY
-  const CLASS_FIELDS_ORDER = {
-    none: [],
-    smite: [
-      'smite-spec',
-      'luck-dmg-talent',
-      'flowers-ascension',
-      'thorn',
-      'wide-area-thorns',
-      'tree-x11',
-      'tree-x4',
-    ],
-  };
-
-  // Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY
-  const PSYCHOSCOPE_FIELDS_ORDER = {
-    none: [],
-    dreamforce: [
-      'psychoscope-bond-lvl35',
-      'psychoscope-main-stats',
-      'psychoscope-main-stats-bonus',
-      'psychoscope-amplify-rare',
-    ],
-    'fantasia-impact': [
-      'psychoscope-fantasia-bond-35',
-      'psychoscope-fantasia-linkage',
-      'psychoscope-fantasia-linkage-pct',
-      'psychoscope-fantasia-reconstruct',
-    ],
-  };
 
   function setStatus(message, isError = false) {
     const el = document.getElementById('setup-status');
@@ -1838,6 +1489,7 @@
     // === MATK ===
     const intBase      = getVal('main-attr');
     const intPct       = getVal('int-pct') / 100;
+    const mainStatPct  = getVal('main-stat-pct') / 100;
     const psychoscopeTree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
     const psychoscopeMain = psychoscopeTree === 'dreamforce' && getChecked('psychoscope-main-stats');
     const psychoscopeIntBonus = psychoscopeMain ? getVal('psychoscope-main-stats-bonus', 0) : 0;
@@ -1848,7 +1500,7 @@
     const psychoscopeFantasiaLinkagePct = psychoscopeFantasiaLinkage ? getVal('psychoscope-fantasia-linkage-pct', 0) : 0;
     const psychoscopeFantasiaReconstruct = psychoscopeTree === 'fantasia-impact' && getChecked('psychoscope-fantasia-reconstruct');
 
-    const intScaled    = (intBase + psychoscopeIntBonus) * (1 + intPct);
+    const intScaled    = (intBase + psychoscopeIntBonus) * (1 + intPct + mainStatPct);
     const weaponMatk   = getVal('base-atk');
     const matkPct      = getVal('matk-pct') / 100;
     let adaptiveMatk;
@@ -1871,8 +1523,8 @@
     // === Inspiration ===
     const inspirationBonus = parseFloat(document.getElementById('inspiration').value) / 100;
 
-    // === Substats — all use X/(X+19974)+base% except Versatility X/(X+11206)+base% ===
-    const STAT_SCALER = 19974;
+    // === Substats — all use X/(X+19975)+base% except Versatility X/(X+11206)+base% ===
+    const STAT_SCALER = 19975;
     const VERS_SCALER = 11206;
     // Base %s are now editable inputs (class loading sets them, user can override)
     const baseCrit    = getVal('base-crit-pct') / 100;
@@ -1915,6 +1567,8 @@
     let moduleLuckyStrikeBonus = 0; // Lucky Strike DMG Mult bonus from modules
     let moduleSpecialAttackElemBonus = 0; // Special Attack Elemental DMG bonus
     let autoTeamLuckCritOption = null; // Auto-update team luck/crit dropdown from the module
+    let moduleElementalAtkBonus = 0; // All Element Attack bonus from modules
+    let moduleElementalDmgStatBonus = 0; // Raw all-elemental DMG stat from modules
 
     // These are locally calculated but not used anywhere outside the note for Modules. (if at all).
     let moduleIntellectBonus = 0; // Intellect stat bonus
@@ -1924,7 +1578,6 @@
     let moduleAtkBreakdown = [];
     let moduleMatkBreakdown = [];
     let moduleCastSpeedBonus = 0; // Cast speed bonus (stored but not applied)
-    let moduleElementalAtkBonus = 0; // All Element Attack bonus from modules
     let moduleAttackSpdLevel = 0; // Track Attack SPD for module note
     let strengthBoostLevel = 0; // Track Strength Boost level for armor penetration note
     
@@ -2011,10 +1664,10 @@
       }
       
       if (moduleType === 'crit-focus' && moduleLevel > 0) {
-        // All Element Attack bonuses
-        const elementalAtkBonuses = [0, 0, 0, 20, 40, 60, 80];
-        const elementalBonus = elementalAtkBonuses[moduleLevel] || 0;
-        moduleElementalAtkBonus += elementalBonus;
+        // All Elemental DMG stat bonuses
+        const elementalDmgStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        const elementalDmgStatBonus = elementalDmgStatBonuses[moduleLevel] || 0;
+        moduleElementalDmgStatBonus += elementalDmgStatBonus;
         
         // Crit DMG bonuses
         const critDmgBonuses = [0, 0, 0, 0, 0, 0.071, 0.12];
@@ -2023,8 +1676,8 @@
       }
       
       if (moduleType === 'luck-focus' && moduleLevel > 0) {
-        const elementalAtkBonuses = [0, 0, 0, 20, 40, 60, 80];
-        moduleElementalAtkBonus += elementalAtkBonuses[moduleLevel] || 0;
+        const elementalDmgStatBonuses = [0, 0, 0, 20, 40, 60, 80];
+        moduleElementalDmgStatBonus += elementalDmgStatBonuses[moduleLevel] || 0;
 
         const luckyStrikeBonuses = [0, 0, 0, 0, 0, 0.047, 0.078];
         moduleLuckyStrikeBonus += luckyStrikeBonuses[moduleLevel] || 0;
@@ -2162,6 +1815,7 @@
       `  <span style="color:var(--accent-purple)">${matkPctSummary}</span>`;
 
     const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus;
+    const moduleAllElementalDmgPct = moduleElementalDmgStatBonus * (1/6665);
 
     const psychoscopeAmplifyRare = psychoscopeTree === 'dreamforce' && getChecked('psychoscope-amplify-rare');
     let psBonusCrit = 0, psBonusLuck = 0, psBonusMastery = 0, psBonusHaste = 0;
@@ -2216,7 +1870,7 @@
     // Wide-area Thorns: +4% elemental vs elites/bosses
     const thornEliteElem = (isSmiteClass && getChecked('wide-area-thorns') && isEliteOrBoss) ? 0.04 : 0;
     let masteryElemBonus = 0;
-    let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + flowersBonus + thornBonus + thornEliteElem;
+    let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + flowersBonus + thornBonus + thornEliteElem + moduleAllElementalDmgPct;
     let masteryElemPct = 0;
     const masteryElemEl = document.getElementById('mastery-elem-dmg-pct');
 
@@ -2244,7 +1898,7 @@
     const postWlVersDmgPct = postWlVersPct * 0.35;
 
     masteryElemBonus = (isSmiteClass ? postWlMasteryPct * 0.7 : 0);
-    elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + flowersBonus + thornBonus + thornEliteElem + masteryElemBonus;
+    elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + flowersBonus + thornBonus + thornEliteElem + masteryElemBonus + moduleAllElementalDmgPct;
     masteryElemPct = masteryElemBonus * 100;
     if (masteryElemEl) masteryElemEl.value = masteryElemPct.toFixed(3);
 
@@ -2293,9 +1947,9 @@
       if (luckDmgTalent) multPct += 5 + (postWlLuckPct * 100 * 1.2);
       multPct += getFlamehornBonus();
       if (psychoscopeFantasiaReconstruct) multPct += 10;
-      if (smiteSpec)     multPct *= 1.5;
       multPct += moduleLuckyStrikeBonus * 100;
       multPct += getVal('lucky-mult-bonus');
+      if (smiteSpec)     multPct *= 1.5;
       luckyMult = multPct / 100;
       document.getElementById('lucky-mult-display').value = multPct.toFixed(2);
     }
@@ -2362,6 +2016,8 @@
       _moduleAllDmg: moduleAllDmgBonus / 100,
       _moduleEliteDmg: moduleEliteDmgPct,
       _moduleSpecialAttackElem: moduleSpecialAttackElemBonus,
+      _moduleAllElementalDmg: moduleAllElementalDmgPct,
+      _moduleAllElementalDmgStat: moduleElementalDmgStatBonus,
       _moduleIntellect: moduleIntellectBonus,
       _moduleStrength: moduleStrengthBonus,
       _moduleAgility: moduleAgilityBonus,
@@ -2379,6 +2035,7 @@
       if (c._thorn)        ps.push(`Thorn ${(c._thorn*100).toFixed(2)}%`);
       if (c._thornElite)   ps.push(`W.Thorns ${(c._thornElite*100).toFixed(2)}%`);
       if (c._masteryElem)  ps.push(`Mastery ${(c._masteryElem*100).toFixed(3)}%`);
+      if (c._moduleAllElementalDmg) ps.push(`modules ${(c._moduleAllElementalDmg*100).toFixed(2)}%`);
       if (specialAttackBonus > 0) ps.push(`special-attack ${(specialAttackBonus*100).toFixed(2)}%`);
       const totalElem = c.elemDmgPct + specialAttackBonus;
       return ps.length ? ps.join(' + ') + ` = ${(totalElem*100).toFixed(2)}%`: `${(totalElem*100).toFixed(2)}%`;
@@ -3093,6 +2750,46 @@
   } else {
     recalc();
   }
+
+
 </script>
+
+<!-- ZDPS Import Modal -->
+<div id="zdps-modal" class="modal-overlay" style="display: none;" onclick="closeZdpsImportModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Import Stats from ZDPS</h2>
+      <button class="modal-close" onclick="closeZdpsImportModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="zdps-import-top">
+        <div class="modal-instructions">
+          <ol>
+            <li>Open ZDPS and click on your character.</li>
+            <li>In game, swap loadout to another different class/heavily different loadout. (remember to save current loadout if needed)</li>
+            <li>Swap Back to your normal loadout.</li>
+            <li>Un-equip and re-equip weapon.</li>
+            <li>Wait 20-30 seconds to lose all temporary buffs like life wave.</li>
+            <li>Go to the attributes tab in the entity inspector, and right click copy all attributes.</li>
+            <li>Paste attributes in the box below and load.</li>
+          </ol>
+        </div>
+        <textarea id="zdps-attributes" placeholder="Paste your attributes here..." style="width: 100%; min-height: 200px; background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 8px; font-family: 'Consolas', 'SF Mono', monospace; font-size: 12px; resize: vertical;"></textarea>
+      </div>
+      <button class="btn-add-skill" id="zdps-toggle-top" onclick="toggleZdpsImportTop()" style="display: none; margin-bottom: 10px;">Show instructions</button>
+      <div id="zdps-attribute-feedback" style="margin-top: 12px;"></div>
+      <div id="element-selection" style="display: none; margin-top: 10px;">
+        <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; display: block;">Select your damage element type:</label>
+        <div id="element-options" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn-add-skill" id="load-btn" onclick="loadZdpsAttributes()">Load Attributes</button>
+        <button class="btn-add-skill" id="apply-element-btn" onclick="applyElementSelection()" style="display: none;">Apply Element Selection</button>
+        <button class="btn-add-skill" onclick="closeZdpsImportModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
