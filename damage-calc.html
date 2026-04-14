@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Simulator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.3.0</span>
+      <span class="header-version">v0.3.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -368,6 +368,12 @@
                   <label for="psychoscope-fantasia-reconstruct">Reconstruct</label>
                   <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds +10% Lucky Strike DMG Mult.</span></span>
                 </div>
+                <div class="cb-row" style="align-items:center; gap:8px;">
+                  <input type="checkbox" id="psychoscope-fantasia-ultimate-fortune" onchange="recalc()">
+                  <label for="psychoscope-fantasia-ultimate-fortune">Ultimate Fortune
+                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds +10% main stat % bonus every 10 lucky hits for 5 seconds<br>(Assumes 100% uptime).</span></span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -493,6 +499,21 @@
               <div class="field"><label><span id="food-atk-label">MATK</span> (food)</label><input type="number" id="food-atk" value="195" step="1" oninput="recalc()"></div>
               <div class="field"><label>Damage Bonus (food %)</label><input type="number" id="food-dmg-bonus" value="10" step="0.1" oninput="recalc()"></div>
             </div>
+          </div>
+          <div class="checkbox-group" style="margin-top:10px;">
+            <div class="cb-row">
+              <input type="checkbox" id="serum-oil-enabled" onchange="onSerumOilToggle()" style="width:14px;height:14px;">
+              <label for="serum-oil-enabled">Serum / Oil</label>
+            </div>
+          </div>
+          <div id="serum-oil-inputs" style="display:none; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
+            <div class="field"><label>Type</label>
+              <select id="serum-oil-type" onchange="onSerumOilTypeChange()">
+                <option value="serum">Serum</option>
+                <option value="oil">Oil</option>
+              </select>
+            </div>
+            <div class="field"><label id="serum-oil-value-label">Serum Value</label><input type="number" id="serum-oil-value" value="1250" step="1" min="0" oninput="recalc()"></div>
           </div>
           <div class="field" style="margin-top:10px;">
             <label>Team Luck & Crit<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Not fully tested, Crit DMG is likely correct, but Lucky Damage values may need adjustment.</span></span></label>
@@ -758,7 +779,7 @@
   function updateAtkLabels() {
     const isPhysical = damageType === 'physical';
     const atkName = isPhysical ? 'ATK' : 'MATK';
-    const mainStatName = isPhysical ? 'Base Main Stat' : 'BASE INT';
+    const mainStatName = isPhysical ? 'Main Stat' : 'INT';
     atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
 
     const atkMatkSwap = (id, value) => {
@@ -794,6 +815,46 @@
       const foodDmgBonus = document.getElementById('food-dmg-bonus');
       if (foodAtk && (foodAtk.value === '' || foodAtk.value === null)) foodAtk.value = 195;
       if (foodDmgBonus && (foodDmgBonus.value === '' || foodDmgBonus.value === null)) foodDmgBonus.value = 10;
+    }
+
+    recalc();
+  }
+
+  function onSerumOilTypeChange() {
+    const typeSelect = document.getElementById('serum-oil-type');
+    const valueEl = document.getElementById('serum-oil-value');
+    const valueLabel = document.getElementById('serum-oil-value-label');
+    if (!typeSelect || !valueEl || !valueLabel) return;
+
+    const type = typeSelect.value;
+    if (type === 'serum') {
+      valueLabel.textContent = 'Serum Value';
+      valueEl.value = 1250;
+    } else {
+      valueLabel.textContent = 'Oil Value';
+      valueEl.value = 800;
+    }
+
+    recalc();
+  }
+
+  function onSerumOilToggle() {
+    const enabled = document.getElementById('serum-oil-enabled').checked;
+    const serumOilInputs = document.getElementById('serum-oil-inputs');
+    if (!serumOilInputs) return;
+    serumOilInputs.style.display = enabled ? 'grid' : 'none';
+
+    if (enabled) {
+      const typeSelect = document.getElementById('serum-oil-type');
+      const valueEl = document.getElementById('serum-oil-value');
+      const valueLabel = document.getElementById('serum-oil-value-label');
+      if (!typeSelect || !valueEl || !valueLabel) return;
+      valueLabel.textContent = typeSelect.value === 'oil' ? 'Oil Value' : 'Serum Value';
+      if (typeSelect.value === 'oil') {
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 800;
+      } else {
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 1250;
+      }
     }
 
     recalc();
@@ -1297,6 +1358,7 @@
     });
 
     onFoodToggle();
+    onSerumOilToggle();
     onPsychoscopeChange();
     recalc();
   }
@@ -1499,8 +1561,10 @@
     const psychoscopeFantasiaLinkage = psychoscopeTree === 'fantasia-impact' && getChecked('psychoscope-fantasia-linkage');
     const psychoscopeFantasiaLinkagePct = psychoscopeFantasiaLinkage ? getVal('psychoscope-fantasia-linkage-pct', 0) : 0;
     const psychoscopeFantasiaReconstruct = psychoscopeTree === 'fantasia-impact' && getChecked('psychoscope-fantasia-reconstruct');
+    const psychoscopeFantasiaUltimateFortune = psychoscopeTree === 'fantasia-impact' && getChecked('psychoscope-fantasia-ultimate-fortune');
+    const ultimateFortunePct = psychoscopeFantasiaUltimateFortune ? 0.10 : 0;
 
-    const intScaled    = (intBase + psychoscopeIntBonus) * (1 + intPct + mainStatPct);
+    const intScaled    = (intBase + psychoscopeIntBonus) * (1 + intPct + mainStatPct + ultimateFortunePct);
     const weaponMatk   = getVal('base-atk');
     const matkPct      = getVal('matk-pct') / 100;
     let adaptiveMatk;
@@ -1962,6 +2026,17 @@
     const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
     const foodDmgBonusPct = foodEnabled ? getVal('food-dmg-bonus') / 100 : 0;
 
+    const serumOilEnabled = getChecked('serum-oil-enabled');
+    const serumOilType = document.getElementById('serum-oil-type')?.value || 'serum';
+    const serumOilValue = serumOilEnabled ? getVal('serum-oil-value') : 0;
+    const serumOilPct = serumOilEnabled && serumOilValue > 0 ? serumOilValue / (serumOilValue + 6494) : 0;
+    if (serumOilEnabled && serumOilType === 'serum') {
+      elemDmgPct += serumOilPct;
+    }
+    if (serumOilEnabled && serumOilType === 'oil') {
+      magBoostPct += serumOilPct;
+    }
+
     const atkDefReduced  = effectiveAtk * (1 - resistance);
     const defenseFreeAtk = refinedAtk + elementalAtk;
 
@@ -2005,6 +2080,7 @@
       _dreamforceBond: psychoscopeDreamforceBonusPct, _dreamManual: getVal('dream-dmg-pct') / 100, _dreamX11: dreamX11Bonus,
       _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg,
       _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _luckyGenPct: luckyGenPct, _magBoost: magBoostPct,
+      _serumOilEnabled: serumOilEnabled, _serumOilType: serumOilType, _serumOilValue: serumOilValue, _serumOilPct: serumOilPct,
       _smiteSpec: smiteSpec, _treeX11: treeX11, _luckDmgTalent: luckDmgTalent,
       _targetType: targetType,
       _foodEnabled: foodEnabled,
@@ -2035,6 +2111,7 @@
       if (c._thorn)        ps.push(`Thorn ${(c._thorn*100).toFixed(2)}%`);
       if (c._thornElite)   ps.push(`W.Thorns ${(c._thornElite*100).toFixed(2)}%`);
       if (c._masteryElem)  ps.push(`Mastery ${(c._masteryElem*100).toFixed(3)}%`);
+      if (c._serumOilType === 'serum' && c._serumOilPct) ps.push(`serum ${(c._serumOilPct*100).toFixed(2)}%`);
       if (c._moduleAllElementalDmg) ps.push(`modules ${(c._moduleAllElementalDmg*100).toFixed(2)}%`);
       if (specialAttackBonus > 0) ps.push(`special-attack ${(specialAttackBonus*100).toFixed(2)}%`);
       const totalElem = c.elemDmgPct + specialAttackBonus;

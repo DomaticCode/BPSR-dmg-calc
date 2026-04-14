@@ -108,6 +108,9 @@ const SAVE_FIELD_ORDER = [
   'dream-dmg-pct',    
   'team-luck-crit',
   'main-stat-pct',
+  'serum-oil-enabled',
+  'serum-oil-type',
+  'serum-oil-value',
 ];
 
 // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY
@@ -138,6 +141,7 @@ const PSYCHOSCOPE_FIELDS_ORDER = {
     'psychoscope-fantasia-linkage',
     'psychoscope-fantasia-linkage-pct',
     'psychoscope-fantasia-reconstruct',
+    'psychoscope-fantasia-ultimate-fortune',
   ],
 };
 
