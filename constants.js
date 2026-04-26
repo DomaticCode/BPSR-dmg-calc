@@ -1,15 +1,3 @@
-// Flamehorn lucky strike DMG boost by level
-const FLAMEHORN_BOOST = [8, 10.4, 12.8, 15.2, 17.6, 20];
-// Muku Scout MATK% / ATK% boost per level (passive = 3 stacks, active = 6 stacks)
-const MUKU_PASSIVE_PER_STACK = [2, 2.6, 3.2, 3.8, 4.4, 5];
-const MUKU_PASSIVE_STACKS    = 3;
-const MUKU_ACTIVE_STACKS     = 6;
-
-// Muku Chief bonus arrays
-const MUKU_CHIEF_PASSIVE_CRIT_DMG = [0.10, 0.13, 0.16, 0.19, 0.22, 0.25];
-const MUKU_CHIEF_ACTIVE_CRIT_STAT = [2040, 2688, 3136, 3584, 4032, 4480];
-const MUKU_CHIEF_ACTIVE_CRIT_DMG = [0.30, 0.37, 0.44, 0.51, 0.58, 0.65];
-
 // Base % by class: crit, haste, luck, mastery, vers
 const CLASS_BASES = {
   none:  { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
@@ -41,6 +29,13 @@ const MODULE_DATA = {
   'team-luck-crit': { name: 'Team Luck & Crit' }
 };
 
+// Not used atm, but for future use
+const IMAGINE_DATA = {
+  'flamehorn': { name: 'Flamehorn' },
+  'muku-scout': { name: 'Muku Scout' },
+  'muku-chief': { name: 'Muku Chief' },
+  'rorola': { name: 'Rorola' },
+};
 
 // ADD NEW FIELDS AT THE END OF THE ARRAY
 const SAVE_FIELD_ORDER = [
@@ -113,7 +108,7 @@ const SAVE_FIELD_ORDER = [
   'serum-oil-value',
 ];
 
-// Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY
+// Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
 const CLASS_FIELDS_ORDER = {
   none: [],
   smite: [
@@ -127,7 +122,7 @@ const CLASS_FIELDS_ORDER = {
   ],
 };
 
-// Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY
+// Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY (for dropdown selection)
 const PSYCHOSCOPE_FIELDS_ORDER = {
   none: [],
   dreamforce: [

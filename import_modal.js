@@ -251,7 +251,7 @@ function applyElementSelection() {
 }
 function finishLoad() {
   // Recalc and close modal
-  recalc();
+  calc();
   closeZdpsImportModal();
 }
 

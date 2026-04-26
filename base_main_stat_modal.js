@@ -143,7 +143,8 @@ function applyBaseMainStatFromModal() {
   }
 
   closeBaseMainStatModal();
-  if (typeof recalc === 'function') recalc();
+  // Call calc to re-calc with new stats
+  if (typeof calc === 'function') calc();
 }
 
 if (document.readyState !== 'loading') {
