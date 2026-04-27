@@ -23,9 +23,9 @@
     const extraPerStack = (ROROLA_ACTIVE_EXTRA_DAMAGE_BOOST_PER_STACK && ROROLA_ACTIVE_EXTRA_DAMAGE_BOOST_PER_STACK[level]) || 0;
     const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
     const stacks = stacksEl ? (parseInt(stacksEl.value) || 0) : 0;
+    if (stacks > 5) stacks = 5; // cap stacks at 5
     const activeExtraTotal = (mode === 'active') ? (extraPerStack * stacks) : 0;
     const genDamagePct = activeDamage + activeExtraTotal;
-    console.log(`Rorola bonuses for slot ${slot}: level ${level}, mode ${mode}, stacks ${stacks} => mainStat ${mainStat}, activeDamage ${activeDamage}, extraTotal ${activeExtraTotal}`);
     return { mainStat, genDamagePct};
   }
   window.IMAGINES['rorola'] = { provideBonuses };

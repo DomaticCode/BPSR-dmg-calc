@@ -204,14 +204,18 @@ function calc() {
 
   // Weapon line substats: flat boosts added directly to final substat %s
   const wlCritBonus  = getVal('wl-crit-pct') / 100;
+  const wlHasteBonus = getVal('wl-haste-pct') / 100;
   const wlLuckBonus  = getVal('wl-luck-pct') / 100;
   const wlVersBonus  = getVal('wl-vers-pct') / 100;
   const wlMasteryBonus = getVal('wl-mastery-pct') / 100;
   const postWlCritPct    = finalCritPct + wlCritBonus;
+  const postWlHastePct   = finalHastePct + wlHasteBonus; 
   const postWlLuckPct    = finalLuckPct + wlLuckBonus;
   const postWlVersPct    = finalVersPct + wlVersBonus;
   const postWlMasteryPct = finalMasteryPct + wlMasteryBonus;
   const postWlVersDmgPct = postWlVersPct * 0.35;
+
+  console.log("haste % = " + postWlHastePct);
 
   // Get class-provided bonus toggles (smite provider exposes simple flags/values)
   const classSelectVal = document.getElementById('class-select')?.value || 'none';
@@ -221,6 +225,7 @@ function calc() {
       try {
         return provider({
           crit: postWlCritPct,
+          haste: postWlHastePct,
           luck: postWlLuckPct,
           vers: postWlVersPct,
           mastery: postWlMasteryPct,
@@ -259,7 +264,7 @@ function calc() {
   document.getElementById('sub-vers-pct').textContent    = (postWlVersPct * 100).toFixed(2) + '%';
   document.getElementById('sub-luck-pct').textContent    = (postWlLuckPct * 100).toFixed(2) + '%';
   document.getElementById('sub-mastery-pct').textContent = (postWlMasteryPct * 100).toFixed(2) + '%';
-  document.getElementById('sub-haste-pct').textContent   = (finalHastePct * 100).toFixed(2) + '%';
+  document.getElementById('sub-haste-pct').textContent   = (postWlHastePct * 100).toFixed(2) + '%';
 
   if (critPctEl) critPctEl.value = (postWlCritPct * 100).toFixed(2);
 
