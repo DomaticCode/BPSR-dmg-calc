@@ -9,6 +9,7 @@
       && document.getElementById('psychoscope-fantasia-bond-35').checked;
     const linkage = tree === 'fantasia-impact' && !!document.getElementById('psychoscope-fantasia-linkage') 
       && document.getElementById('psychoscope-fantasia-linkage').checked;
+    const linkageLevel = linkage ? parseInt(document.getElementById('psychoscope-fantasia-linkage-pct').value) : 0;
     const reconstruct = tree === 'fantasia-impact' && !!document.getElementById('psychoscope-fantasia-reconstruct') 
       && document.getElementById('psychoscope-fantasia-reconstruct').checked;
     const ultimateFortune = tree === 'fantasia-impact' && !!document.getElementById('psychoscope-fantasia-ultimate-fortune') 
@@ -16,7 +17,7 @@
 
     let luckPct = 0;
     if (bond) luckPct += 0.01;
-    if (linkage) luckPct += 0.03;
+    if (linkage) luckPct += linkageLevel / 100;
 
     const luckyStrikeMult = reconstruct ? 0.1 : 0;
     const mainStatPct = ultimateFortune ? 0.10 : 0;

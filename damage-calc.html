@@ -10,10 +10,10 @@
 <div class="container">
 
   <header>
-    <h1>BP<span>:</span>SR Damage Simulator</h1>
+    <h1>BP<span>:</span>SR Damage Calculator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.4.2</span>
+      <span class="header-version">v0.4.3</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -400,6 +400,7 @@
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="tina">Tina</div>
                     <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                    <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
@@ -437,6 +438,7 @@
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="tina">Tina</div>
                     <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                    <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
@@ -626,6 +628,7 @@
 <script src="imagines/tatta.js"></script>
 <script src="imagines/dorothy.js"></script>
 <script src="imagines/celestial-flier.js"></script>
+<script src="imagines/phantom-arachnocrab.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -711,13 +714,13 @@
     const hasImagine = !!val && val !== 'none';
     levelField.style.display = hasImagine ? '' : 'none';
     // Show mode for imagines that have active/passive modes
-    modeField.style.display = (val === 'muku-scout' || val === 'muku-chief' || val === 'rorola' || val === "celestial-flier") ? '' : 'none';
+    modeField.style.display = (val === 'muku-scout' || val === 'muku-chief' || val === 'rorola' || val === 'celestial-flier' || val === 'phantom-arachnocrab') ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola') ? '' : 'none';
     // Show passive stats checkbox for passive stats imagines
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
-    if (passiveField) passiveField.style.display = (val === 'flamehorn' || val === 'celestial-flier') ? '' : 'none';
+    if (passiveField) passiveField.style.display = (val === 'flamehorn' || val === 'celestial-flier' || val === 'phantom-arachnocrab') ? '' : 'none';
     
     updateImagineNotes();
     calc();

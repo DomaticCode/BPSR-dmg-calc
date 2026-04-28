@@ -19,8 +19,13 @@ function calc() {
   const imagineMainStat = (imagineBonuses.mainStat || 0) / 100;
   const imagineMatkPct  = (imagineBonuses.matkPct || 0) / 100;
   const imagineGenDamagePct = (imagineBonuses.genDamagePct || 0) / 100;
+  const imagineCritDmgPct = (imagineBonuses.critDmgPct || 0) / 100;
 
   const imagineHastePct = (imagineBonuses.hastePct || 0) / 100;
+  const imagineMasteryPct = (imagineBonuses.masteryPct || 0) / 100;
+  const imagineLuckPct = (imagineBonuses.masteryPct || 0) / 100;
+  const imagineVersatilityPct = (imagineBonuses.masteryPct || 0) / 100;
+  const imagineCritPct = (imagineBonuses.critPct || 0) / 100;
 
   const optimizerFactor = getOptimizerFactor(); // substat factors
   const imagineCritStat = (imagineBonuses.critStat || 0) * optimizerFactor.crit;
@@ -86,8 +91,8 @@ function calc() {
   const luckChanceBonus = getVal('luck-chance-bonus') / 100;
   const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonus + luckChanceBonus;
 
-  const masteryStat  = getVal('mastery-stat');
-  const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonus;
+  const masteryStat  = getVal('mastery-stat') + imagineMasteryStat;
+  const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonus + imagineMasteryPct;
 
   const hasteStat    = getVal('haste-stat') + imagineHasteStat;
   const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonus + imagineHastePct;
@@ -201,7 +206,6 @@ function calc() {
   if (critPctEl) critPctEl.value = (finalCritPct * 100).toFixed(2);
 
   const critMultPct = getVal('crit-mult', 150) / 100;
-  const imagineCritDmgPct = (imagineBonuses && typeof imagineBonuses.critDmg === 'number') ? imagineBonuses.critDmg : 0;
 
   // === Target type ===
   const targetType    = document.getElementById('target-type').value;
