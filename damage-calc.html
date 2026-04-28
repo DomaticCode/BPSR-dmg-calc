@@ -383,11 +383,14 @@
                   <input type="text" class="module-search-input" id="imagine-1-search" placeholder="Select imagine..." autocomplete="off">
                   <input type="hidden" id="imagine-1" value="">
                   <div class="module-dropdown" id="imagine-dropdown-1" style="display:none;">
-                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
-                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
                     <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
                     <div class="module-option" data-value="rorola">Rorola</div>
                     <div class="module-option" data-value="airona">Airona</div>
+                    <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="tatta">Tatta</div>
+                    <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
                 </div>
               </div>
@@ -414,11 +417,14 @@
                   <input type="text" class="module-search-input" id="imagine-2-search" placeholder="Select imagine..." autocomplete="off">
                   <input type="hidden" id="imagine-2" value="">
                   <div class="module-dropdown" id="imagine-dropdown-2" style="display:none;">
-                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
-                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
                     <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
                     <div class="module-option" data-value="rorola">Rorola</div>
                     <div class="module-option" data-value="airona">Airona</div>
+                    <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="tatta">Tatta</div>
+                    <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
                 </div>
               </div>
@@ -442,6 +448,10 @@
           <div class="note" id="imagine-notes" style="margin-top:10px;">
             <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Luck stat NOT included here — add to Luck Stat manually if testing non-equipped levels.</div>
             <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+            <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+            <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+            <div id="imagine-note-tatta" style="display:none;"><span class="hl">Tatta:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+            <div id="imagine-note-dorothy" style="display:none;"><span class="hl">Dorothy:</span> <span class="highlight-purple">Transformation not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
           </div>
         </div>
       </div>
@@ -606,6 +616,9 @@
 <script src="imagines/flamehorn.js"></script>
 <script src="imagines/rorola.js"></script>
 <script src="imagines/airona.js"></script>
+<script scr="imagines/tina.js"></script>
+<script scr="imagines/tatta.js"></script>
+<script scr="imagines/dorothy.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -704,25 +717,33 @@
     const imagine1 = document.getElementById('imagine-1').value;
     const imagine2 = document.getElementById('imagine-2').value;
 
-    const hasFlamehorn = imagine1 === 'flamehorn' || imagine2 === 'flamehorn';
-    const hasMukuScout = imagine1 === 'muku-scout' || imagine2 === 'muku-scout';
-    const hasMukuChief = imagine1 === 'muku-chief' || imagine2 === 'muku-chief';
-    const hasRorola = imagine1 === 'rorola' || imagine2 === 'rorola';
-    const hasAirona = imagine1 === 'airona' || imagine2 === 'airona';
+    const selected = new Set([imagine1, imagine2]);
 
-    const setVis = (id, flag) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.style.display = flag ? 'block' : 'none';
-    };
+    const imaginesWithNotes = [
+      'flamehorn',
+      'rorola',
+      'airona',
+      'tina',
+      'tatta',
+      'dorothy'
+    ];
 
-    setVis('imagine-note-flamehorn', hasFlamehorn);
-    setVis('imagine-note-muku-scout', hasMukuScout);
-    setVis('imagine-note-muku-chief', hasMukuChief);
-    setVis('imagine-note-rorola', hasRorola);
-    setVis('imagine-note-airona', hasAirona);
+    let hasAnyNote = false;
+
+    for (const name of imaginesWithNotes) {
+      const el = document.getElementById(`imagine-note-${name}`);
+      if (!el) continue;
+
+      const show = selected.has(name);
+      el.style.display = show ? 'block' : 'none';
+
+      if (show) hasAnyNote = true;
+    }
+
     const notesContainer = document.getElementById('imagine-notes');
-    if (notesContainer) notesContainer.style.display = (hasFlamehorn) ? 'block' : 'none';
+    if (notesContainer) {
+      notesContainer.style.display = hasAnyNote ? 'block' : 'none';
+    }
   }
 
   function getImagineBonuses() {
