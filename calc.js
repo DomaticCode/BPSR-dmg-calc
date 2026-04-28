@@ -82,7 +82,7 @@ function calc() {
   const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonus;
   const versDmgPct  = versPct * 0.35;
 
-  const luckStat        = getVal('luck-stat');
+  const luckStat        = getVal('luck-stat') + imagineLuckStat;
   const luckChanceBonus = getVal('luck-chance-bonus') / 100;
   const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonus + luckChanceBonus;
 

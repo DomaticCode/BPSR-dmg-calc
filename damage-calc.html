@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Simulator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.4.0</span>
+      <span class="header-version">v0.4.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -412,13 +412,14 @@
                   <option value="3">3</option><option value="4">4</option><option value="5">5</option>
                 </select>
               </div>
+              <div class="field" id="imagine-1-passive-field" style="display:none;">
+                                <label><input type="checkbox" id="imagine-2-passive-stats" onchange="calc()"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+              </div>
               <div class="field" id="imagine-1-mode-field" style="display:none;">
-                <label>Mode</label>
                 <div class="radio-group">
                   <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="calc()"> Passive</label>
                   <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="calc()"> Active</label>
                   <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="calc()" style="width:54px;"></span>
-                  <span id="imagine-1-passive-stats-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="imagine-1-passive-stats" onchange="calc()"> <label for="imagine-1-passive-stats">Apply passive stats</label></span>
                 </div>
               </div>
             </div>
@@ -448,19 +449,20 @@
                   <option value="3">3</option><option value="4">4</option><option value="5">5</option>
                 </select>
               </div>
+              <div class="field" id="imagine-2-passive-field" style="display:none;">
+                <label><input type="checkbox" id="imagine-2-passive-stats" onchange="calc()"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+              </div>
               <div class="field" id="imagine-2-mode-field" style="display:none;">
-                <label>Mode</label>
                 <div class="radio-group">
                   <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="calc()"> Passive</label>
                   <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="calc()"> Active</label>
                   <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="calc()" style="width:54px;"></span>
-                  <span id="imagine-2-passive-stats-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="imagine-2-passive-stats" onchange="calc()"> <label for="imagine-2-passive-stats">Apply passive stats</label></span>
                 </div>
               </div>
             </div>
           </div>
           <div class="note" id="imagine-notes" style="margin-top:10px;">
-            <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Luck stat NOT included here — add to Luck Stat manually if testing non-equipped levels.</div>
+            <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is active.</div>
             <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
@@ -713,9 +715,9 @@
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola') ? '' : 'none';
-    // Show passive stats checkbox only for Celestial Flier
-    const passiveStatsField = document.getElementById(`imagine-${slot}-passive-stats-field`);
-    if (passiveStatsField) passiveStatsField.style.display = (val === 'celestial-flier') ? '' : 'none';
+    // Show passive stats checkbox for passive stats imagines
+    const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
+    if (passiveField) passiveField.style.display = (val === 'flamehorn' || val === 'celestial-flier') ? '' : 'none';
     
     updateImagineNotes();
     calc();
