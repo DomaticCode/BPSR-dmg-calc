@@ -76,6 +76,16 @@
         <option value="boss">Boss</option>
       </select>
     </div>
+    <div class="field">
+      <label>Substat Factor</label>
+      <select id="substat-factor" onchange="onOptimizerInputsChange()">
+        <option value="none">None</option>
+        <option value="crit+10_mastery-6">Crit +10%, Mastery -6%</option>
+        <option value="luck+10_haste-6">Luck +10%, Haste -6%</option>
+        <option value="mastery+10_luck-6">Mastery +10%, Luck -6%</option>
+        <option value="haste+10_crit-6">Haste +10%, Crit -6%</option>
+      </select>
+    </div>
   </div>
 
   <div class="main-grid">
@@ -389,6 +399,7 @@
                     <div class="module-option" data-value="rorola">Rorola</div>
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
@@ -407,6 +418,7 @@
                   <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="calc()"> Passive</label>
                   <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="calc()"> Active</label>
                   <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="calc()" style="width:54px;"></span>
+                  <span id="imagine-1-passive-stats-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="imagine-1-passive-stats" onchange="calc()"> <label for="imagine-1-passive-stats">Apply passive stats</label></span>
                 </div>
               </div>
             </div>
@@ -423,6 +435,7 @@
                     <div class="module-option" data-value="rorola">Rorola</div>
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
                   </div>
@@ -441,6 +454,7 @@
                   <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="calc()"> Passive</label>
                   <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="calc()"> Active</label>
                   <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="calc()" style="width:54px;"></span>
+                  <span id="imagine-2-passive-stats-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="imagine-2-passive-stats" onchange="calc()"> <label for="imagine-2-passive-stats">Apply passive stats</label></span>
                 </div>
               </div>
             </div>
@@ -569,16 +583,6 @@
             <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-mastery" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Mastery</label>
             <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-vers" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Vers</label>
           </div>
-          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:10px;">
-            <label style="font-size:11px; color:var(--text-muted);">Substat factor</label>
-            <select id="substat-factor" onchange="onOptimizerInputsChange()" style="font-size:12px; background:var(--bg-input); border:1px solid var(--border); border-radius:4px; color:var(--text); padding:4px;">
-              <option value="none">None</option>
-              <option value="luck+10_haste-6">Luck +10%, Haste -6%</option>
-              <option value="crit+10_mastery-6">Crit +10%, Mastery -6%</option>
-              <option value="mastery+10_luck-6">Mastery +10%, Luck -6%</option>
-              <option value="haste+10_crit-6">Haste +10%, Crit -6%</option>
-            </select>
-          </div>
           <div class="input-row">
             <div class="field" style="grid-column:1 / -1; display:flex; gap:8px;">
               <button class="btn-add-skill" id="optimize-substats-button" onclick="optimizeSubstats()" style="width:100%;">Optimize substats</button>
@@ -616,9 +620,10 @@
 <script src="imagines/flamehorn.js"></script>
 <script src="imagines/rorola.js"></script>
 <script src="imagines/airona.js"></script>
-<script scr="imagines/tina.js"></script>
-<script scr="imagines/tatta.js"></script>
-<script scr="imagines/dorothy.js"></script>
+<script src="imagines/tina.js"></script>
+<script src="imagines/tatta.js"></script>
+<script src="imagines/dorothy.js"></script>
+<script src="imagines/celestial-flier.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -704,10 +709,13 @@
     const hasImagine = !!val && val !== 'none';
     levelField.style.display = hasImagine ? '' : 'none';
     // Show mode for imagines that have active/passive modes
-    modeField.style.display = (val === 'muku-scout' || val === 'muku-chief' || val === 'rorola') ? '' : 'none';
+    modeField.style.display = (val === 'muku-scout' || val === 'muku-chief' || val === 'rorola' || val === "celestial-flier") ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola') ? '' : 'none';
+    // Show passive stats checkbox only for Celestial Flier
+    const passiveStatsField = document.getElementById(`imagine-${slot}-passive-stats-field`);
+    if (passiveStatsField) passiveStatsField.style.display = (val === 'celestial-flier') ? '' : 'none';
     
     updateImagineNotes();
     calc();
@@ -1153,12 +1161,15 @@
       const mode = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive';
       const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
       const stacks = stacksEl ? parseInt(stacksEl.value) || 0 : 0;
+      const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+      const passiveStats = passiveStatsEl ? passiveStatsEl.checked : false;
       
       imagineState.push([
         imagine,
         level,
         mode,
-        stacks
+        stacks,
+        passiveStats
       ]);
     }
 
@@ -1359,11 +1370,11 @@
 
     // Load imagine state (new format) or imagine modes (old format)
     if (Array.isArray(state.i)) {
-      // New format: [imagineType, level, mode]
+      // New format: [imagineType, level, mode, stacks, passiveStats]
       for (let slot = 1; slot <= 2; slot++) {
         const imagineData = state.i[slot - 1];
         if (Array.isArray(imagineData) && imagineData.length >= 3) {
-          const [imagineType, level, mode] = imagineData;
+          const [imagineType, level, mode, stacks, passiveStats] = imagineData;
           
           // Set imagine type (hidden value) and update search text if present
           const imagineEl = document.getElementById(`imagine-${slot}`);
@@ -1384,7 +1395,10 @@
             if (modeRadio) modeRadio.checked = true;
             // Set stacks (new field)
             const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
-            if (stacksEl && imagineData.length >= 4) stacksEl.value = imagineData[3] || 0;
+            if (stacksEl && imagineData.length >= 4) stacksEl.value = stacks || 0;
+            // Set passive stats checkbox
+            const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+            if (passiveStatsEl && imagineData.length >= 5) passiveStatsEl.checked = Boolean(passiveStats);
           
           // Update the imagine change to show/hide mode field
           onImagineChange(slot);

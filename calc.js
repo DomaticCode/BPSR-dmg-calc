@@ -20,6 +20,19 @@ function calc() {
   const imagineMatkPct  = (imagineBonuses.matkPct || 0) / 100;
   const imagineGenDamagePct = (imagineBonuses.genDamagePct || 0) / 100;
 
+  const imagineHastePct = (imagineBonuses.hastePct || 0) / 100;
+
+  const optimizerFactor = getOptimizerFactor(); // substat factors
+  const imagineCritStat = (imagineBonuses.critStat || 0) * optimizerFactor.crit;
+  const imagineHasteStat = (imagineBonuses.hasteStat || 0) * optimizerFactor.haste;
+  const imagineLuckStat = (imagineBonuses.luckStat || 0) * optimizerFactor.luck;
+  const imagineMasteryStat = (imagineBonuses.masteryStat || 0) * optimizerFactor.mastery;
+  const imagineVersatilityStat = (imagineBonuses.versatilityStat || 0) * optimizerFactor.vers;
+
+  console.log(`imagine added substats: crit ${imagineCritStat.toFixed(2)}, haste ${imagineHasteStat, imagineHasteStat  .toFixed(2)}, luck ${imagineLuckStat.toFixed(2)}, mastery ${imagineMasteryStat.toFixed(2)}, vers ${imagineVersatilityStat.toFixed(2)}`);
+
+  console.log(`imagine`)
+
   const intScaled    = (intBase + psychoscopeMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStat);
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
@@ -61,7 +74,6 @@ function calc() {
   const baseVers    = getVal('base-vers-pct') / 100;
 
   const baseCritStat = getVal('crit-rate-stat');
-  let imagineCritStat = imagineBonuses.critStat || 0;
   
   const critStat      = baseCritStat + imagineCritStat;
   const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonus;
@@ -77,8 +89,8 @@ function calc() {
   const masteryStat  = getVal('mastery-stat');
   const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonus;
 
-  const hasteStat    = getVal('haste-stat');
-  const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonus;
+  const hasteStat    = getVal('haste-stat') + imagineHasteStat;
+  const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonus + imagineHastePct;
 
   // Modules LifeWave bonuses (RAW PERCENTS)
   let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
