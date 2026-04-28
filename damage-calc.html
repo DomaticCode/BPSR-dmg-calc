@@ -387,6 +387,7 @@
                     <div class="module-option" data-value="muku-scout">Muku Scout</div>
                     <div class="module-option" data-value="muku-chief">Muku Chief</div>
                     <div class="module-option" data-value="rorola">Rorola</div>
+                    <div class="module-option" data-value="airona">Airona</div>
                   </div>
                 </div>
               </div>
@@ -417,6 +418,7 @@
                     <div class="module-option" data-value="muku-scout">Muku Scout</div>
                     <div class="module-option" data-value="muku-chief">Muku Chief</div>
                     <div class="module-option" data-value="rorola">Rorola</div>
+                    <div class="module-option" data-value="airona">Airona</div>
                   </div>
                 </div>
               </div>
@@ -603,6 +605,7 @@
 <script src="imagines/muku-chief.js"></script>
 <script src="imagines/flamehorn.js"></script>
 <script src="imagines/rorola.js"></script>
+<script src="imagines/airona.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -705,6 +708,7 @@
     const hasMukuScout = imagine1 === 'muku-scout' || imagine2 === 'muku-scout';
     const hasMukuChief = imagine1 === 'muku-chief' || imagine2 === 'muku-chief';
     const hasRorola = imagine1 === 'rorola' || imagine2 === 'rorola';
+    const hasAirona = imagine1 === 'airona' || imagine2 === 'airona';
 
     const setVis = (id, flag) => {
       const el = document.getElementById(id);
@@ -716,6 +720,7 @@
     setVis('imagine-note-muku-scout', hasMukuScout);
     setVis('imagine-note-muku-chief', hasMukuChief);
     setVis('imagine-note-rorola', hasRorola);
+    setVis('imagine-note-airona', hasAirona);
     const notesContainer = document.getElementById('imagine-notes');
     if (notesContainer) notesContainer.style.display = (hasFlamehorn) ? 'block' : 'none';
   }
