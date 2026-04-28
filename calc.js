@@ -384,7 +384,7 @@ function calc() {
     _damageType: damageType,
   };
 
-  // helper: build elemental and generic detail strings
+  // helper: build class specific damage formula detail strings
   function getClassFormulaParts(kind = 'elem') {
     try {
       const classSelectVal = document.getElementById('class-select')?.value || 'none';
@@ -403,6 +403,24 @@ function calc() {
     return '';
   }
 
+  // helper: build imagine specific damage formula detail strings
+  function getImagineFormulaParts(kind = 'gen') {
+    const parts = [];
+    for (let slot = 1; slot <= 3; slot++) {
+      const sel = document.getElementById(`imagine-${slot}`);
+      if (!sel || sel.value === 'none') continue;
+      const provider = window.IMAGINES && window.IMAGINES[sel.value];
+      if (!provider || typeof provider.provideFormulaParts !== 'function') continue;
+      try {
+        const part = provider.provideFormulaParts(kind, slot);
+        if (part) parts.push(part);
+      } catch (e) {
+        console.warn('imagine formula parts error', e);
+      }
+    }
+    return parts.join(' + ');
+  }
+
   function buildElemStr(c, specialAttackBonus = 0) {
     const ps = [];
     if (c._additionalElem) ps.push(`additional ${(c._additionalElem*100).toFixed(1)}%`);
@@ -413,6 +431,8 @@ function calc() {
     // Allow class modules to inject elemental parts (e.g., Smite: Flowers/Thorn/Mastery)
     const classElemParts = getClassFormulaParts('elem');
     if (classElemParts) ps.push(classElemParts);
+    const imagineElemParts = getImagineFormulaParts('elem');
+    if (imagineElemParts) ps.push(imagineElemParts);
     const totalElem = c.elemDmgPct;
     return ps.length ? ps.join(' + ') + ` = ${(totalElem*100).toFixed(2)}%`: `${(totalElem*100).toFixed(2)}%`;
   }
@@ -431,6 +451,8 @@ function calc() {
     if (typePct)      ps.push(`${typeLabel} ${(typePct*100).toFixed(2)}%`);
     const classGenParts = getClassFormulaParts('gen');
     if (classGenParts) ps.push(classGenParts);
+    const imagineGenParts = getImagineFormulaParts('gen');
+    if (imagineGenParts) ps.push(imagineGenParts);
     const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (typePct||0);
     return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
   }
@@ -440,6 +462,8 @@ function calc() {
     if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
     const classDreamParts = getClassFormulaParts('dream');
     if (classDreamParts) ps.push(classDreamParts);
+    const imagineDreamParts = getImagineFormulaParts('dream');
+    if (imagineDreamParts) ps.push(imagineDreamParts);
     return ps.length ? ps.join(' + ') + `=${(c._dreamforce*100).toFixed(2)}%` : `${(c._dreamforce*100).toFixed(2)}%`;
   }
   function buildLuckyGenStr(c) {
@@ -456,6 +480,8 @@ function calc() {
     ps.push(`luck-eff ${(c.luckEffectPct*100).toFixed(2)}%`);
     const classLuckyGenParts = getClassFormulaParts('luckyGen');
     if (classLuckyGenParts) ps.push(classLuckyGenParts);
+    const imagineLuckyGenParts = getImagineFormulaParts('luckyGen');
+    if (imagineLuckyGenParts) ps.push(imagineLuckyGenParts);
     return ps.length ? ps.join(' + ') + `=${(c._luckyGenPct*100).toFixed(2)}%` : `${(c._luckyGenPct*100).toFixed(2)}%`;
   }
   function buildDreamStrLucky(c) {
@@ -464,6 +490,8 @@ function calc() {
     if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
     const classDreamLuckyParts = getClassFormulaParts('dreamLucky');
     if (classDreamLuckyParts) ps.push(classDreamLuckyParts);
+    const imagineDreamLuckyParts = getImagineFormulaParts('dreamLucky');
+    if (imagineDreamLuckyParts) ps.push(imagineDreamLuckyParts);
     const total = dreamDmgPctLucky;
     return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
   }

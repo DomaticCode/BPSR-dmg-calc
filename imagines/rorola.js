@@ -28,5 +28,20 @@
     const genDamagePct = activeDamage + activeExtraTotal;
     return { mainStat, genDamagePct};
   }
-  window.IMAGINES['rorola'] = { provideBonuses };
+  function provideFormulaParts(kind, slot) {
+    if (kind !== 'gen') return '';
+    const levelEl = document.getElementById(`imagine-${slot}-level`);
+    const level = levelEl ? parseInt(levelEl.value) : 0;
+    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
+    const mode = modeEl ? modeEl.value : 'passive';
+    const activeDamage = (mode === 'active') ? ((ROROLA_ACTIVE_DAMAGE_BOOST && ROROLA_ACTIVE_DAMAGE_BOOST[level]) || 0) : 0;
+    const extraPerStack = (ROROLA_ACTIVE_EXTRA_DAMAGE_BOOST_PER_STACK && ROROLA_ACTIVE_EXTRA_DAMAGE_BOOST_PER_STACK[level]) || 0;
+    const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
+    const stacks = stacksEl ? (parseInt(stacksEl.value) || 0) : 0;
+    if (stacks > 5) stacks = 5;
+    const activeExtraTotal = (mode === 'active') ? (extraPerStack * stacks) : 0;
+    const genDamagePct = activeDamage + activeExtraTotal;
+    return `rorola ${(genDamagePct).toFixed(2)}%`;
+  }
+  window.IMAGINES['rorola'] = { provideBonuses, provideFormulaParts };
 })();
