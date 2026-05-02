@@ -9,22 +9,31 @@ function calc() {
   // Psychoscope: prefer centralized provider getPsychoscopeBonuses() defined in damage-calc.html
   const psych = (typeof getPsychoscopeBonuses === 'function') ? getPsychoscopeBonuses() : {};
   const psychoscopeMainStat = psych.mainStat || 0;
-  const psychoscopeMainStatPct = psych.mainStatPct || 0;
-  const psychoscopeDreamDamage = psych.dreamDamage || 0;
-  const psychoscopeLuckPct = psych.luckPct || 0;
-  const psychoscopeLuckyDmgMult = psych.luckyStrikeMult || 0;
-  const psychoscopeHighestSubstatPctBonus = psych.highestSubstatPctBonus || 0;
+  const psychoscopeMainStatPct = (psych.mainStatPct || 0) / 100;
+  const psychoscopeDreamDmgPct = (psych.dreamDmgPct || 0) / 100;
+  const psychoscopeLuckPct = (psych.luckPct || 0) / 100;
+  const psychoscopeLuckyStrikeMultPct = (psych.luckyStrikeMultPct || 0) / 100;
+  const psychoscopeHighestSubstatPctBonus = (psych.highestSubstatPctBonus || 0) / 100;
+
+  const psychoscopeRefinePct = (psych.refinePct || 0) / 100;
+
+
+  const psychoscopeTargetCritPct = (psych.targetCritPct || 0) / 100;
+
 
   const imagineBonuses = (typeof getImagineBonuses === 'function') ? getImagineBonuses() : {};
-  const imagineMainStat = (imagineBonuses.mainStat || 0) / 100;
+  const imagineMainStatPct = (imagineBonuses.mainStatPct || 0) / 100;
   const imagineMatkPct  = (imagineBonuses.matkPct || 0) / 100;
   const imagineGenDamagePct = (imagineBonuses.genDamagePct || 0) / 100;
   const imagineCritDmgPct = (imagineBonuses.critDmgPct || 0) / 100;
 
+  const imagineLuckyStrikeMultPct = imagineBonuses.luckyStrikeMultPct || 0;
+  const imagineLuckEffectPct = (imagineBonuses.luckEffectPct || 0) / 100;
+
   const imagineHastePct = (imagineBonuses.hastePct || 0) / 100;
   const imagineMasteryPct = (imagineBonuses.masteryPct || 0) / 100;
-  const imagineLuckPct = (imagineBonuses.masteryPct || 0) / 100;
-  const imagineVersatilityPct = (imagineBonuses.masteryPct || 0) / 100;
+  const imagineLuckPct = (imagineBonuses.luckPct || 0) / 100;
+  const imagineVersatilityPct = (imagineBonuses.versatilityPct || 0) / 100;
   const imagineCritPct = (imagineBonuses.critPct || 0) / 100;
 
   const optimizerFactor = getOptimizerFactor(); // substat factors
@@ -38,7 +47,52 @@ function calc() {
 
   console.log(`imagine`)
 
-  const intScaled    = (intBase + psychoscopeMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStat);
+  const oblivionChoice = document.getElementById('oblivion-buff')?.value || 'none';
+  const oblivionPct = oblivionChoice !== 'none' ? 0.10 : 0;
+  console.log(`Oblivion buff: ${oblivionChoice}, DMG%: ${oblivionPct * 100}%`);
+  const oblivionMainStatPct = oblivionChoice === 'ob-ms' ? 0.02 : 0;
+  const oblivionAllElementPct = oblivionChoice === 'ob-ae' ? 0.03 : 0;
+
+  const endlessMindChoice = document.getElementById('endless-mind')?.value || 'none';
+  let endlessMindMasteryPct, endlessMindMainStatPct = 0;
+  if (endlessMindChoice === 'em') {
+    endlessMindMasteryPct = 0.04;
+    endlessMindMainStatPct = 0.02;
+  } else if(endlessMindChoice === 'em-dbl' || endlessMindChoice === 'em-self-1') { // same values so reuse
+    endlessMindMasteryPct = 0.08;
+    endlessMindMainStatPct = 0.04;
+  } else if (endlessMindChoice === 'em-self') {
+    endlessMindMasteryPct = 0.06;
+    endlessMindMainStatPct = 0.03;
+  } else if(endlessMindChoice === 'em-self-1-dbl') {
+    endlessMindMasteryPct = 0.16;
+    endlessMindMainStatPct = 0.08;
+  } else {
+    endlessMindMasteryPct = 0;
+    endlessMindMainStatPct = 0;
+  }
+
+  const classSelectVal = document.getElementById('class-select')?.value || 'none';
+
+  // === Inspiration ===
+  const inspirationBonusStatsPct = parseFloat(document.getElementById('inspiration').value) / 100;
+  let inspirationMainStats = 0;
+  if(inspirationBonusStatsPct === 0.015){
+    inspirationMainStats = 100;
+  } else if (inspirationBonusStatsPct === 0.03){
+    inspirationMainStats = 400;
+  } else if (inspirationBonusStatsPct === 0.036){
+    inspirationMainStats = 480;
+  } else if (inspirationBonusStatsPct === 0.039){
+    inspirationMainStats = 520;
+  }
+  // remove 100 main stat from smite class if they have any inspiration selected. (Assume smites import their main stat with inspiration buff already active).
+  // Still works correctly for overriding and giving more main stat from an LB in party, just removes their passive +100 main stat from existing.
+  if (classSelectVal === 'smite' && inspirationMainStats > 0) {
+    inspirationMainStats -= 100;
+  }
+
+  const intScaled    = (intBase + psychoscopeMainStat + inspirationMainStats) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct + oblivionMainStatPct + endlessMindMainStatPct);
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
   const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
@@ -55,7 +109,7 @@ function calc() {
   const totalMatkPct = matkPct + imagineMatkPct;
   let effectiveAtk;
 
-  const refinedAtk   = getVal('refined-atk');
+  const refinedAtk   = getVal('refined-atk') * (1 + psychoscopeRefinePct);
 
   // === Defense ===
   const enemyArmour = getVal('enemy-armour', 2786);
@@ -65,8 +119,6 @@ function calc() {
   const resistance  = damageType === 'physical' ? physRes : (magResEnabled ? 0.08 : 0);
   document.getElementById('res-phys-tag').textContent = `Phys Res: ${(physResAuto * 100).toFixed(2)}%`;
 
-  // === Inspiration ===
-  const inspirationBonus = parseFloat(document.getElementById('inspiration').value) / 100;
 
   // === Substats — all use X/(X+19975)+base% except Versatility X/(X+11206)+base% ===
   const STAT_SCALER = 19975;
@@ -81,21 +133,21 @@ function calc() {
   const baseCritStat = getVal('crit-rate-stat');
   
   const critStat      = baseCritStat + imagineCritStat;
-  const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonus;
+  const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonusStatsPct;
 
-  const versStat    = getVal('vers-dmg-pct');
-  const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonus;
+  const versStat    = getVal('vers-dmg-pct') + imagineVersatilityStat;
+  const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct;
   const versDmgPct  = versPct * 0.35;
 
   const luckStat        = getVal('luck-stat') + imagineLuckStat;
   const luckChanceBonus = getVal('luck-chance-bonus') / 100;
-  const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonus + luckChanceBonus;
+  const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct + luckChanceBonus;
 
   const masteryStat  = getVal('mastery-stat') + imagineMasteryStat;
-  const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonus + imagineMasteryPct;
+  const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonusStatsPct + imagineMasteryPct + endlessMindMasteryPct;
 
   const hasteStat    = getVal('haste-stat') + imagineHasteStat;
-  const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonus + imagineHastePct;
+  const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonusStatsPct + imagineHastePct;
 
   // Modules LifeWave bonuses (RAW PERCENTS)
   let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
@@ -234,7 +286,7 @@ function calc() {
   console.log("haste % = " + postWlHastePct);
 
   // Get class-provided bonus toggles (smite provider exposes simple flags/values)
-  const classSelectVal = document.getElementById('class-select')?.value || 'none';
+
   const provider = window.CLASS_BONUS_PROVIDERS && window.CLASS_BONUS_PROVIDERS[classSelectVal];
   const classBonuses = typeof provider === 'function'
   ? (() => {
@@ -256,7 +308,7 @@ function calc() {
 
   const classElemBonus = classBonuses.classElemBonus || 0;
   const classMagBoost = classBonuses.classMagBoost || 0;
-  const classLuckyDreamDamage = classBonuses.classLuckyDreamDamage || 0;
+  const classLuckyDreamDmgPct = classBonuses.classLuckyDreamDmgPct || 0;
   const classLuckMult = classBonuses.classLuckMult || 0;
   const classLuckyFinalDmg = classBonuses.classLuckyFinalDmg || 1;
 
@@ -269,11 +321,11 @@ function calc() {
   const moduleEliteDmgPct = isEliteOrBoss ? moduleEliteDmgBonus / 100 : 0;
   const genDmgBase  = getVal('gen-dmg-pct') / 100;
   const typeDmgPct = damageType === 'physical' ? modulePhysicalDmgBonus / 100 : moduleMagicDmgBonus / 100;
-  const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgPct + moduleAllDmgBonus / 100 + typeDmgPct + imagineGenDamagePct;
+  const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgBonus / 100 + moduleAllDmgBonus / 100 + typeDmgPct + imagineGenDamagePct;
   let magBoostPct   = getVal('mag-boost-pct') / 100;
   magBoostPct += classMagBoost;
 
-  let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + classElemBonus + moduleAllElementalDmgPct;
+  let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + classElemBonus + moduleAllElementalDmgPct + oblivionAllElementPct;
 
   // Update substat displays with weapon-line contributions (after postWl computed)
   document.getElementById('sub-crit-pct').textContent    = (postWlCritPct * 100).toFixed(2) + '%';
@@ -304,9 +356,9 @@ function calc() {
   // === Lucky Strike DMG Mult ===
   const isManual      = document.getElementById('lucky-mult-manual').checked;
 
-  const baseDreamDmgPct = psychoscopeDreamDamage + getVal('dream-dmg-pct') / 100;
+  const baseDreamDmgPct = psychoscopeDreamDmgPct + getVal('dream-dmg-pct') / 100;
   const dreamDmgPct = baseDreamDmgPct; // for standard hits
-  const dreamDmgPctLucky = baseDreamDmgPct + classLuckyDreamDamage; // for lucky strikes
+  const dreamDmgPctLucky = baseDreamDmgPct + classLuckyDreamDmgPct; // for lucky strikes
 
   let luckyMult;
   if (isManual) {
@@ -314,9 +366,10 @@ function calc() {
   } else {
     let multPct = 40 + (postWlLuckPct * 100 * 0.25);
     multPct += (imagineBonuses && imagineBonuses.flamehornBoost) ? imagineBonuses.flamehornBoost : 0;
-    multPct += psychoscopeLuckyDmgMult * 100;
+    multPct += psychoscopeLuckyStrikeMultPct * 100;
     multPct += moduleLuckyStrikeBonus * 100;
     multPct += getVal('lucky-mult-bonus');
+    multPct += imagineLuckyStrikeMultPct;
     multPct += classLuckMult;
     multPct *= classLuckyFinalDmg;
     luckyMult = multPct / 100;
@@ -325,7 +378,7 @@ function calc() {
 
   const luckyMultFinal  = luckyMult;
   const luckEffectBonus = getVal('luck-effect-bonus') / 100;
-  const luckEffectPct   = postWlLuckPct + luckEffectBonus;
+  const luckEffectPct   = postWlLuckPct + luckEffectBonus + imagineLuckEffectPct;
 
   const serumOilEnabled = getChecked('serum-oil-enabled');
   const serumOilType = document.getElementById('serum-oil-type')?.value || 'serum';
@@ -342,11 +395,13 @@ function calc() {
   const defenseFreeAtk = refinedAtk + elementalAtk;
 
   const luckyGenPct  = totalGenDmgPct + luckEffectPct + foodDmgBonusPct;
-  const luckyDmgMult = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct);
+  const luckyDmgMult = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct) * (1 + oblivionPct);
   const luckyBase    = (effectiveAtk + defenseFreeAtk) * luckyMultFinal;
   const lsNormal     = luckyBase * luckyDmgMult;
   const lsCrit       = lsNormal * effectiveCritMult;
-  const lsAvg        = lsNormal * (1 - postWlCritPct) + lsCrit * postWlCritPct;
+  console.log('psychoscopeTargetCritPct', psychoscopeTargetCritPct);
+  const lsAvg = lsNormal * (1 - (postWlCritPct + psychoscopeTargetCritPct)) 
+            + lsCrit   * (postWlCritPct + psychoscopeTargetCritPct);
 
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -377,9 +432,10 @@ function calc() {
     _resLabel:  damageType === 'physical' ? `${(physRes*100).toFixed(1)}%` : (magResEnabled ? '8%' : '0%'),
     _additionalElem: additionalElemDmg, _elemPower: elemPowerBonus, _wlElem: wlElemBonus,
     _genBase: genDmgBase, _boss: bossDmgPct, _elite: eliteDmgPct, _dreamforce: dreamDmgPct,
-    _psychoscopeDreamDamage: psychoscopeDreamDamage, _dreamManual: getVal('dream-dmg-pct') / 100,
+    _psychoscopeDreamDmgPct: psychoscopeDreamDmgPct, _dreamManual: getVal('dream-dmg-pct') / 100,
     _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg,
-    _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _luckyGenPct: luckyGenPct, _magBoost: magBoostPct,
+    _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _luckyGenPct: luckyGenPct, _magBoost: magBoostPct, 
+    _oblivionPct: oblivionPct, _oblivionMainStatPct: oblivionMainStatPct, _oblivionAllElementPct: oblivionAllElementPct,
     _serumOilEnabled: serumOilEnabled, _serumOilType: serumOilType, _serumOilValue: serumOilValue, _serumOilPct: serumOilPct,
     _targetType: targetType,
     _foodEnabled: foodEnabled,
@@ -444,6 +500,7 @@ function calc() {
     if (c._wlElem)       ps.push(`wl ${(c._wlElem*100).toFixed(2)}%`);
     if (c._serumOilType === 'serum' && c._serumOilPct) ps.push(`serum ${(c._serumOilPct*100).toFixed(2)}%`);
     if (c._moduleAllElementalDmg) ps.push(`modules ${(c._moduleAllElementalDmg*100).toFixed(2)}%`);
+    if (c._oblivionAllElementPct) ps.push(`oblivion ${(c._oblivionAllElementPct*100).toFixed(2)}%`);
     // Allow class modules to inject elemental parts (e.g., Smite: Flowers/Thorn/Mastery)
     const classElemParts = getClassFormulaParts('elem');
     if (classElemParts) ps.push(classElemParts);
@@ -474,7 +531,7 @@ function calc() {
   }
   function buildDreamStr(c) {
     const ps = [];
-    if (c._psychoscopeDreamDamage) ps.push(`psychoscope ${(c._psychoscopeDreamDamage*100).toFixed(2)}%`);
+    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(2)}%`);
     if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
     const classDreamParts = getClassFormulaParts('dream');
     if (classDreamParts) ps.push(classDreamParts);
@@ -502,7 +559,7 @@ function calc() {
   }
   function buildDreamStrLucky(c) {
     const ps = [];
-    if (c._psychoscopeDreamDamage) ps.push(`psychoscope ${(c._psychoscopeDreamDamage*100).toFixed(2)}%`);
+    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(2)}%`);
     if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
     const classDreamLuckyParts = getClassFormulaParts('dreamLucky');
     if (classDreamLuckyParts) ps.push(classDreamLuckyParts);
@@ -533,6 +590,7 @@ function calc() {
     `× <span class="fg">(1 + Gen: ${buildGenStr(c, 0, '')})</span>\n` +
     `× <span class="fdream">(1 + Dream: ${buildDreamStr(c)})</span>\n` +
     `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
+    `${c._oblivionPct ? `× <span class="fob">(1 + Oblivion: ${(c._oblivionPct*100).toFixed(2)}%)</span>\n` : ''}` +
     `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n\n` +
     `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
     `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">Elemental(${(elementalAtk)})</span>)` +
@@ -542,6 +600,7 @@ function calc() {
     `× <span class="fg">(1+Gen+LuckEff: (${buildLuckyGenStr(c)})</span>)\n` +
     `× <span class="fdream">(1 + Dream: ${buildDreamStrLucky(c)})</span>\n` +
     `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
+    `${c._oblivionPct ? `× <span class="fob">(1 + Oblivion: ${(c._oblivionPct*100).toFixed(2)}%)</span>\n` : ''}` +
     `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
 
   if (!optimizingSubstats && optimizerDone) {

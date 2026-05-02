@@ -16,19 +16,43 @@
       && document.getElementById('psychoscope-fantasia-ultimate-fortune').checked;
 
     let luckPct = 0;
-    if (bond) luckPct += 0.01;
-    if (linkage) luckPct += linkageLevel / 100;
+    if (bond) luckPct += 1.00;
+    if (linkage) luckPct += linkageLevel;
 
-    const luckyStrikeMult = reconstruct ? 0.1 : 0;
-    const mainStatPct = ultimateFortune ? 0.10 : 0;
+    const luckyStrikeMultPct = reconstruct ? 10.0 : 0;
+    const mainStatPct = ultimateFortune ? 10.0 : 0;
 
     return {
       tree: tree,
       luckPct: luckPct,
-      luckyStrikeMult: luckyStrikeMult,
+      luckyStrikeMultPct: luckyStrikeMultPct,
       mainStatPct: mainStatPct
     };
   }
 
   window.PSYCHOSCOPE_MODULES['fantasia-impact'] = { getBonuses };
 })();
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const linkage = document.getElementById('psychoscope-fantasia-linkage');
+  const reconstruct = document.getElementById('psychoscope-fantasia-reconstruct');
+
+  linkage.addEventListener('change', () => {
+    if (linkage.checked) {
+      reconstruct.checked = false;
+      reconstruct.disabled = true;
+    } else {
+      reconstruct.disabled = false;
+    }
+  });
+
+  reconstruct.addEventListener('change', () => {
+    if (reconstruct.checked) {
+      linkage.checked = false;
+      linkage.disabled = true;
+    } else {
+      linkage.disabled = false;
+    }
+  });
+});

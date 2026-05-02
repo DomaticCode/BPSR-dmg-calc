@@ -17,7 +17,7 @@
       ? (MUKU_CHIEF_PASSIVE_CRIT_DMG_PCT && MUKU_CHIEF_PASSIVE_CRIT_DMG_PCT[level]) || 0
       : (MUKU_CHIEF_ACTIVE_CRIT_DMG && MUKU_CHIEF_ACTIVE_CRIT_DMG[level]) || 0;
     const critStat = (mode === 'active') ? ((MUKU_CHIEF_ACTIVE_CRIT_STAT && MUKU_CHIEF_ACTIVE_CRIT_STAT[level]) || 0) : 0;
-    return { critDmgPct, critStat };
+    return { critStat, critDmgPct };
   }
   window.IMAGINES['muku-chief'] = { provideBonuses };
 })();

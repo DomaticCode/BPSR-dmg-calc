@@ -33,9 +33,9 @@ function provideSmiteClassBonuses(stats) {
     magBoost += 0.05;
   }
 
-  let luckyDreamDamage = 0;
+  let luckyDreamDmgPct = 0;
   if (isSmiteClass && getChecked('tree-x11')) {
-    luckyDreamDamage += 0.50;
+    luckyDreamDmgPct += 0.50;
   }
 
   let luckyFinalDmg = 1;
@@ -48,12 +48,12 @@ function provideSmiteClassBonuses(stats) {
     luckMult += 5 + (stats.luck * 100 * 1.2);
   }
 
-  console.log(`returning: ${elemBonus}, ${magBoost}, ${luckyDreamDamage}, ${luckMult}, ${luckyFinalDmg}`);
+  console.log(`returning: ${elemBonus}, ${magBoost}, ${luckyDreamDmgPct}, ${luckMult}, ${luckyFinalDmg}`);
 
   return {
     classElemBonus: elemBonus,
     classMagBoost: magBoost,
-    classLuckyDreamDamage: luckyDreamDamage,
+    classLuckyDreamDmgPct: luckyDreamDmgPct,
     classLuckMult: luckMult,
     classLuckyFinalDmg: luckyFinalDmg,
   };

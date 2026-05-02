@@ -13,8 +13,8 @@
     --accent-orange: #f89b70;
     --accent-purple: #9b7fe8;
     --text: #d8dce8;
-    --text-secondary: #afb6c5;
-    --text-muted: #989da8;
+    --text-secondary: #dfe2e7;
+    --text-muted: #b4b9c4;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +31,21 @@
   .config-bar { display: flex; gap: 10px; margin-bottom: 16px; margin-top: 14px; align-items: flex-end; flex-wrap: wrap; background: var(--bg-card); border: 1px solid var(--border-focus); border-radius: 8px; padding: 14px; box-shadow: 0 6px 18px rgba(20,26,40,0.55); }
   .config-bar .field { min-width: 180px; }
   .config-bar .field label { color: var(--text); font-weight: 700; }
+  .config-bar .checkbox-label { color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .config-bar .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-purple); cursor: pointer; flex-shrink: 0; margin: 0; }
+  .config-bar .sub-config { display: none; gap: 8px; grid-template-columns: repeat(2, auto); }
+  .config-bar .sub-config.active { display: grid; }
+  .config-bar input[type="number"] { max-width: 140px; }
   .config-bar select, .config-bar input { background: var(--bg-input); border-color: var(--border); color: var(--text); }
+
+  .config-bar .field {
+    min-width: 50px;
+    align-self: flex-start;
+  }
+  .config-bar .sub-config input,
+  .config-bar .sub-config select {
+    width: 70px;
+  }
 
   .main-grid { display: grid; grid-template-columns: 410px 1fr; gap: 16px; align-items: start; }
 
@@ -219,6 +233,23 @@
   .module-level-input:focus { outline: none; border-color: var(--accent); }
 
   .skill-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .skill-compact-row { display: none; align-items: center; gap: 12px; margin-top: 8px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; }
+  .skill-card.collapsed .skill-compact-row { display: flex; }
+  .skill-card.collapsed .skill-card-header,
+  .skill-card.collapsed .skill-inputs,
+  .skill-card.collapsed .skill-effects,
+  .skill-card.collapsed .skill-result,
+  .skill-card.collapsed .skill-formula {
+    display: none !important;
+  }
+  .skill-compact-name { flex: 1 1 36%; min-width: 0; word-break: break-word; overflow-wrap: break-word; font-weight: 600; color: var(--text); }
+  .skill-compact-name .skill-compact-type { margin-left: 6px; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .skill-compact-values { flex: 1 1 64%; display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+  .skill-compact-value { flex: 0 1 calc(50% - 6px); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; color: var(--text-muted); }
+  .skill-compact-value .result-value { font-size: 13px; }
+  .skill-toggle-row { display: flex; justify-content: center; margin-top: 10px; }
+  .skill-toggle-btn { background: transparent; border: none; color: var(--accent); font-size: 14px; width: 30px; height: 15px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .skill-toggle-btn:hover { border-color: var(--accent-lightGreen); color: var(--accent-lightGreen); }
   .skill-result { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; padding: 8px 10px; background: var(--bg-input); border-radius: 5px; border: 1px solid var(--border); }
   .result-item { display: flex; flex-direction: column; gap: 2px; }
   .result-label { font-size: 11px; color: var(--text-muted); }
@@ -262,6 +293,7 @@
   .felem { color: #06b6d4; font-weight: 600; }
   .fvers { color: var(--accent-purple); font-weight: 600; }
   .fmag { color: #e6e358; font-weight: 600; }
+  .fob  { color: #ff9e1b; font-weight: 600; }
   .fls { color: #ffb86c; font-weight: 600; }
   .fdream { color: #ff6b9d; font-weight: 600; }
   .fb { color: var(--accent); font-weight: 600; }
@@ -275,7 +307,7 @@
   .skill-formula .fg { color:#4caf7d; }
   .skill-formula .fo { color:#d4a843; }
   .skill-formula .fp { color:#9b7fe8; }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .skill-result { grid-template-columns: 1fr 1fr; } .lucky-panel-grid { grid-template-columns: 1fr; } }
 
 /* Modal Styles */
@@ -357,4 +389,30 @@
 .highlight-purple {
   color: var(--accent-purple);
   font-weight: 500;
+}
+.highlight-orange {
+  color: var(--accent-orange);
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.skill-toggle-btn .toggle-icon {
+  transition: transform 0.2s ease;
+  fill: var(--accent-purple); 
+}
+
+/* Expanded (arrow up) */
+.skill-toggle-btn[aria-expanded="true"] .toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Collapsed (arrow down) */
+.skill-toggle-btn[aria-expanded="false"] .toggle-icon {
+  transform: rotate(0deg);
+}
+.skill-card.collapsed #skill-effects,
+.skill-card.collapsed .btn-add-skill,
+.skill-card.collapsed input[id^="sk-lucky-trigger-"],
+.skill-card.collapsed label[for^="sk-lucky-trigger-"] {
+  display: none;
 }

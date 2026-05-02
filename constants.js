@@ -12,7 +12,7 @@ const MODULE_DATA = {
   'attack-spd': { name: 'Attack SPD' },
   'cast-focus': { name: 'Cast Focus' },
   'crit-focus': { name: 'Crit Focus' },
-  'damage-stack': { name: 'Damage Stack' },
+  'damage-stack': { name: 'DMG Stack' },
   'elite-strike': { name: 'Elite Strike' },
   'final-protection': { name: 'Final Protection' },
   'first-aid': { name: 'First Aid' },
@@ -106,6 +106,8 @@ const SAVE_FIELD_ORDER = [
   'serum-oil-enabled',
   'serum-oil-type',
   'serum-oil-value',
+  'oblivion-buff',
+  'endless-mind',
 ];
 
 // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
@@ -137,6 +139,20 @@ const PSYCHOSCOPE_FIELDS_ORDER = {
     'psychoscope-fantasia-linkage-pct',
     'psychoscope-fantasia-reconstruct',
     'psychoscope-fantasia-ultimate-fortune',
+  ],
+  'endless-mind': [
+    'psychoscope-endless-bond-35',
+    'psychoscope-endless-aegis',
+    'psychoscope-endless-still-continuum',
+    'psychoscope-endless-split-brilliance',
+    'psychoscope-endless-finale-chant',
+  ],
+  'oblivion': [
+    'psychoscope-oblivion-bond-35',
+    'psychoscope-oblivion-harmony-grace',
+    'psychoscope-oblivion-tuning',
+    'psychoscope-oblivion-beauty-refinement',
+    'psychoscope-oblivion-feint-strike',
   ],
 };
 

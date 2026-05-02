@@ -9,8 +9,8 @@
     const levelEl = document.getElementById(`imagine-${slot}-level`);
     const level = levelEl ? parseInt(levelEl.value) : 0;
     // main stat is passive and independent of mode
-    const mainStat = (DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL && DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
-    return { mainStat};
+    const mainStatPct = (DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL && DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    return { mainStatPct };
   }
   window.IMAGINES['dorothy'] = { provideBonuses };
 })();

@@ -16,7 +16,7 @@
     const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
     const mode = modeEl ? modeEl.value : 'passive';
     // main stat is passive and independent of mode
-    const mainStat = (ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL && ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    const mainStatPct = (ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL && ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
     // active generic damage (percent) if active
     const activeDamage = (mode === 'active') ? ((ROROLA_ACTIVE_DAMAGE_BOOST && ROROLA_ACTIVE_DAMAGE_BOOST[level]) || 0) : 0;
     // extra per-stack generic damage (percent) if active
@@ -26,7 +26,7 @@
     if (stacks > 5) stacks = 5; // cap stacks at 5
     const activeExtraTotal = (mode === 'active') ? (extraPerStack * stacks) : 0;
     const genDamagePct = activeDamage + activeExtraTotal;
-    return { mainStat, genDamagePct};
+    return { mainStatPct, genDamagePct};
   }
   function provideFormulaParts(kind, slot) {
     if (kind !== 'gen') return '';

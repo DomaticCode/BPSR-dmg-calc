@@ -1,6 +1,8 @@
 // Module calculation utilities
 (function(){
   function computeModuleBonusesFromDOM() {
+
+    //TODO rewrite to use same pct structure as imagines/psychoscope (10.00 = 10% instead of 0.10)
     // Initialize module-related outputs (match names used in damage-calc.html)
     let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
     let moduleAtkBonus = 0, moduleMatkBonus = 0, moduleAllAtkBonus = 0, moduleEliteDmgBonus = 0;
