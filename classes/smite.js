@@ -2,20 +2,20 @@
 function provideSmiteClassBonuses(stats) {
   const isSmiteClass = document.getElementById('class-select')?.value === 'smite';
 
-  let elemBonus = 0;
+  let elemPct = 0;
 
   if (isSmiteClass && getChecked('flowers-ascension')) {
-    elemBonus += 0.10;
+    elemPct += 10;
   }
   if (isSmiteClass && getChecked('thorn')) {
-    elemBonus += 0.20;
+    elemPct += 20;
   }
 
   const targetType = document.getElementById('target-type').value;
   const isEliteOrBoss = targetType === 'elite' || targetType === 'boss';
 
   if (isSmiteClass && getChecked('wide-area-thorns') && isEliteOrBoss) {
-    elemBonus += 0.04;
+    elemPct += 4;
   }
 
   if (isSmiteClass) {
@@ -25,22 +25,24 @@ function provideSmiteClassBonuses(stats) {
     const masteryElemEl = document.getElementById('mastery-elem-dmg-pct');
     if (masteryElemEl) masteryElemEl.value = masteryElemPct.toFixed(3);
 
-    elemBonus += masteryElemBonus;
+    elemPct += masteryElemPct;
   }
 
-  let magBoost = 0;
+  let magBoostPct = 0;
   if (isSmiteClass && getChecked('tree-x4')) {
-    magBoost += 0.05;
+    const x4Value = parseFloat(document.getElementById('tree-x4-value').value) || 0;
+    magBoostPct += x4Value;
   }
 
   let luckyDreamDmgPct = 0;
   if (isSmiteClass && getChecked('tree-x11')) {
-    luckyDreamDmgPct += 0.50;
+    const x11Value = parseFloat(document.getElementById('tree-x11-value').value) || 0;
+    luckyDreamDmgPct += x11Value;
   }
 
-  let luckyFinalDmg = 1;
+  let luckyFinalDmgPct = 0;
   if (isSmiteClass && getChecked('smite-spec')) {
-    luckyFinalDmg += 0.5;
+    luckyFinalDmgPct += 50;
   }
 
   let luckMult = 0;
@@ -48,14 +50,21 @@ function provideSmiteClassBonuses(stats) {
     luckMult += 5 + (stats.luck * 100 * 1.2);
   }
 
-  console.log(`returning: ${elemBonus}, ${magBoost}, ${luckyDreamDmgPct}, ${luckMult}, ${luckyFinalDmg}`);
+  let matkPct = 0;
+  if (isSmiteClass && getChecked('tree-x7')) {
+    const x7Value = parseFloat(document.getElementById('tree-x7-value').value) || 0;
+    matkPct += x7Value;
+  }
+
+  console.log(`returning: ${elemPct}, ${magBoostPct}, ${luckyDreamDmgPct}, ${luckMult}, ${luckyFinalDmgPct}`);
 
   return {
-    classElemBonus: elemBonus,
-    classMagBoost: magBoost,
+    classElemPct: elemPct,
+    classMagBoostPct: magBoostPct,
     classLuckyDreamDmgPct: luckyDreamDmgPct,
-    classLuckMult: luckMult,
-    classLuckyFinalDmg: luckyFinalDmg,
+    classLuckMult: luckMult, // NOT A PERCENT SCALER, it's flat
+    classLuckyFinalDmgPct: luckyFinalDmgPct,
+    classMatkPct: matkPct,
   };
 }
 
@@ -78,8 +87,11 @@ function provideSmiteFormulaParts(kind = 'elem') {
     return parts.length ? parts.join(' + ') : '';
   }
   if (kind === 'dreamLucky') {
-    // Smite provides +50% dream for lucky strikes when tree-x11 is checked
-    if (getChecked('tree-x11')) return `x11 factor ${(0.50*100).toFixed(2)}%`;
+    // Smite provides +variable% dream for lucky strikes when tree-x11 is checked
+    if (getChecked('tree-x11')) {
+      const x11Value = parseFloat(document.getElementById('tree-x11-value').value) || 0;
+      return `x11 factor ${x11Value.toFixed(2)}%`;
+    }
     return '';
   }
   // other kinds: no class-specific parts
@@ -98,20 +110,25 @@ const SMITE_OPTIONS_HTML = `
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="flowers-ascension" style="width:14px;height:14px;" checked onchange="calc()"><label for="flowers-ascension">Flowers Ascension</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Forest dmg on spending buds. (8 seconds)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thorn" style="width:14px;height:14px;" checked onchange="calc()"><label for="thorn">Thorn</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">20% Forest dmg to targets with thorn (Regen Pulse is bugged for this).</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="wide-area-thorns" style="width:14px;height:14px;" checked onchange="calc()"><label for="wide-area-thorns">Wide-area Thorns</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hidden 4% Elite Forest DMG (always up).</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x11" style="width:14px;height:14px;" checked onchange="calc()"><label for="tree-x11">X11 Factor</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 50% Dream DMG to Lucky Strikes.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x4" style="width:14px;height:14px;" onchange="calc()"><label for="tree-x4">X4 Factor</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">5% MAG Boost when you have symbiotic mark.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x11" style="width:14px;height:14px;" checked onchange="calc()"><label for="tree-x11">X11 Factor</label><input type="number" id="tree-x11-value" min="0" max="50" step="0.1" value="50" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> Adds X% Dream DMG to Lucky Strikes. </span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x4" style="width:14px;height:14px;" onchange="calc()"><label for="tree-x4">X4 Factor</label><input type="number" id="tree-x4-value" min="0" max="5" step="0.1" value="5" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> X% MAG Boost when you have symbiotic mark.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x7" style="width:14px;height:14px;"  onchange="calc()"><label for="tree-x7">X7 Factor</label><input type="number" id="tree-x7-value" min="0" max="16.7" step="0.1" value="16.7" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> X% MATK after casting Nature Ward (10sec).</span></span></div>
   </div>
 `;
 
 function renderSmiteOptions(containerId = 'class-options') {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container) {
+    console.log(`Container with id ${containerId} not found for Smite options.`);
+    return;
+  }
   container.innerHTML = SMITE_OPTIONS_HTML;
   container.style.display = '';
 }
 
 function onSmiteSelected() {
   // Render options and apply Smite-specific defaults
+  console.log('Smite selected, rendering options and setting defaults.');
   renderSmiteOptions();
   // set damage type and inspiration default (does not call calc())
   if (typeof setType === 'function') setType('magical');

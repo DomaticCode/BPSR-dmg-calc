@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Calculator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.5.0</span>
+      <span class="header-version">v0.6.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -53,6 +53,7 @@
       <select id="class-select" onchange="onClassChange()">
         <option value="none">— None —</option>
         <option value="smite">Smite</option>
+        <option value="dissonance">Dissonance (WIP)</option>
       </select>
     </div>
     <div class="field">
@@ -168,10 +169,14 @@
           <!-- MATK/ATK -->
           <div class="section-label" id="matk-section-label">MATK</div>
           <button class="btn-add-skill" onclick="openZdpsImportModal()" style="margin-bottom: 8px;">Import Stats from ZDPS</button>
-          <div class="input-row triple">
+          <div class="input-row">
             <div class="field">
               <label><span class="dot dot-matk"></span><span id="main-attr-label">INT</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Base main stat. NOT sheet value. Click the field to open the reverse-bonus calculator.</span></span></label>
               <input type="number" id="main-attr" value="500" readonly onclick="openBaseMainStatModal()" style="cursor:pointer; background:var(--bg-card); border:1px solid #7c3aed; border-radius:6px; color:var(--text); font-weight:700;" title="Click to calculate base main stat from sheet values">
+            </div>
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="extra-main-attr-label">Extra INT</span><span class="tip"><span class="tip-icon">i</span><span id="extra-main-attr-tip" class="tip-box">Additional INT (Any other source of raw INT).</span></span></label>
+              <input type="number" id="extra-main-attr" value="0" oninput="calc()">
             </div>
             <div class="field">
               <label><span class="dot dot-matk"></span><span id="module-atk-label">Module MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Sum of all ATK of your type (Atk/Matk) from module bonuses.</span></span></label>
@@ -273,8 +278,11 @@
             <div class="field"><label>Mastery %</label><input type="number" id="wl-mastery-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-purple"></span>Versatility %</label><input type="number" id="wl-vers-pct" value="0" step="0.1" oninput="calc()"></div>
           </div>
-          <div class="input-row triple">
-            <div class="field"><label><span class="dot dot-ls"></span>Lucky Strike DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">(Same modifier as Luck Effect bonus)</span></span></label><input type="number" id="luck-effect-bonus" value="0" step="0.1" oninput="calc()"></div>
+          <div class="input-row double">
+            <div class="field"><label><span class="dot dot-ls"></span>Lucky Strike DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Generic damage added to lucky strikes</span></span></label><input type="number" id="lucky-strike-dmg-bonus" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-ls"></span>Luck Effect DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Effect bonus</span></span></label><input type="number" id="luck-effect-bonus" value="0" step="0.1" oninput="calc()"></div>
+          </div>
+          <div class="input-row double">
             <div class="field"><label><span class="dot dot-cyan"></span>Element Bonus % *</label><input type="number" id="wl-elem-bonus" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-red"></span>Crit DMG % *</label><input type="number" id="wl-crit-dmg" value="0" step="0.1" oninput="calc()"></div>
           </div>
@@ -313,20 +321,20 @@
               <input type="number" id="boss-dmg-pct" value="0" step="0.1" oninput="calc()">
             </div>
           </div>
-          <div class="note">Cast / Attack Speed tracked for reference — not yet in the damage formula. Boss DMG% does not apply to the Guild Hall Elite dummy.</div>
+          <div class="note">Cast / Attack Speed tracked for reference not utilized in damage formula. Boss DMG% does not apply to the Guild Hall Elite dummy.</div>
 
           <!-- Damage Bonuses -->
           <div class="section-label">Damage Bonuses</div>
           <div class="input-row">
             <div class="field"><label><span class="dot dot-cyan"></span>Elemental DMG % from Mastery</label><input type="number" id="mastery-elem-dmg-pct" value="0" readonly></div>
             <div class="field"><label><span class="dot dot-cyan"></span>Additional Elemental DMG % </label><input type="number" id="elem-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-cyan"></span><del>Element Power</del> <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Not accurate in current version. Kept for reference only.</span></span></label><input type="number" id="elem-power" value="0" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-green"></span>Other Generic DMG %</label><input type="number" id="gen-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-cyan"></span>All Element <span class="tip"><span class="tip-icon">i</span><span class="tip-box">All Element + XXX, Not to be confused with Elemental ATK.<br>This is obtained by generic factor X1, Element serums, and some modules.</span></span></label><input type="number" id="elem-power" value="0" oninput="calc()"></div>
           </div>
           <div class="input-row">
             <div class="field"><label><span class="dot dot-green"></span>Elite DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Applies vs Elite and Boss targets only. Stacks additively with Other Generic DMG%.</span></span></label><input type="number" id="elite-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-mag"></span>MAG Boost %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Rare damage scaler, appears on some ocean weapons, and factors.</span></span></label><input type="number" id="mag-boost-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-green"></span>Generic DMG %</label><input type="number" id="gen-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-dream"></span>Dream DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additional dream damage.</span></span></label><input type="number" id="dream-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-mag"></span>MAG Boost %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Rare damage scaler, appears on some ocean weapons, and factors.</span></span></label><input type="number" id="mag-boost-pct" value="0" step="0.1" oninput="calc()"></div>
           </div>
           <!-- Skill Type Bonuses -->
           <div class="section-label">Skill Type DMG Bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additive generic DMG% that applies only to skills of that type. Must set the type of skill in order to see damage.</span></span></div>
@@ -623,7 +631,7 @@
             </div>
           </div>
           <div class="note" id="imagine-notes" style="margin-top:10px;">
-            <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is active.</div>
+            <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is always active.</div>
             <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
@@ -711,12 +719,12 @@
             <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-vers" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Vers</label>
           </div>
           <div class="input-row">
-            <div class="field" style="grid-column:1 / -1; display:flex; gap:8px;">
-              <button class="btn-add-skill" id="optimize-substats-button" onclick="optimizeSubstats()" style="width:100%;">Optimize substats</button>
-              <button class="btn-add-skill" id="undo-substats-button" onclick="undoOptimizeSubstats()" style="width:100%;">Undo optimization</button>
+            <div class="field" style="grid-column:1 / -1; display:flex; gap:8px; flex-direction:column;">
+              <button class="btn-progress" id="optimize-substats-button" onclick="optimizeSubstats()" style="--progress: 0%;"><span>Optimize substats</span></button>
+              <button class="btn-progress" id="undo-substats-button" onclick="undoOptimizeSubstats()" style="width:100%;">Undo optimization</button>
             </div>
           </div>
-          <div id="optimize-substats-output" class="note" style="margin-top:8px;">Click optimize to begin searching best allocation for the first skill.</div>
+          <div id="optimize-substats-output" class="note" style="margin-top:8px;">Click optimize to begin optimizing for the Total Damage summary.</div>
         </div>
       </div>
 
@@ -724,6 +732,34 @@
   </div>
   <!-- RIGHT SIDEBAR (skills / utilities) -->
     <div class="right-sidebar">
+      <div class="panel">
+        <div class="panel-header"><h2>Damage Summary</h2></div>
+        <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; background: var(--bg-input); border-radius: 5px;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Damage</div>
+              <div id="summary-total-damage" style="font-size: 24px; font-weight: bold; color: var(--accent); line-height: 1;">—</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">DPS</div>
+              <div id="summary-total-dps" style="font-size: 24px; font-weight: bold; color: var(--accent-green); line-height: 1;">—</div>
+            </div>
+          </div>
+          
+          <div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Damage by Skill</div>
+            <div id="summary-skill-breakdown" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 12px;">Add skills to see breakdown</div>
+            </div>
+          </div>
+          
+          <div>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Parse Duration (seconds)</label>
+            <input type="number" id="parse-duration" value="180" min="1" step="1" style="width: auto; padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px;" oninput="calc()">
+          </div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header"><h2>Skills / Abilities</h2></div>
         <div class="panel-body">
@@ -741,6 +777,7 @@
 <script src="modules_calc.js"></script>
 <!-- Classes -->
 <script src="classes/smite.js"></script>
+<script src="classes/dissonance.js"></script>
 <!-- Imagines -->
 <script src="imagines/muku-scout.js"></script>
 <script src="imagines/muku-chief.js"></script>
@@ -871,6 +908,7 @@
     
     updateImagineNotes();
     calc();
+    persistCurrentState();
   }
 
   function updateImagineNotes() {
@@ -1044,6 +1082,8 @@
     atkMatkSwap('food-atk-label', atkName);
     atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base × (1+${atkName}%)).`);
     atkMatkSwap('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
+    atkMatkSwap('extra-main-attr-label', 'Extra ' + mainStatName);
+    atkMatkSwap('extra-main-attr-tip', `Additional ${mainStatName} (Any other source of raw ${mainStatName}).`);
   }
 
   function onFoodToggle() {
@@ -1177,12 +1217,18 @@
     const current = select.value;
     select.innerHTML = '<option value="">— Select profile —</option>';
     const profiles = loadProfiles();
-    Object.keys(profiles).sort().forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    });
+    Object.keys(profiles)
+      .sort((a, b) => {
+        const aSaved = profiles[a].savedAt || 0;
+        const bSaved = profiles[b].savedAt || 0;
+        return bSaved - aSaved; // Newest first
+      })
+      .forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
     if ([...select.options].some(o => o.value === current)) select.value = current;
   }
 
@@ -1217,7 +1263,10 @@
 
     try {
       const profiles = loadProfiles();
-      profiles[name] = getSetupState();
+      profiles[name] = {
+        data: getSetupState(),
+        savedAt: Date.now()
+      };
       saveProfiles(profiles);
       updateProfileDropdown();
       setStatus(`Profile '${name}' saved`, false);
@@ -1235,7 +1284,7 @@
     const profile = profiles[name];
     if (!profile) return setStatus(`Profile '${name}' not found`, true);
 
-    applySetupState(profile);
+    applySetupState(profile.data || profile); // Backward compatibility
     setStatus(`Profile '${name}' loaded`, false);
   }
 
@@ -1279,10 +1328,14 @@
       const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
       const nameEl = card.querySelector('.skill-name-input');
 
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      const hitValue = hitsEl ? hitsEl.value.trim() !== '' ? Number(hitsEl.value) : 1 : 1;
+      const hitsPerParse = Number.isNaN(hitValue) ? 1 : hitValue;
+
       const skillEffects = [];
       document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`).forEach(row => {
         const kind = row.querySelector('select')?.value;
-        const value = parseFloat(row.querySelector('input')?.value) || 0;
+        const value = String(row.querySelector('input')?.value || '').trim();
         if (kind && value) skillEffects.push([kind, value]);
       });
 
@@ -1292,7 +1345,8 @@
         flatEl ? Number(flatEl.value) || 0 : 0,
         luckyEl && luckyEl.checked ? 1 : 0,
         nameEl ? nameEl.value : '',
-        skillEffects
+        skillEffects,
+        hitsPerParse
       ]);
     });
 
@@ -1464,6 +1518,11 @@
         if (nameEl) {
           const nameValue = Array.isArray(data) ? data[4] : data.name;
           if (nameValue !== undefined) nameEl.value = nameValue;
+        }
+        const hitsEl = document.getElementById(`sk-hits-${id}`);
+        if (hitsEl) {
+          const hitsValue = Array.isArray(data) ? data[6] : data.hits;
+          if (hitsValue !== undefined) hitsEl.value = hitsValue;
         }
 
         const effectList = Array.isArray(data) ? data[5] : data.effects;
@@ -1706,10 +1765,13 @@
           const select = row.querySelector('select');
           const input = row.querySelector('input');
           if (select && input) {
-            effects.push([select.value, parseFloat(input.value) || 0]);
+            effects.push([select.value, String(input.value).trim()]);
           }
         });
       }
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      const hitValue = hitsEl ? hitsEl.value.trim() !== '' ? Number(hitsEl.value) : 1 : 1;
+      const hitsPerParse = Number.isNaN(hitValue) ? 1 : hitValue;
       skillsState.push([
         typeEl ? typeEl.value : 'none',
         multEl ? parseFloat(multEl.value) || 0 : 0,
@@ -1717,6 +1779,7 @@
         luckyEl ? luckyEl.checked : false,
         nameEl ? nameEl.value : '',
         effects,
+        hitsPerParse,
         card.classList.contains('collapsed') ? 1 : 0
       ]);
     });
@@ -1790,6 +1853,16 @@
         const nameValue = Array.isArray(data) ? data[4] : data.name;
         if (nameValue !== undefined) nameEl.value = nameValue;
       }
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      if (hitsEl) {
+        let hitsValue;
+        if (Array.isArray(data)) {
+          hitsValue = data.length >= 8 ? data[6] : undefined;
+        } else {
+          hitsValue = data.hits;
+        }
+        if (hitsValue !== undefined) hitsEl.value = hitsValue;
+      }
 
       const effectList = Array.isArray(data) ? data[5] : data.effects;
       if (Array.isArray(effectList)) {
@@ -1814,7 +1887,6 @@
   }
 
   function fmt(n) {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
     return Math.round(n).toLocaleString();
   }
 
@@ -1827,6 +1899,8 @@
     card.id = `skill-card-${id}`;
     card.innerHTML = `
       <div class="skill-card-header">
+        <button class="btn-move" type="button" onclick="moveSkill(${id}, 'up')" title="Move skill up">▲</button>
+        <button class="btn-move" type="button" onclick="moveSkill(${id}, 'down')" title="Move skill down">▼</button>
         <input type="text" class="skill-name-input" placeholder="Skill name..." value="Skill ${id}" oninput="calc()">
         <select id="sk-type-${id}" onchange="calc()" style="flex:0 0 120px; font-size:12px; padding:4px 6px; background:var(--bg-input); border:1px solid var(--border); border-radius:4px; color:var(--text-secondary);">
           <option value="none">— Type —</option>
@@ -1846,9 +1920,13 @@
           <label><span class="fwhite">Flat Damage</span></label>
           <input type="number" id="sk-flat-${id}" value="0" oninput="calc()">
         </div>
+        <div class="field">
+          <label><span class="fwhite">Hits per parse</span> <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hits per X minute damage parse, used for calculating a sum total of what a parse would look like.</span></span></label>
+          <input type="number" id="sk-hits-${id}" value="0" min="0" step="1" oninput="calc()">
+        </div>
       </div>
-      <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
-        <input type="checkbox" id="sk-lucky-trigger-${id}" style="width:14px;height:14px;accent-color:var(--accent-purple);cursor:pointer;" onchange="calc()">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <input type="checkbox" id="sk-lucky-trigger-${id}" checked style="width:14px;height:14px;accent-color:var(--accent-purple);cursor:pointer;" onchange="calc()">
         <label for="sk-lucky-trigger-${id}" style="font-size:12px;color:var(--accent-purple);cursor:pointer;">Triggers lucky hit</label>
         <button type="button" class="btn-add-skill" onclick="addSkillEffect(${id})" style="padding: 4px 10px; font-size: 12px;">+ Add effect</button>
       </div>
@@ -1891,6 +1969,17 @@
     `;
     document.getElementById('skills-list').appendChild(card);
     calc();
+  }
+
+  function clamp(el) {
+    const min = parseFloat(el.min);
+    const max = parseFloat(el.max);
+    let val = parseFloat(el.value);
+
+    if (isNaN(val)) return;
+
+    if (val > max) el.value = max;
+    if (val < min) el.value = min;
   }
 
   function setSkillCollapsed(id, collapsed) {
@@ -1952,8 +2041,10 @@
         <option value="critDamage">Crit damage</option>
         <option value="elemDmg">Element damage</option>
         <option value="magBoost">MAG boost</option>
+        <option value="otherScaler">Other scaler</option>
+        <option value="damageType">Damage type</option>
       </select>
-      <input type="number" min="0" value="0" step="0.1" oninput="calc()" />
+      <input type="text" value="0" placeholder="physical, magical, no-intellect-boost, no-elem, no-season-dmg, no-mag, no-vers, no-gen," oninput="calc()" />
       <span style="font-size:11px;color:var(--text-muted);">%</span>
       <button type="button" class="skill-effect-remove" onclick="this.closest('.skill-effect-row').remove(); calc();">✕</button>
     `;
@@ -1966,6 +2057,29 @@
     const card = document.getElementById(`skill-card-${id}`);
     if (card) card.remove();
     calc();
+  }
+
+  function moveSkill(id, direction) {
+    const card = document.getElementById(`skill-card-${id}`);
+    if (!card) return;
+    const parent = document.getElementById('skills-list');
+    if (!parent) return;
+
+    if (direction === 'up') {
+      const previous = card.previousElementSibling;
+      if (previous) parent.insertBefore(card, previous);
+    } else if (direction === 'down') {
+      const next = card.nextElementSibling;
+      if (next) parent.insertBefore(next, card);
+    }
+
+    reorderSkills();
+    calc();
+  }
+
+  function reorderSkills() {
+    const orderedIds = Array.from(document.querySelectorAll('#skills-list .skill-card')).map(card => Number(card.id.replace('skill-card-', '')));
+    skills = orderedIds.map(id => ({ id }));
   }
 
   function addModule() {
@@ -1982,7 +2096,7 @@
             ${Object.keys(MODULE_DATA).map(module => `<div class="module-option" data-value="${module}">${MODULE_DATA[module].name}</div>`).join('')}
           </div>
         </div>
-        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="6" onchange="calc()" oninput="calc()">
+        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="6" onchange="calc()" oninput="clamp(this); calc()">
         <button class="btn-remove" onclick="removeModule(${id})" title="Remove">✕</button>
       </div>
     `;
@@ -2272,13 +2386,16 @@
     calc();
   }
 
-  function optimizeSubstats() {
+  async function optimizeSubstats() {
     optimizingSubstats = true;
+    const button = document.getElementById('optimize-substats-button');
+    if (button) button.disabled = true;
     const factor = getOptimizerFactor();
     const skillId = getFirstSkillId();
     const output = document.getElementById('optimize-substats-output');
     if (!skillId || !output) {
       optimizingSubstats = false;
+      if (button) button.disabled = false;
       return;
     }
     output.textContent = 'Optimizing...';
@@ -2296,6 +2413,7 @@
     if (unlockedKeys.length === 0) {
       output.textContent = 'All substats are locked; nothing to optimize.';
       optimizingSubstats = false;
+      if (button) button.disabled = false;
       return;
     }
 
@@ -2309,9 +2427,11 @@
     if (pool <= 0) {
       output.textContent = 'Total points must be positive to optimize (unlocked stats only).';
       optimizingSubstats = false;
+      if (button) button.disabled = false;
       return;
     }
 
+    const pause = () => new Promise(resolve => setTimeout(resolve, 0));
     const buildEffective = (baseStats) => {
       const effective = { ...original };
       unlockedKeys.forEach(k => {
@@ -2321,10 +2441,18 @@
       return effective;
     };
 
+    const getSummaryTotalDamage = () => {
+      const totalEl = document.getElementById('summary-total-damage');
+      if (!totalEl || !totalEl.textContent) return NaN;
+      const value = parseFloat(totalEl.textContent.replace(/,/g, '').replace(/[^0-9.+\-]/g, ''));
+      return Number.isNaN(value) ? NaN : value;
+    };
+
     const evaluate = (baseStats) => {
       const effective = buildEffective(baseStats);
       setSubstats(effective);
-      return getFirstSkillValue();
+      const totalDamage = getSummaryTotalDamage();
+      return totalDamage === 0 || Number.isNaN(totalDamage) ? getFirstSkillValue() : totalDamage;
     };
 
     const asDisplay = (baseStats) => {
@@ -2363,8 +2491,10 @@
         bestBase = { ...current };
         output.textContent = `Best now: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
       }
+      await pause();
 
-      for (const step of steps) {
+      for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+        const step = steps[stepIndex];
         let improved = true;
         while (improved) {
           improved = false;
@@ -2396,8 +2526,12 @@
               output.textContent = `Best now: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
             }
           }
+          await pause();
         }
+        const percent = Math.min(100, ((run * steps.length + stepIndex + 1) / (restarts * steps.length)) * 100);
+        setButtonProgress('optimize-substats-button', percent);
       }
+      await pause();
     }
 
     const bestEffective = buildEffective(bestBase);
@@ -2405,6 +2539,12 @@
     optimizerDone = true;
     optimizingSubstats = false;
     output.textContent = `Optimized: ${bestBase.value.toFixed(2)} with ${asDisplay(bestBase)} (Pool ${pool.toFixed(2)}) — Optimization complete ✅`;
+    if (button) button.disabled = false;
+  }
+
+  function setButtonProgress(buttonId, percent) {
+    const button = document.getElementById(buttonId);
+    button.style.setProperty("--progress", percent + "%");
   }
 
   function undoOptimizeSubstats() {
@@ -2417,6 +2557,7 @@
     setSubstats(optimizerBackup);
     output.textContent = `Undo complete. Restored Crit:${optimizerBackup.crit}, Luck:${optimizerBackup.luck}, Mastery:${optimizerBackup.mastery}, Vers:${optimizerBackup.vers}`;
     optimizerBackup = null;
+    setButtonProgress('optimize-substats-button', 0);
   }
 
   updateProfileDropdown();

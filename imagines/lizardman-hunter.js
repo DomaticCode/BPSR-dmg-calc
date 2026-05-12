@@ -14,7 +14,7 @@
     const mode = modeEl ? modeEl.value : 'passive';
 
     let luckStat = 0;
-    let luckMultPct = 0;
+    let luckyStrikeMultPct = 0;
     if (mode === 'active') {
       luckStat = LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT ? LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT[level] : 0;
       luckyStrikeMultPct = LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT ? LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT[level] : 0;

@@ -1,6 +1,12 @@
 // Module calculation utilities
 (function(){
-  function computeModuleBonusesFromDOM() {
+  function computeModuleBonusesFromDOM({
+  critRatePct = 0,
+  versPct = 0,
+  luckChancePct = 0,
+  masteryPct = 0,
+  hastePct = 0
+  } = {}) {
 
     //TODO rewrite to use same pct structure as imagines/psychoscope (10.00 = 10% instead of 0.10)
     // Initialize module-related outputs (match names used in damage-calc.html)
@@ -19,17 +25,6 @@
     if (typeof window.getImagineBonuses === 'function') {
       extraCritStat = (window.getImagineBonuses().critStat) || 0;
     }
-    const critStat = baseCritStat + extraCritStat;
-    const STAT_SCALER = 19975;
-    const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + ((window.getVal ? window.getVal('base-crit-pct') : 0) / 100) + ((window.getVal ? window.getVal('inspiration') : 0) / 100);
-    const versStat = (window.getVal ? window.getVal('vers-dmg-pct') : 0) || 0;
-    const versPct = (versStat > 0 ? versStat / (versStat + 11206) : 0) + ((window.getVal ? window.getVal('base-vers-pct') : 0) / 100) + ((window.getVal ? window.getVal('inspiration') : 0) / 100);
-    const luckStat = (window.getVal ? window.getVal('luck-stat') : 0) || 0;
-    const luckChancePct = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + ((window.getVal ? window.getVal('base-luck-pct') : 0) / 100) + ((window.getVal ? window.getVal('inspiration') : 0) / 100);
-    const masteryStat = (window.getVal ? window.getVal('mastery-stat') : 0) || 0;
-    const masteryPct = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + ((window.getVal ? window.getVal('base-mastery-pct') : 0) / 100) + ((window.getVal ? window.getVal('inspiration') : 0) / 100);
-    const hasteStat = (window.getVal ? window.getVal('haste-stat') : 0) || 0;
-    const hastePct = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + ((window.getVal ? window.getVal('base-haste-pct') : 0) / 100) + ((window.getVal ? window.getVal('inspiration') : 0) / 100);
 
     const substats = [
       { key: 'crit', val: critRatePct },

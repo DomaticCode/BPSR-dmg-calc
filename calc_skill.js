@@ -37,12 +37,80 @@ function calcSkill(id) {
   }
 
 
+  const parseSkillEffectValue = rawValue => {
+    const valueText = String(rawValue || '').trim();
+    if (valueText === '') return 0;
+    const numericValue = Number(valueText);
+    if (!Number.isNaN(numericValue) && /^[+-]?(?:\d+|\d*\.\d+)(?:[eE][+-]?\d+)?$/.test(valueText)) {
+      return numericValue;
+    }
+    // Try to evaluate as expression
+    return evaluateExpression(valueText);
+  };
+
+  const evaluateExpression = expr => {
+    try {
+      let result = expr;
+      // Replace input IDs with their values (e.g., "sub-luck-pct" -> actual value)
+      const idPattern = /(#?[a-zA-Z_][a-zA-Z0-9_-]*)/g;
+      result = result.replace(idPattern, (match) => {
+        const targetId = match.replace(/^#/, '');
+        const element = document.getElementById(targetId);
+        if (element) {
+          const val = element.value !== undefined ? element.value : element.textContent;
+          const cleaned = String(val || '').trim().replace(/%$/, '');
+          const num = parseFloat(cleaned);
+          return Number.isNaN(num) ? match : num;
+        }
+        return match;
+      });
+      // Safe evaluation: only allow numbers, operators, and parentheses
+      if (!/^[0-9+\-*/%().\s]+$/.test(result)) {
+        return 0;
+      }
+      const evaluated = Function('"use strict"; return (' + result + ')')();
+      return Number.isNaN(evaluated) || !Number.isFinite(evaluated) ? 0 : evaluated;
+    } catch (e) {
+      return 0;
+    }
+  };
+
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
-  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectElem = 0, effectMagBoost = 0;
+  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectNoIntellectBoostDeduction = 0, skillDamageType = null;
+  let effectNoElem = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false;
   effectRows.forEach(row => {
     const kind = row.querySelector('select')?.value;
-    const value = parseFloat(row.querySelector('input')?.value);
-    if (!kind || Number.isNaN(value) || value === 0) return;
+    const rawValue = row.querySelector('input')?.value;
+    const valueText = String(rawValue || '').trim().toLowerCase();
+    if (!kind) return;
+    if (kind === 'damageType') {
+      const tokens = valueText.split(/\s+/).filter(Boolean);
+      let noIntellectBoost = false;
+      tokens.forEach(token => {
+        if (token === 'physical') skillDamageType = 'physical';
+        else if (token === 'magical') skillDamageType = 'magical';
+        else if (token === 'no-intellect-boost') noIntellectBoost = true;
+        else if (['no-elem', 'no-element', 'no-elemental'].includes(token)) effectNoElem = true;
+        else if (['no-season-dmg', 'no-seasonal-dmg', 'no-season'].includes(token)) effectNoDream = true;
+        else if (token === 'no-mag' || token === 'no-phy') effectNoMagBoost = true;
+        else if (['no-vers', 'no-versatility'].includes(token)) effectNoVers = true;
+        else if (['no-gen', 'no-generic'].includes(token)) effectNoGen = true;
+      });
+      if (noIntellectBoost) {
+        const intellectBoostLevel = Array.from(document.querySelectorAll('.module-card')).reduce((maxLevel, card) => {
+          const selectedModule = card.dataset.selectedModule || '';
+          if (selectedModule !== 'intellect-boost') return maxLevel;
+          const moduleId = card.id.replace(/^module-card-/, '');
+          const level = parseInt(document.getElementById(`module-level-${moduleId}`)?.value, 10) || 0;
+          return Math.max(maxLevel, level);
+        }, 0);
+        if (intellectBoostLevel === 5) effectNoIntellectBoostDeduction = 0.036;
+        else if (intellectBoostLevel === 6) effectNoIntellectBoostDeduction = 0.06;
+      }
+      return;
+    }
+    const value = parseSkillEffectValue(rawValue);
+    if (Number.isNaN(value) || value === 0) return;
     switch (kind) {
       case 'generic': effectGen += value / 100; break;
       case 'dreamDmg': effectDream += value / 100; break;
@@ -50,22 +118,31 @@ function calcSkill(id) {
       case 'critDamage': effectCritDmg += value / 100; break;
       case 'elemDmg': effectElem += value / 100; break;
       case 'magBoost': effectMagBoost += value / 100; break;
+      case 'otherScaler': effectOtherScaler += value / 100; break;
     }
   });
 
   effectCritChance += psychoscopeTargetCritPct;
 
-  const totalGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + effectGen;
+  const preDeductionGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + effectGen;
   const specialAttackElemBonus = (skillType === 'special') ? (c._moduleSpecialAttackElem || 0) : 0;
-  const finalElemDmgPct = c.elemDmgPct + effectElem + specialAttackElemBonus;
-  const finalDreamDmgPct = c._dreamforce + effectDream;
+  const originalGen = preDeductionGen;
+  const originalElem = c.elemDmgPct + effectElem + specialAttackElemBonus;
+  const originalDream = c._dreamDmgPct + effectDream;
+  const originalMag = (c._magBoost || 0) + effectMagBoost;
+  const originalVers = c.versDmgPct;
+  const totalGen = effectNoGen ? 0 : preDeductionGen - effectNoIntellectBoostDeduction;
+  const finalElemDmgPct = effectNoElem ? 0 : originalElem;
+  const finalDreamDmgPct = effectNoDream ? 0 : originalDream;
   const finalCritRatePct = Math.min(1, c.critRatePct + effectCritChance);
   const finalCritMult = c.critMultPct + effectCritDmg;
-  const finalMagBoost = (c._magBoost || 0) + effectMagBoost;
-  const oblivionPct = c._oblivionPct || 0;
+  const finalMagBoost = effectNoMagBoost ? 0 : originalMag;
+  const versDmgPct = effectNoVers ? 0 : originalVers;
 
-  const stdBase   = (c.atkDefReduced + c.defenseFreeAtk) * mult + flat;
-  const stdMult   = (1 + c.versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + oblivionPct);
+  const skillResistance = skillDamageType === 'physical' ? c._physRes : (skillDamageType === 'magical' ? (c._magResEnabled ? 0.08 : 0) : c.resistance);
+  const skillAtkDefReduced = c.effectiveAtk * (1 - skillResistance);
+  const stdBase   = (skillAtkDefReduced + c.defenseFreeAtk) * mult + flat;
+  const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler);
   const normalHit = stdBase * stdMult;
   const critHit   = normalHit * finalCritMult;
   const avgSkillHit = normalHit * (1 - finalCritRatePct) + critHit * finalCritRatePct;
@@ -83,7 +160,8 @@ function calcSkill(id) {
   const formulaEl = document.getElementById(`sk-formula-${id}`);
   const effectsCount = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`))
     .filter(row => {
-      const value = parseFloat(row.querySelector('input')?.value);
+      const rawValue = row.querySelector('input')?.value;
+      const value = parseSkillEffectValue(rawValue);
       return !Number.isNaN(value) && value !== 0;
     }).length;
   const showFormula = skillType !== 'none' || effectsCount > 0;
@@ -92,37 +170,91 @@ function calcSkill(id) {
     const typeName = skillType !== 'none' ? typeLabel[skillType] : 'Skill';
     const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName) : `${(totalGen*100).toFixed(2)}%`;
     const baseElemStr = window._buildElemStr ? window._buildElemStr(c, specialAttackElemBonus) : `${((c.elemDmgPct + specialAttackElemBonus)*100).toFixed(2)}%`;
-    const baseDreamStr =  window._buildDreamStr ? window._buildDreamStr(c) : `${(c._dreamforce*100).toFixed(2)}%`;
+    const baseDreamStr =  window._buildDreamStr ? window._buildDreamStr(c) : `${(c._dreamDmgPct*100).toFixed(2)}%`;
 
-    const finalGenStr = effectGen !== 0
-      ? `${baseGenStr} + generic ${(effectGen*100).toFixed(2)}% = ${(totalGen*100).toFixed(2)}%`
-      : `${baseGenStr}`;
-    const finalElemStr = effectElem !== 0
-      ? `${baseElemStr} + elem ${(effectElem*100).toFixed(2)}% = ${(finalElemDmgPct*100).toFixed(2)}%`
-      : `${baseElemStr}`;
-    const finalDreamStr = effectDream !== 0
-      ? `${baseDreamStr}% + dream ${(effectDream*100).toFixed(2)}% = ${(finalDreamDmgPct*100).toFixed(2)}%`
-      : `${baseDreamStr}%`;
+    const finalGenStr = (() => {
+      let result = baseGenStr;
+      if (effectGen !== 0) {
+        if (result.includes('=')) {
+          result = result.replace(/= \d+\.\d+%$/, '') + ` + generic ${(effectGen*100).toFixed(2)}% = ${(originalGen*100).toFixed(2)}%`;
+        } else {
+          result = `${result} + generic ${(effectGen*100).toFixed(2)}% = ${(originalGen*100).toFixed(2)}%`;
+        }
+      }
+      if (effectNoIntellectBoostDeduction !== 0) {
+        if (!result.includes('=')) result += ` = ${(originalGen*100).toFixed(2)}%`;
+        result += ` - no-intellect-boost ${(effectNoIntellectBoostDeduction*100).toFixed(2)}% = ${((originalGen - effectNoIntellectBoostDeduction)*100).toFixed(2)}%`;
+      }
+      if (effectNoGen) {
+        if (!result.includes('=')) result += ` = ${((originalGen - effectNoIntellectBoostDeduction)*100).toFixed(2)}%`;
+        result += ` - no-gen ${((originalGen - effectNoIntellectBoostDeduction)*100).toFixed(2)}% = 0%`;
+      }
+      return result;
+    })();
+    const finalElemStr = (() => {
+      let result = baseElemStr;
+      if (effectElem !== 0) {
+        if (result.includes('=')) {
+          result = result.replace(/= \d+\.\d+%$/, '') + ` + elem ${(effectElem*100).toFixed(2)}% = ${(originalElem*100).toFixed(2)}%`;
+        } else {
+          result = `${result} + elem ${(effectElem*100).toFixed(2)}% = ${(originalElem*100).toFixed(2)}%`;
+        }
+      }
+      if (effectNoElem) {
+        if (!result.includes('=')) result += ` = ${(originalElem*100).toFixed(2)}%`;
+        result += ` - no-elem ${(originalElem*100).toFixed(2)}% = 0%`;
+      }
+      return result;
+    })();
+    const finalDreamStr = (() => {
+      let result = baseDreamStr;
+      if (effectDream !== 0) {
+        if (result.includes('=')) {
+          result = result.replace(/= \d+\.\d+%$/, '') + ` + dream ${(effectDream*100).toFixed(2)}% = ${(originalDream*100).toFixed(2)}%`;
+        } else {
+          result = `${result} + dream ${(effectDream*100).toFixed(2)}% = ${(originalDream*100).toFixed(2)}%`;
+        }
+      }
+      if (effectNoDream) {
+        if (!result.includes('=')) result += ` = ${(originalDream*100).toFixed(2)}%`;
+        result += ` - no-dream ${(originalDream*100).toFixed(2)}% = 0%`;
+      }
+      return result;
+    })();
     const critRateText = effectCritChance !== 0
       ? `${(c.critRatePct*100).toFixed(2)}% + ${(effectCritChance*100).toFixed(2)}% = ${(finalCritRatePct*100).toFixed(2)}%`
       : `${(c.critRatePct*100).toFixed(2)}%`;
     const critMultText = effectCritDmg !== 0
       ? `${(c.critMultPct*100).toFixed(2)}% + ${(effectCritDmg*100).toFixed(2)}% = ${(finalCritMult*100).toFixed(2)}%`
       : `${(c.critMultPct*100).toFixed(2)}%`;
-    const magText = effectMagBoost !== 0
-      ? `${((c._magBoost || 0)*100).toFixed(2)}% + ${(effectMagBoost*100).toFixed(2)}% = ${(finalMagBoost*100).toFixed(2)}%`
-      : `${((c._magBoost || 0)*100).toFixed(2)}%`;
+    const magText = (() => {
+      let result = effectMagBoost !== 0 ? `${((c._magBoost || 0)*100).toFixed(2)}% + ${(effectMagBoost*100).toFixed(2)}% = ${(originalMag*100).toFixed(2)}%` : `${((c._magBoost || 0)*100).toFixed(2)}%`;
+      if (effectNoMagBoost) {
+        if (!result.includes('=')) result += ` = ${(originalMag*100).toFixed(2)}%`;
+        result += ` - no-mag ${(originalMag*100).toFixed(2)}% = 0%`;
+      }
+      return result;
+    })();
+    const otherText = `${(effectOtherScaler*100).toFixed(2)}%`;
+    const otherLine = effectOtherScaler !== 0
+      ? `× <span class="forange">(1+Other:${otherText})</span>\n`
+      : '';
+    const skillResLabel = skillDamageType === 'physical' 
+      ? `${(c._physRes*100).toFixed(1)}%` 
+      : (skillDamageType === 'magical' ? (c._magResEnabled ? '8%' : '0%') : c._resLabel);
+    const dmgTypeNote = skillDamageType ? ` (${skillDamageType.toUpperCase()})` : '';
+    const versPctText = effectNoVers ? `${(originalVers*100).toFixed(2)}% - no-vers ${(originalVers*100).toFixed(2)}% = 0%` : `${(originalVers*100).toFixed(2)}%`;
 
     formulaEl.style.display = '';
     formulaEl.innerHTML =
-      `<span class="fb">${typeName}:</span> ` +
-      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">×(1-${c._resLabel})<span> + <span class="fref">Refined</span> + <span class="felem">Elemental</span> ) × <span class="fwhite">${(mult*100).toFixed(2)}%</span> + <span class="fwhite">${flat}</span>\n` +
-      `× <span class="fvers">(1+Vers:${(c.versDmgPct*100).toFixed(2)}%)</span>\n` +
+      `<span class="fb">${typeName}${dmgTypeNote}:</span> ` +
+      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">×(1-${skillResLabel})<span> + <span class="fref">Refined</span> + <span class="felem">Elemental</span> ) × <span class="fwhite">${(mult*100).toFixed(2)}%</span> + <span class="fwhite">${flat}</span>\n` +
+      `× <span class="fvers">(1+Vers:${versPctText})</span>\n` +
       `× <span class="felem">(1+Elem:${finalElemStr})</span>\n` +
       `× <span class="fg">(1+Gen:${finalGenStr})</span>\n` +
       `× <span class="fdream">(1+Dream:${finalDreamStr})</span>\n` +
       `× <span class="fmag">(1+MAG:${magText})</span>\n` +
-      `${oblivionPct ? `× <span class="fob">(1+Oblivion: ${(oblivionPct*100).toFixed(2)}%)</span>\n` : ''}` +
+      otherLine +
       `× <span class="fr">CRIT(${critMultText}) (if crit)</span>\n`;
   } else if (formulaEl) {
     formulaEl.style.display = 'none';

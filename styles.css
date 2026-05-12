@@ -159,11 +159,18 @@
   .formula-box .fg { color: var(--accent-green); }
   .formula-box .fo { color: var(--accent-gold); }
   .formula-box .fp { color: var(--accent-purple); }
+  .formula-box .forange { color: var(--accent-orange); }
 
   .matk-breakdown { font-size: 12px; color: var(--text-muted); font-family: 'Consolas', 'SF Mono', monospace; padding: 5px 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; line-height: 1.8; overflow-x: auto;}
   .matk-breakdown-wrap { }
   .matk-breakdown-wrap::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(to right, transparent, var(--bg-panel)); pointer-events: none; border-radius: 0 4px 4px 0; }
   .matk-breakdown .hl { color: var(--accent); }
+
+  /* Breakdown row styling */
+  .breakdown-row { user-select: none; }
+  .breakdown-row:hover { background: rgba(255,255,255,0.04) !important; }
+  .breakdown-row-disabled { opacity: 0.5; text-decoration: line-through; }
+  .breakdown-row-disabled div { text-decoration: line-through; }
 
   /* Substat row: stat input | base% input | arrow | total% */
   .substat-row { display: grid; grid-template-columns: 1fr 56px 18px 72px; gap: 6px; align-items: end; margin-bottom: 8px; }
@@ -206,7 +213,7 @@
 
   /* Skill cards */
   .skills-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-  .skill-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
+  .skill-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px; }
   .skill-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .skill-effects { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
   .skill-effect-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
@@ -232,7 +239,11 @@
   .module-level-input { width: 60px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 6px 8px; font-family: inherit; font-size: 13px; text-align: center; }
   .module-level-input:focus { outline: none; border-color: var(--accent); }
 
-  .skill-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .skill-inputs { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+  }
   .skill-compact-row { display: none; align-items: center; gap: 12px; margin-top: 8px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; }
   .skill-card.collapsed .skill-compact-row { display: flex; }
   .skill-card.collapsed .skill-card-header,
@@ -260,6 +271,60 @@
 
   .btn-add-skill { display: flex; padding: 9px; background: transparent; border: 1px dashed var(--accent); border-radius: 6px; color: var(--accent); font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
   .btn-add-skill:hover { border-color: var(--accent); background: rgba(91,142,240,0.06); }
+  .btn-add-skill:disabled { opacity: 0.55; cursor: not-allowed; }
+  .optimizer-progress { width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .optimizer-progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease; }
+
+  .btn-progress {
+    position: relative;
+    overflow: hidden;
+
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+
+    cursor: pointer;
+    color: white;
+
+    /* Unfilled background */
+    background: rgba(255,255,255,0.08);
+
+    transition:
+      transform 0.15s ease,
+      opacity 0.2s ease;
+
+    isolation: isolate;
+  }
+
+  /* Filled progress area */
+  .btn-progress::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+
+    width: var(--progress, 0%);
+    background: var(--accent);
+
+    transition: width 0.2s ease;
+
+    z-index: -1;
+  }
+
+  /* Button text */
+  .btn-progress span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-progress:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .btn-progress:disabled {
+    opacity: 0.85;
+    cursor: not-allowed;
+  }
 
   .btn-import-skills { width: auto; padding: 8px 10px; background: transparent; border: 1px dashed #4CAF50; border-radius: 6px; color: #4CAF50; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
   .btn-import-skills:hover { border-color: #4CAF50; background: rgba(76,175,80,0.06); }
@@ -307,6 +372,7 @@
   .skill-formula .fg { color:#4caf7d; }
   .skill-formula .fo { color:#d4a843; }
   .skill-formula .fp { color:#9b7fe8; }
+  .skill-formula .forange { color: var(--accent-orange); }
   @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .skill-result { grid-template-columns: 1fr 1fr; } .lucky-panel-grid { grid-template-columns: 1fr; } }
 
@@ -390,6 +456,10 @@
   color: var(--accent-purple);
   font-weight: 500;
 }
+.highlight-gold {
+  color: var(--accent-gold);
+  font-weight: 500;
+}
 .highlight-orange {
   color: var(--accent-orange);
   font-weight: 500;
@@ -415,4 +485,22 @@
 .skill-card.collapsed input[id^="sk-lucky-trigger-"],
 .skill-card.collapsed label[for^="sk-lucky-trigger-"] {
   display: none;
+}
+
+.btn-move {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.btn-move:hover {
+  background: var(--accent-purple);
 }

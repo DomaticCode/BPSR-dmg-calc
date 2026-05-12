@@ -2,6 +2,7 @@
 const CLASS_BASES = {
   none:  { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
   smite: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 4 },
+  dissonance: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
 };
 
 // Module data
@@ -108,6 +109,9 @@ const SAVE_FIELD_ORDER = [
   'serum-oil-value',
   'oblivion-buff',
   'endless-mind',
+  'parse-duration',
+  'extra-main-attr',
+  'lucky-strike-dmg-bonus',
 ];
 
 // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
@@ -121,6 +125,25 @@ const CLASS_FIELDS_ORDER = {
     'wide-area-thorns',
     'tree-x11',
     'tree-x4',
+    'tree-x11-value',
+    'tree-x4-value',
+    'tree-x7',
+    'tree-x7-value',
+  ],
+  dissonance: [
+    'in-rhapsody',
+    'in-heroic-melody',
+    'center-stage',
+    'luck-multiplier',
+    'fire-day',
+    'encore-chain',
+    's2-2-set',
+    'tree-x4',
+    'tree-x4-value',
+    'tree-x8',
+    'tree-x8-value',
+    'tree-x10',
+    'tree-x10-value',
   ],
 };
 
