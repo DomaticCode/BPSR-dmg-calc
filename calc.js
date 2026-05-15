@@ -272,24 +272,22 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   // Get class-provided bonus toggles (smite provider exposes simple flags/values)
 
-  const provider = window.CLASS_BONUS_PROVIDERS && window.CLASS_BONUS_PROVIDERS[classSelectVal];
-  const classBonuses = typeof provider === 'function'
-  ? (() => {
-      try {
-        return provider({
-          crit: postWlCritPct,
-          haste: postWlHastePct,
-          luck: postWlLuckPct,
-          vers: postWlVersPct,
-          mastery: postWlMasteryPct,
-          versDmg: postWlVersDmgPct
-        });
-      } catch (e) {
-        console.warn('class bonus provider error', e);
-        return {};
-      }
-    })()
-  : {};
+  const classModule = window.CLASS_MODULES?.[classSelectVal];
+
+  let classBonuses = {};
+
+  try {
+    classBonuses = classModule?.provideClassBonuses?.({
+      crit: postWlCritPct,
+      haste: postWlHastePct,
+      luck: postWlLuckPct,
+      vers: postWlVersPct,
+      mastery: postWlMasteryPct,
+      versDmg: postWlVersDmgPct
+    }) || {};
+  } catch (e) {
+    console.warn('class bonus provider error', e);
+  }
 
   const classElemPct = (classBonuses.classElemPct || 0) / 100;
   const classMagBoostPct = (classBonuses.classMagBoostPct || 0) / 100;
@@ -360,10 +358,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const foodDmgBonusPct = foodEnabled ? getVal('food-dmg-bonus') / 100 : 0;
   
   const matkPct      = getVal('matk-pct') / 100;
-  let adaptiveMatk;
+  let adaptiveMatk; // adaptive atk from modules
   let innerFloor;
   let matkBase;
-  // Gather imagine-provided bonuses via a single helper (defined in damage-calc.html)
 
   console.log('Imagine bonuses:', imagineBonuses);
 
@@ -372,10 +369,15 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const refinedAtk   = getVal('refined-atk') * (1 + psychoscopeRefinePct);
 
-  // TODO: FOR ATK formulas:
-  /* ATK from strength seems to be 0.6 base modifier. (rounded up)
-  *  ATK from agi seems to be 0.58 base modifier. (rounded down)
-  */
+  // Not directly used, was going to use it for atk calculations, but seems its class based not archetype based.
+  const mainStat = classModule?.mainStatType?.();
+  console.log(`Class ${classSelectVal} main stat: ${mainStat}`);
+
+  // Fetching main stat X:1 mainStat to ATK/MATK, and talent X:1 mainStat to atk/matk
+  const mainStatModifier = classModule?.mainStatModifier?.() || 0.5;
+  const mainStatModifierTalent = classModule?.mainStatModifierTalent?.() || 0;
+  console.log(`Class ${classSelectVal} main stat modifier: ${mainStatModifier}, talent modifier: ${mainStatModifierTalent}`);
+
   // ATK/MATK calculations (needs updated values from modules)
   const totalAtkBonus = moduleAtkBonus + moduleAllAtkBonus;
   const totalMatkBonus = moduleMatkBonus + moduleAllAtkBonus;
@@ -383,8 +385,15 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   adaptiveMatk = displayAtk;
   const adaptiveAtkInput = document.getElementById('adaptive-atk');
   if (adaptiveAtkInput) adaptiveAtkInput.value = displayAtk;
-  innerFloor = Math.floor(intScaled * 0.5 + adaptiveMatk + weaponMatk + classMatk + classAtk);
-  matkBase = Math.floor(intScaled * 0.1 + innerFloor); // todo update this bonus main attr with class main attr scaler, not all classes get 10:1 some are 8:1 some are 0:0 bonus (just the above 1:0.5)
+
+  innerFloor = Math.floor(intScaled * mainStatModifier + adaptiveMatk + weaponMatk + classMatk + classAtk);
+  if(mainStat === 'str'){ // Unsure why but strength seems to round up, others round down.
+    matkBase = Math.ceil(intScaled * mainStatModifierTalent + innerFloor);
+  } else {
+    matkBase = Math.floor(intScaled * mainStatModifierTalent + innerFloor);
+  }
+
+
   effectiveAtk = Math.floor(matkBase * (1 + totalMatkPct) + foodAtkBonus);
   document.getElementById('attr-atk').value = matkBase;
   document.getElementById('eff-matk-display').value = effectiveAtk;
@@ -454,7 +463,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   }
 
   const luckyStrikeDmgBonus = getVal('lucky-strike-dmg-bonus') / 100;
-  console.log('lucky strike dmg bonus: ' + luckyStrikeDmgBonus + 'typeof: ' + typeof luckyStrikeDmgBonus);
   const luckyMultFinal  = luckyMult;
   const luckEffectBonus = getVal('luck-effect-bonus') / 100;
   const luckEffectPct   = finalLuckPct + luckEffectBonus + imagineLuckEffectPct;
@@ -539,32 +547,29 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   // helper: build class specific damage formula detail strings
   function getClassFormulaParts(kind = 'elem') {
     try {
-      const classSelectVal = document.getElementById('class-select')?.value || 'none';
-      const provider = window.CLASS_BONUS_PROVIDERS && window.CLASS_BONUS_PROVIDERS[classSelectVal];
-      if (!provider) return '';
-      const fn = (provider && typeof provider.provideFormulaParts === 'function')
-        ? provider.provideFormulaParts
-        : (provider && typeof provider === 'function' && typeof provider.provideFormulaParts === 'function') ? provider.provideFormulaParts : null;
-      if (fn) {
-        const parts = fn(kind);
-        return parts || '';
-      }
+      const classSelectVal =
+        document.getElementById('class-select')?.value || 'none';
+
+      return (
+        window.CLASS_MODULES?.[classSelectVal]
+          ?.provideFormulaParts?.(kind) || ''
+      );
     } catch (e) {
       console.warn('class formula parts provider error', e);
+      return '';
     }
-    return '';
   }
 
   // helper: build imagine specific damage formula detail strings
   function getImagineFormulaParts(kind = 'gen') {
     const parts = [];
     for (let slot = 1; slot <= 3; slot++) {
-      const sel = document.getElementById(`imagine-${slot}`);
-      if (!sel || sel.value === 'none') continue;
-      const provider = window.IMAGINES && window.IMAGINES[sel.value];
-      if (!provider || typeof provider.provideFormulaParts !== 'function') continue;
+      const state = getImagineState(slot);
+      if (!state.imagine || state.imagine === 'none') continue;
+
+      const module = window.IMAGINE_MODULES?.[state.imagine];
       try {
-        const part = provider.provideFormulaParts(kind, slot);
+        const part = module?.provideFormulaParts?.(kind, state);
         if (part) parts.push(part);
       } catch (e) {
         console.warn('imagine formula parts error', e);

@@ -145,6 +145,21 @@ const CLASS_FIELDS_ORDER = {
     'tree-x10',
     'tree-x10-value',
   ],
+  stormblade: [
+    // no fields
+  ],
+  marksman: [
+    // no fields
+  ],
+  windknight: [
+    // no fields
+  ],
+  heavyguardian: [
+    // no fields
+  ],
+  shieldknight: [
+    // no fields
+  ]
 };
 
 // Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY (for dropdown selection)
@@ -178,6 +193,28 @@ const PSYCHOSCOPE_FIELDS_ORDER = {
     'psychoscope-oblivion-feint-strike',
   ],
 };
+
+const elementTypes = {
+  'AttrWoodAtkTotal': 'forest',
+  'AttrFireAtkTotal': 'fire',
+  'AttrWaterAtkTotal': 'ice',
+  'AttrLightAtkTotal': 'light',
+  'AttrDarkAtkTotal': 'dark',
+  'AttrWindAtkTotal': 'wind',
+  'AttrElectricityAtkTotal': 'thunder',
+  'AttrRockAtkTotal': 'rock',
+};
+
+const elementAttrs = [
+  { key: 'AttrWoodAtkTotal', label: 'Forest ATK' },
+  { key: 'AttrFireAtkTotal', label: 'Fire ATK' },
+  { key: 'AttrWaterAtkTotal', label: 'Ice ATK' },
+  { key: 'AttrLightAtkTotal', label: 'Light ATK' },
+  { key: 'AttrDarkAtkTotal', label: 'Dark ATK' },
+  { key: 'AttrWindAtkTotal', label: 'Wind ATK' },
+  { key: 'AttrElectricityAtkTotal', label: 'Thunder ATK' },
+  { key: 'AttrRockAtkTotal', label: 'Rock ATK' }
+];
 
 
 const LOCAL_STORAGE_STATE_KEY = 'bpsr-dmg-simulator-state';

@@ -82,14 +82,6 @@ function loadZdpsAttributes() {
 
   displayZdpsAttributePreview();
 
-  const elementTypes = {
-    'AttrWoodAtkTotal': 'forest',
-    'AttrFireAtkTotal': 'fire',
-    'AttrWaterAtkTotal': 'ice',
-    'AttrLightAtkTotal': 'light',
-    'AttrDarkAtkTotal': 'dark',
-    'AttrWindAtkTotal': 'wind'
-  };
   const foundElements = Object.keys(parsedAttrs).filter(key => elementTypes[key]);
 
   if (foundElements.length > 1) {
@@ -144,15 +136,6 @@ function displayZdpsAttributePreview() {
       `</div>`;
   }).join('');
 
-  // Elemental attributes
-  const elementAttrs = [
-    { key: 'AttrWoodAtkTotal', label: 'Forest ATK' },
-    { key: 'AttrFireAtkTotal', label: 'Fire ATK' },
-    { key: 'AttrWaterAtkTotal', label: 'Ice ATK' },
-    { key: 'AttrLightAtkTotal', label: 'Light ATK' },
-    { key: 'AttrDarkAtkTotal', label: 'Dark ATK' },
-    { key: 'AttrWindAtkTotal', label: 'Wind ATK' }
-  ];
 
   const elementLines = elementAttrs
     .filter(attr => parsedAttrs[attr.key] !== undefined)
@@ -165,14 +148,6 @@ function displayZdpsAttributePreview() {
   feedback.innerHTML = `<div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">Loaded attribute values:</div>${lines}${elementLines}`;
 }
 function applyElementSelection() {
-  const elementTypes = {
-    'AttrWoodAtkTotal': 'forest',
-    'AttrFireAtkTotal': 'fire',
-    'AttrWaterAtkTotal': 'ice',
-    'AttrLightAtkTotal': 'light',
-    'AttrDarkAtkTotal': 'dark',
-    'AttrWindAtkTotal': 'wind'
-  };
 
   const foundElements = Object.keys(parsedAttrs).filter(key => elementTypes[key]);
   let selectedElementKey;

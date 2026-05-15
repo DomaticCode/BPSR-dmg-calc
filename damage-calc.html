@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Calculator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.6.0</span>
+      <span class="header-version">v0.6.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -54,6 +54,14 @@
         <option value="none">— None —</option>
         <option value="smite">Smite</option>
         <option value="dissonance">Dissonance</option>
+        <optgroup label="Base classes">
+          <option value="frostmage">Frost Mage</option>
+          <option value="windknight">Wind Knight</option>
+          <option value="stormblade">Stormblade</option>
+          <option value="marksman">Marksman</option>
+          <option value="heavyguardian">Heavy Guardian</option>
+          <option value="shieldknight">Shield Knight</option>
+        </optgroup>
       </select>
     </div>
     <div class="field">
@@ -355,7 +363,7 @@
               <input type="number" id="lucky-mult-display" readonly oninput="calc()">
             </div>
             <div class="field">
-              <label>Lucky DMG Mult % bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">+% flat bonus added after all other calculations (after Smite Spec ×1.5).</span></span></label>
+              <label>Lucky DMG Mult % bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">+% flat bonus.</span></span></label>
               <input type="number" id="lucky-mult-bonus" value="0" step="0.1" oninput="calc()">
             </div>
           </div>
@@ -778,6 +786,12 @@
 <!-- Classes -->
 <script src="classes/smite.js"></script>
 <script src="classes/dissonance.js"></script>
+<script src="classes/stormblade.js"></script>
+<script src="classes/marksman.js"></script>
+<script src="classes/windknight.js"></script>
+<script src="classes/heavyguardian.js"></script>
+<script src="classes/shieldknight.js"></script>
+<script src="classes/frostmage.js"></script>
 <!-- Imagines -->
 <script src="imagines/muku-scout.js"></script>
 <script src="imagines/muku-chief.js"></script>
@@ -950,51 +964,47 @@
       notesContainer.style.display = hasAnyNote ? 'block' : 'none';
     }
   }
+  function getImagineState(slot) {
+    return {
+      imagine: document.getElementById(`imagine-${slot}`)?.value || 'none',
 
+      level: parseInt(document.getElementById(`imagine-${slot}-level`)?.value) || 0,
+
+      mode: document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive',
+
+      stacks: Math.min(parseInt(document.getElementById(`imagine-${slot}-stacks`)?.value) || 0, 5),
+
+      applyPassiveStats: document.getElementById(`imagine-${slot}-passive-stats`) ? document.getElementById(`imagine-${slot}-passive-stats`).checked : false
+    };
+  }
+
+  // Collect and combine bonuses from all imagines
   function getImagineBonuses() {
     const out = {};
 
     for (let slot = 1; slot <= 2; slot++) {
-      const sel = document.getElementById(`imagine-${slot}`);
-      const searchInput = document.getElementById(`imagine-${slot}-search`);
-      const dropdown = document.getElementById(`imagine-dropdown-${slot}`);
+      const state = getImagineState(slot);
 
-      let imagine = sel ? sel.value : null;
-
-      // Fallback logic
-      if ((!imagine || imagine === '') && searchInput && dropdown) {
-        const txt = (searchInput.value || '').trim().toLowerCase();
-
-        if (txt) {
-          const options = Array.from(dropdown.querySelectorAll('.module-option'));
-
-          const opt = options.find(o => {
-            const textMatch = (o.textContent || '').toLowerCase() === txt;
-            const valueMatch = o.dataset && o.dataset.value === txt;
-            return textMatch || valueMatch;
-          });
-
-          if (opt) {
-            imagine = opt.dataset.value;
-          }
-        }
+      if (!state.imagine || state.imagine === 'none') {
+        continue;
       }
 
-      if (!imagine || imagine === 'none') continue;
-      if (!window.IMAGINES) continue;
-      if (!IMAGINES[imagine]) continue;
-      if (typeof IMAGINES[imagine].provideBonuses !== 'function') continue;
+      const module = window.IMAGINES?.[state.imagine];
 
-      const b = IMAGINES[imagine].provideBonuses(slot) || {};
+      try {
+        const bonuses =
+          module?.provideBonuses?.(state) || {};
 
-      Object.keys(b).forEach(k => {
-        const v = Number(b[k]) || 0;
-        out[k] = (out[k] || 0) + v;
-      });
+        for (const [key, value] of Object.entries(bonuses)) {
+          out[key] = (out[key] || 0) + (Number(value) || 0);
+        }
+      } catch (e) {
+        console.warn('imagine bonus error', e);
+      }
     }
-
     return out;
   }
+
   function getPsychoscopeBonuses() {
     const tree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
     if (window.PSYCHOSCOPE_MODULES && PSYCHOSCOPE_MODULES[tree] && typeof PSYCHOSCOPE_MODULES[tree].getBonuses === 'function') {

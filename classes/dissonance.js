@@ -100,8 +100,6 @@ function provideDissonanceFormulaParts(kind = 'elem') {
   return '';
 }
 
-provideDissonanceClassBonuses.provideFormulaParts = provideDissonanceFormulaParts;
-window.CLASS_BONUS_PROVIDERS.dissonance = provideDissonanceClassBonuses;
 
 // HTML for Dissonance options (moved out of main file so class module can render it)
 const DISSONANCE_OPTIONS_HTML = `
@@ -136,12 +134,28 @@ function onDissonanceSelected() {
   if (typeof setType === 'function') setType('magical');
 }
 
+function mainStatType() {
+  return 'int';
+}
+
+function mainStatModifier() {
+  return 0.5;
+}
+
+function mainStatModifierTalent(){
+  return 0.1;
+}
+
 // Register class module for UI/behavior
 window.CLASS_MODULES = window.CLASS_MODULES || {};
 window.CLASS_MODULES.dissonance = {
   renderOptions: renderDissonanceOptions,
   onSelected: onDissonanceSelected,
   provideClassBonuses: provideDissonanceClassBonuses,
+  provideFormulaParts: provideDissonanceFormulaParts,
+  mainStatType: mainStatType,
+  mainStatModifier: mainStatModifier,
+  mainStatModifierTalent: mainStatModifierTalent,
 };
 
 

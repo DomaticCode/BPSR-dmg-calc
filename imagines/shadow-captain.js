@@ -6,18 +6,17 @@
 
 
   window.IMAGINES = window.IMAGINES || {};
-  function provideBonuses(slot) {
-    const sel = document.getElementById(`imagine-${slot}`);
-    if (!sel || sel.value !== 'shadow-captain') return {};
-    const levelEl = document.getElementById(`imagine-${slot}-level`);
-    const level = levelEl ? parseInt(levelEl.value) : 0;
-    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
-    const mode = modeEl ? modeEl.value : 'passive';
-    const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+  function provideBonuses(state) {
+    if (state.imagine !== 'shadow-captain') return {};
+    const level = state.level;
 
-    let passive = SHADOW_CAPTAIN_PASSIVE_EXPERTISE_DMG_PCT ? SHADOW_CAPTAIN_PASSIVE_EXPERTISE_DMG_PCT[level] : 0;
+    const passive = SHADOW_CAPTAIN_PASSIVE_EXPERTISE_DMG_PCT
+        ? SHADOW_CAPTAIN_PASSIVE_EXPERTISE_DMG_PCT[level]
+        : 0;
 
-    const active = (mode === 'active') ? ((SHADOW_CAPTAIN_ACTIVE_EXPERTISE_DMG_PCT && SHADOW_CAPTAIN_ACTIVE_EXPERTISE_DMG_PCT[level]) || 0) : 0;
+    const active = state.mode === 'active'
+        ? (SHADOW_CAPTAIN_ACTIVE_EXPERTISE_DMG_PCT?.[level] || 0)
+        : 0;
 
     const expertiseDmgPct = passive + active;
 

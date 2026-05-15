@@ -5,19 +5,23 @@
   const LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT = [10, 12, 14, 16, 18, 20];
 
   window.IMAGINES = window.IMAGINES || {};
-  function provideBonuses(slot) {
-    const sel = document.getElementById(`imagine-${slot}`);
-    if (!sel || sel.value !== 'lizardman-hunter') return {};
-    const levelEl = document.getElementById(`imagine-${slot}-level`);
-    const level = levelEl ? parseInt(levelEl.value) : 0;
-    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
-    const mode = modeEl ? modeEl.value : 'passive';
+  function provideBonuses(state) {
+    if (state.imagine !== 'lizardman-hunter') return {};
+    const level = state.level;
 
     let luckStat = 0;
     let luckyStrikeMultPct = 0;
-    if (mode === 'active') {
-      luckStat = LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT ? LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT[level] : 0;
-      luckyStrikeMultPct = LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT ? LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT[level] : 0;
+
+    if (state.mode === 'active') {
+      luckStat =
+        LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT
+          ? LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT[level]
+          : 0;
+
+      luckyStrikeMultPct =
+        LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT
+          ? LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT[level]
+          : 0;
     }
 
     return { luckStat, luckyStrikeMultPct };

@@ -5,25 +5,19 @@
   const PHANTOM_ARACHNOCRAB_ACTIVE_MASTERY_PCT = [10, 12, 14, 16, 18, 20];
 
   window.IMAGINES = window.IMAGINES || {};
-  function provideBonuses(slot) {
-    const sel = document.getElementById(`imagine-${slot}`);
-    if (!sel || sel.value !== 'phantom-arachnocrab') return {};
-    const levelEl = document.getElementById(`imagine-${slot}-level`);
-    const level = levelEl ? parseInt(levelEl.value) : 0;
-    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
-    const mode = modeEl ? modeEl.value : 'passive';
-    const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
-    const applyPassiveStats = passiveStatsEl ? passiveStatsEl.checked : false;
-    const masteryStat = PHANTOM_ARACHNOCRAB_PASSIVE_MASTERY_STAT ? PHANTOM_ARACHNOCRAB_PASSIVE_MASTERY_STAT[level] : 0;
-    const masteryPct = (mode === 'active') ? ((PHANTOM_ARACHNOCRAB_ACTIVE_MASTERY_PCT && PHANTOM_ARACHNOCRAB_ACTIVE_MASTERY_PCT[level]) || 0) : 0;
-    const bonuses = {};
-    if (applyPassiveStats) {
-      bonuses.masteryStat = masteryStat;
-    }
-    if (mode === 'active') {
-      bonuses.masteryPct = masteryPct;
-    }
-    return bonuses;
+  function provideBonuses(state) {
+    if (state.imagine !== 'phantom-arachnocrab') return {};
+    const level = state.level;
+
+    const masteryStat = PHANTOM_ARACHNOCRAB_PASSIVE_MASTERY_STAT && state.applyPassiveStats
+        ? PHANTOM_ARACHNOCRAB_PASSIVE_MASTERY_STAT[level]
+        : 0;
+
+    const masteryPct = state.mode === 'active'
+        ? (PHANTOM_ARACHNOCRAB_ACTIVE_MASTERY_PCT?.[level] || 0)
+        : 0;
+
+    return { masteryStat, masteryPct };
   }
   window.IMAGINES['phantom-arachnocrab'] = { provideBonuses };
 })();

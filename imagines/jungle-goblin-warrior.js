@@ -5,18 +5,18 @@
 
 
   window.IMAGINES = window.IMAGINES || {};
-  function provideBonuses(slot) {
-    const sel = document.getElementById(`imagine-${slot}`);
-    if (!sel || sel.value !== 'jungle-goblin-warrior') return {};
-    const levelEl = document.getElementById(`imagine-${slot}-level`);
-    const level = levelEl ? parseInt(levelEl.value) : 0;
-    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
-    const mode = modeEl ? modeEl.value : 'passive';
-    const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+  function provideBonuses(state) {
+    if (state.imagine !== 'jungle-goblin-warrior') return {};
 
-    let passive = J_G_W_PASSIVE_MAIN_STAT_PCT ? J_G_W_PASSIVE_MAIN_STAT_PCT[level] : 0;
+    const level = state.level;
 
-    const active = (mode === 'active') ? ((J_G_W_ACTIVE_MAIN_STAT_PCT && J_G_W_ACTIVE_MAIN_STAT_PCT[level]) || 0) : 0;
+    const passive = J_G_W_PASSIVE_MAIN_STAT_PCT
+        ? J_G_W_PASSIVE_MAIN_STAT_PCT[level]
+        : 0;
+
+    const active = state.mode === 'active'
+        ? (J_G_W_ACTIVE_MAIN_STAT_PCT?.[level] || 0)
+        : 0;
 
     const mainStatPct = passive + active;
 

@@ -6,17 +6,17 @@
 
 
   window.IMAGINES = window.IMAGINES || {};
-  function provideBonuses(slot) {
-    const sel = document.getElementById(`imagine-${slot}`);
-    if (!sel || sel.value !== 'boarrier-tyrant') return {};
-    const levelEl = document.getElementById(`imagine-${slot}-level`);
-    const level = levelEl ? parseInt(levelEl.value) : 0;
-    const modeEl = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`);
-    const mode = modeEl ? modeEl.value : 'passive';
+  function provideBonuses(state) {
+    if (state.imagine !== 'boarrier-tyrant') return {};
+    const level = state.level;
 
-    let passive = BOARRIER_TYRANT_PASSIVE_SPECIAL_DMG_PCT ? BOARRIER_TYRANT_PASSIVE_SPECIAL_DMG_PCT[level] : 0;
+    const passive = BOARRIER_TYRANT_PASSIVE_SPECIAL_DMG_PCT
+        ? BOARRIER_TYRANT_PASSIVE_SPECIAL_DMG_PCT[level]
+        : 0;
 
-    const active = (mode === 'active') ? ((BOARRIER_TYRANT_ACTIVE_SPECIAL_DMG_PCT && BOARRIER_TYRANT_ACTIVE_SPECIAL_DMG_PCT[level]) || 0) : 0;
+    const active = state.mode === 'active'
+        ? (BOARRIER_TYRANT_ACTIVE_SPECIAL_DMG_PCT?.[level] || 0)
+        : 0;
 
     const specialDmgPct = passive + active;
 

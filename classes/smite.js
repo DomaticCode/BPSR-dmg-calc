@@ -98,8 +98,6 @@ function provideSmiteFormulaParts(kind = 'elem') {
   return '';
 }
 
-provideSmiteClassBonuses.provideFormulaParts = provideSmiteFormulaParts;
-window.CLASS_BONUS_PROVIDERS.smite = provideSmiteClassBonuses;
 
 // HTML for Smite options (moved out of main file so class module can render it)
 const SMITE_OPTIONS_HTML = `
@@ -136,12 +134,28 @@ function onSmiteSelected() {
   if (inspEl) inspEl.value = '1.5';
 }
 
+function mainStatType() {
+  return 'int';
+}
+
+function mainStatModifier() {
+  return 0.5;
+}
+
+function mainStatModifierTalent(){
+  return 0.1;
+}
+
 // Register class module for UI/behavior
 window.CLASS_MODULES = window.CLASS_MODULES || {};
 window.CLASS_MODULES.smite = {
   renderOptions: renderSmiteOptions,
   onSelected: onSmiteSelected,
   provideClassBonuses: provideSmiteClassBonuses,
+  provideFormulaParts: provideSmiteFormulaParts,
+  mainStatType: mainStatType,
+  mainStatModifier: mainStatModifier,
+  mainStatModifierTalent: mainStatModifierTalent,
 };
 
 
