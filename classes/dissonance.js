@@ -57,7 +57,7 @@ function provideDissonanceClassBonuses(stats) {
     MainStat += x10Value;
   }
 
-  if(isDissonanceClass && getChecked('trio-rhapsody')){
+  if(isDissonanceClass && getChecked('trio-rhapsody') && getChecked('in-rhapsody')){
     const trioRhapsodyPct = stats.haste * 0.6 * 100;
     console.log(`Trio Rhapsody: ${trioRhapsodyPct.toFixed(2)}%`);
     matkPct += trioRhapsodyPct;
