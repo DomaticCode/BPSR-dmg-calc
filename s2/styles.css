@@ -12,7 +12,6 @@
     --accent-gold: #d4a843;
     --accent-orange: #f89b70;
     --accent-purple: #9b7fe8;
-    --accent-final: #9efce0;
     --text: #d8dce8;
     --text-secondary: #dfe2e7;
     --text-muted: #b4b9c4;
@@ -161,7 +160,6 @@
   .formula-box .fo { color: var(--accent-gold); }
   .formula-box .fp { color: var(--accent-purple); }
   .formula-box .forange { color: var(--accent-orange); }
-  .formula-box .ffinal { color: var(--accent-final); }
 
   .matk-breakdown { font-size: 12px; color: var(--text-muted); font-family: 'Consolas', 'SF Mono', monospace; padding: 5px 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; line-height: 1.8; overflow-x: auto;}
   .matk-breakdown-wrap { }
@@ -347,13 +345,12 @@
   .dot-vers      { background: var(--accent-purple); }
   .dot-ls        { background: #ffb86c; }
   .dot-red       { background: #e05c5c; }
-  .dot-green     { background: var(--accent-green); }
+  .dot-green     { background: #4caf7d; }
   .dot-purple    { background: #9b7fe8; }
   .dot-cyan      { background: #06b6d4; }
   .dot-mag       { background: #e6e358; }
   .dot-orange    { background: #e8874a; }
   .dot-dream     { background: #ff6b9d; }
-  .dot-final     { background: var(--accent-final); }
   
   .fr { color: var(--accent-red); font-weight: 600; }
   .fwhite { color: #ffffff; font-weight: 600; }
@@ -376,7 +373,6 @@
   .skill-formula .fo { color:#d4a843; }
   .skill-formula .fp { color:#9b7fe8; }
   .skill-formula .forange { color: var(--accent-orange); }
-  .skill-formula .ffinal { color: var(--accent-final); }
   @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .skill-result { grid-template-columns: 1fr 1fr; } .lucky-panel-grid { grid-template-columns: 1fr; } }
 

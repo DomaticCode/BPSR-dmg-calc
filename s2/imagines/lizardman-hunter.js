@@ -1,7 +1,7 @@
 (function(){
 
   // lizardman hunter bonus arrays
-  const LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT = [4480, 5376, 6272, 7168, 8064, 8960];
+  const LIZARDMAN_HUNTER_ACTIVE_LUCK_STAT = [1792, 2150, 2508, 2867, 3225, 3584];
   const LIZARDMAN_HUNTER_ACTIVE_LUCKY_STRIKE_MULT_PCT = [10, 12, 14, 16, 18, 20];
 
   window.IMAGINES = window.IMAGINES || {};

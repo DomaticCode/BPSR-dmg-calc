@@ -1,7 +1,7 @@
 (function(){
 
   // Only passive versatility implemented.
-  const GOBLIN_KING_PASSIVE_VERSATILITY_STAT = [8960, 11648, 14336, 17024, 19712, 22400];
+  const GOBLIN_KING_PASSIVE_VERSATILITY_STAT = [3584, 4636, 5688, 6740, 7792, 8960];
 
   window.IMAGINES = window.IMAGINES || {};
 function provideBonuses(state) {

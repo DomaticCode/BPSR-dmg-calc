@@ -1,7 +1,7 @@
 (function(){
 
   // foxen bonus arrays
-  const BLACKFIRE_FOXEN_PASSIVE_MASTERY_STAT = [5040, 6552, 8064, 9576, 11088, 12600];
+  const BLACKFIRE_FOXEN_PASSIVE_MASTERY_STAT = [2016, 2615, 3214, 3813, 4412, 5040];
   const BLACKFIRE_FOXEN_ACTIVE_MASTERY_PCT = [6.5, 7.8, 9.1, 10.4, 11.7, 13];
 
   window.IMAGINES = window.IMAGINES || {};

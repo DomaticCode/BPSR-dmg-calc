@@ -2,7 +2,7 @@
 
   // Flamehorn lucky strike DMG boost by level
   const FLAMEHORN_BOOST = [8, 10.4, 12.8, 15.2, 17.6, 20];
-  const FLAMEHORN_LUCK_STAT = [5600, 7280, 8960, 10640, 12320, 14000];
+  const FLAMEHORN_LUCK_STAT = [2240, 2912, 3584, 4256, 4928, 5600];
 
   window.IMAGINES = window.IMAGINES || {};
   function provideBonuses(state) {

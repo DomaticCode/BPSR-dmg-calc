@@ -1,4 +1,4 @@
-//stats are crit: postWlCritPct, luck: postWlLuckPct, vers: postWlVersPct, mastery: postWlMasteryPct, versDmg: postWlVersDmgPct, haste: postWlHastePct,
+//stats are crit: postWlCritPct, luck: postWlLuckPct, vers: postWlVersPct, mastery: postWlMasteryPct, versDmg: postWlVersDmgPct
 function provideDissonanceClassBonuses(stats) {
   const isDissonanceClass = document.getElementById('class-select')?.value === 'dissonance';
 
@@ -29,6 +29,10 @@ function provideDissonanceClassBonuses(stats) {
     elemPct += 8;
   }
 
+  if(isDissonanceClass && getChecked('encore-chain')){
+    luckMult -= 20;
+  }
+
   let matkPct = 0;
   let matk = 0;
   if(isDissonanceClass && getChecked('center-stage')) {
@@ -55,12 +59,6 @@ function provideDissonanceClassBonuses(stats) {
   if(isDissonanceClass && getChecked('tree-x10')){
     const x10Value = parseFloat(document.getElementById('tree-x10-value').value) || 0;
     MainStat += x10Value;
-  }
-
-  if(isDissonanceClass && getChecked('trio-rhapsody')){
-    const trioRhapsodyPct = stats.haste * 0.6 * 100;
-    console.log(`Trio Rhapsody: ${trioRhapsodyPct.toFixed(2)}%`);
-    matkPct += trioRhapsodyPct;
   }
 
   console.log(`disso returning: ${elemPct}, ${finalLuckPct}, ${luckMult}, ${magBoostPct}, ${MainStat}, ${matkPct}, ${matk}`);
@@ -112,12 +110,12 @@ const DISSONANCE_OPTIONS_HTML = `
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="center-stage" style="width:14px;height:14px;" checked onchange="calc()"><label for="center-stage">Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% MATK + 80 (15s) </span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-multiplier" style="width:14px;height:14px;" checked onchange="calc()"><label for="luck-multiplier">Luck Multiplier Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Every 1% luck -> 0.5% Lucky Strike DMG Multiplier.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="fire-day" style="width:14px;height:14px;" checked onchange="calc()"><label for="fire-day">Fire Day Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% Elite+ Fire damage.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="encore-chain" style="width:14px;height:14px;" checked onchange="calc()"><label for="encore-chain">Encore Chain Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">-20% Lucky Strike DMG Mult. (in return for more luck procs)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="s2-2-set" style="width:14px;height:14px;" checked onchange="calc()"><label for="s2-2-set">Season2 2-piece set</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">+5% fire damage in Heroic Melody</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x4" style="width:14px;height:14px;"  onchange="calc()"><label for="tree-x4">X4 Factor</label><input type="number" id="tree-x4-value" min="0" max="6" step="0.1" value="6" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> X% MAG boost</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x8" style="width:14px;height:14px;"  onchange="calc()"><label for="tree-x8">X8 Factor</label><input type="number" id="tree-x8-value" min="0" max="4.2" step="0.1" value="4.2" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> X% all element in Healing Melody or Rhapsody of flame.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="tree-x10" style="width:14px;height:14px;"  onchange="calc()"><label for="tree-x10">X10 Factor</label><input type="number" id="tree-x10-value" min="0" max="265" step="0.1" value="265" style="width:50px;" onInput="clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"><span class="highlight-gold">Input the % in the factor tooltip NOT THE LEVEL.</span> X INT when above 80% hp.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="trio-rhapsody" style="width:14px;height:14px;"  onchange="calc()"><label for="trio-rhapsody">Trio Rhapsody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">MATK increases by Haste % * 0.6.</span></span></div>
-  </div>
+    </div>
 `;
 
 function renderDissonanceOptions(containerId = 'class-options') {

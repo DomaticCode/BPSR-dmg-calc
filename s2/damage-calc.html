@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Calculator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.7.0</span>
+      <span class="header-version">v0.6.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -61,7 +61,6 @@
           <option value="marksman">Marksman</option>
           <option value="heavyguardian">Heavy Guardian</option>
           <option value="shieldknight">Shield Knight</option>
-          <option value="twinaxe">Twin Axe</option>
         </optgroup>
       </select>
     </div>
@@ -221,7 +220,7 @@
 
 
           <!-- Substats -->
-          <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+50000)+base%. Versatility uses Stat/(Stat+28000)+base%.</span></span></div>
+          <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+19975)+base%. Versatility uses Stat/(Stat+11206)+base%.</span></span></div>
           <div style="display:grid; grid-template-columns:1fr 56px 18px 72px; gap:6px; margin-bottom:4px; padding:0 0 2px 0;">
             <div style="font-size:10px;color:var(--text-muted);"></div>
             <div style="font-size:10px;color:var(--text-muted);text-align:right;">Base%</div>
@@ -237,21 +236,21 @@
           </div>
 
           <div class="substat-row">
-            <div class="field"><label>Haste Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Haste% = (Haste / (Haste + 50000)) + base% + Inspiration. Not used in any calculations, Tracked here for future use.</span></span></label><input type="number" id="haste-stat" value="0" oninput="calc()"></div>
+            <div class="field"><label>Haste Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Haste% = (Haste / (Haste + 19975)) + base% + Inspiration. Not used in any calculations, Tracked here for future use.</span></span></label><input type="number" id="haste-stat" value="0" oninput="calc()"></div>
             <input type="number" class="substat-base" id="base-haste-pct" value="0" step="0.1" oninput="calc()">
             <div class="substat-arrow">→</div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Haste %</label><div class="substat-pct" id="sub-haste-pct">0.00%</div></div>
           </div>
 
           <div class="substat-row">
-            <div class="field"><label>Luck Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Chance% = (Luck / (Luck + 50000)) + base% + Inspiration.</span></span></label><input type="number" id="luck-stat" value="0" oninput="calc()"></div>
+            <div class="field"><label>Luck Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Chance% = (Luck / (Luck + 19975)) + base% + Inspiration.</span></span></label><input type="number" id="luck-stat" value="0" oninput="calc()"></div>
             <input type="number" class="substat-base" id="base-luck-pct" value="5" step="0.1" oninput="calc()">
             <div class="substat-arrow">→</div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Luck %</label><div class="substat-pct" id="sub-luck-pct">5.00%</div></div>
           </div>
 
           <div class="substat-row">
-            <div class="field"><label>Mastery Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Mastery% = (Mastery / (Mastery + 50000)) + base% + Inspiration. Tracked for future use.</span></span></label><input type="number" id="mastery-stat" value="0" oninput="calc()"></div>
+            <div class="field"><label>Mastery Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Mastery% = (Mastery / (Mastery + 19975)) + base% + Inspiration. Tracked for future use.</span></span></label><input type="number" id="mastery-stat" value="0" oninput="calc()"></div>
             <input type="number" class="substat-base" id="base-mastery-pct" value="6" step="0.1" oninput="calc()">
             <div class="substat-arrow">→</div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Mastery %</label><div class="substat-pct" id="sub-mastery-pct">6.00%</div></div>
@@ -344,7 +343,6 @@
             <div class="field"><label><span class="dot dot-green"></span>Generic DMG %</label><input type="number" id="gen-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-dream"></span>Dream DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additional dream damage.</span></span></label><input type="number" id="dream-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-mag"></span>MAG Boost %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Rare damage scaler, appears on some ocean weapons, and factors.</span></span></label><input type="number" id="mag-boost-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-final"></span>Final DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Final Damage, unique scaler.</span></span></label><input type="number" id="final-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
           </div>
           <!-- Skill Type Bonuses -->
           <div class="section-label">Skill Type DMG Bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additive generic DMG% that applies only to skills of that type. Must set the type of skill in order to see damage.</span></span></div>
@@ -367,10 +365,6 @@
             <div class="field">
               <label>Lucky DMG Mult % bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">+% flat bonus.</span></span></label>
               <input type="number" id="lucky-mult-bonus" value="0" step="0.1" oninput="calc()">
-            </div>
-            <div class="field">
-              <label>Luck Bonus Crit Chance %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Bonus crit chance for lucky strikes.</span></span></label>
-              <input type="number" id="luck-crit-chance" value="0" step="0.1" oninput="calc()">
             </div>
           </div>
           <div class="checkbox-group">
@@ -544,7 +538,6 @@
                   <div class="module-dropdown" id="imagine-dropdown-1" style="display:none;">
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
-                    <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
                     <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
                     <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
                     <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
@@ -599,7 +592,6 @@
                   <div class="module-dropdown" id="imagine-dropdown-2" style="display:none;">
                     <div class="module-option" data-value="airona">Airona</div>
                     <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
-                    <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
                     <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
                     <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
                     <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
@@ -800,7 +792,6 @@
 <script src="classes/heavyguardian.js"></script>
 <script src="classes/shieldknight.js"></script>
 <script src="classes/frostmage.js"></script>
-<script src="classes/twinaxe.js"></script>
 <!-- Imagines -->
 <script src="imagines/muku-scout.js"></script>
 <script src="imagines/muku-chief.js"></script>
@@ -828,7 +819,6 @@
 <script src="imagines/muku-warrior.js"></script>
 <script src="imagines/fafala.js"></script>
 <script src="imagines/olvera.js"></script>
-<script src="imagines/bloodthirsty-furball.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -919,7 +909,7 @@
     levelField.style.display = hasImagine ? '' : 'none';
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
-    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball'];
+    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
@@ -2484,8 +2474,8 @@
     bestBase.value = evaluate(bestBase);
     output.textContent = `Starting: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
 
-    const steps = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
-    const restarts = 4;
+    const steps = [200, 100, 50, 20, 10, 5, 2, 1];
+    const restarts = 8;
 
     const genRandomStart = () => {
       const state = { ...baseOriginal };

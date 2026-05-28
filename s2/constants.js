@@ -112,7 +112,6 @@ const SAVE_FIELD_ORDER = [
   'parse-duration',
   'extra-main-attr',
   'lucky-strike-dmg-bonus',
-  'luck-crit-chance',
 ];
 
 // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
@@ -130,7 +129,6 @@ const CLASS_FIELDS_ORDER = {
     'tree-x4-value',
     'tree-x7',
     'tree-x7-value',
-    'arcane-of-green',
   ],
   dissonance: [
     'in-rhapsody',
@@ -146,7 +144,6 @@ const CLASS_FIELDS_ORDER = {
     'tree-x8-value',
     'tree-x10',
     'tree-x10-value',
-    'trio-rhapsody',
   ],
   stormblade: [
     // no fields
@@ -162,10 +159,7 @@ const CLASS_FIELDS_ORDER = {
   ],
   shieldknight: [
     // no fields
-  ],
-  twinaxe: [
-    // no fields
-  ],
+  ]
 };
 
 // Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY (for dropdown selection)

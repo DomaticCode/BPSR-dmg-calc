@@ -122,9 +122,9 @@ function calc() {
   }
 
 
-  // === Substats — all use X/(X+50000)+base% except Versatility X/(X+28000)+base% ===
-  const STAT_SCALER = 50010;
-  const VERS_SCALER = 28000;
+  // === Substats — all use X/(X+19975)+base% except Versatility X/(X+11206)+base% ===
+  const STAT_SCALER = 19975;
+  const VERS_SCALER = 11206;
   // Base %s are now editable inputs (class loading sets them, user can override)
   const baseCrit    = getVal('base-crit-pct') / 100;
   const baseHaste   = getVal('base-haste-pct') / 100;
@@ -332,7 +332,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgBonus / 100 + moduleAllDmgBonus / 100 + typeDmgPct + imagineGenDamagePct;
   let magBoostPct   = getVal('mag-boost-pct') / 100;
   magBoostPct += classMagBoostPct;
-  let finalDmgPct   = getVal('final-dmg-pct') / 100;
 
   const finalCritPct = postWlCritPct * (1 + classFinalCritPct); // not in use yet
   const finalHastePct = postWlHastePct * (1 + classFinalHastePct);  // not in use yet
@@ -458,6 +457,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     multPct += getVal('lucky-mult-bonus');
     multPct += imagineLuckyStrikeMultPct;
     multPct += classLuckMult;
+    multPct *= (1 + classLuckyFinalDmgPct); // This feels like it would be outside this formula, but it directly boosts lucky multiplier...
     luckyMult = multPct / 100;
     document.getElementById('lucky-mult-display').value = multPct.toFixed(2);
   }
@@ -466,7 +466,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const luckyMultFinal  = luckyMult;
   const luckEffectBonus = getVal('luck-effect-bonus') / 100;
   const luckEffectPct   = finalLuckPct + luckEffectBonus + imagineLuckEffectPct;
-  const luckFinalDamagePct = finalDmgPct + classLuckyFinalDmgPct;
 
   const serumOilEnabled = getChecked('serum-oil-enabled');
   const serumOilType = document.getElementById('serum-oil-type')?.value || 'serum';
@@ -484,28 +483,12 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const luckyGenPct     = totalGenDmgPct + luckEffectPct + foodDmgBonusPct + luckyStrikeDmgBonus;
   const luckyBase       = (effectiveAtk + defenseFreeAtk) * luckyMultFinal;
-  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct) * (1 + luckFinalDamagePct);
-
-  let additionalDamage = 0;
-  if (imagineBonuses.additionalDamageProc !== undefined) {
-    const additionalDamageProc = imagineBonuses.additionalDamageProc / 100 || 0;
-    additionalDamage = effectiveAtk * additionalDamageProc * baseMultipliers;
-  }
-
-  const lsNormal        = (luckyBase * baseMultipliers) + additionalDamage;
+  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct);
+  const lsNormal        = luckyBase * baseMultipliers;
   const lsCrit          = lsNormal * effectiveCritMult;
   console.log('psychoscopeTargetCritPct', psychoscopeTargetCritPct);
-
-  // Cap final luck crit between 0 and 100%
-  let luckCritChancePct = document.getElementById('luck-crit-chance')
-    ? getVal('luck-crit-chance') / 100
-    : 0;
-  const finalLuckCritPct = Math.max(
-    0,
-    Math.min(1, finalCritPct + luckCritChancePct)
-  );
-  const lsAvg = lsNormal * (1 - (finalLuckCritPct + psychoscopeTargetCritPct)) 
-            + lsCrit   * (finalLuckCritPct + psychoscopeTargetCritPct);
+  const lsAvg = lsNormal * (1 - (finalCritPct + psychoscopeTargetCritPct)) 
+            + lsCrit   * (finalCritPct + psychoscopeTargetCritPct);
 
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -540,7 +523,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _psychoscopeDreamDmgPct: psychoscopeDreamDmgPct, _dreamManual: getVal('dream-dmg-pct') / 100,
     _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg,
     _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _luckyGenPct: luckyGenPct, _magBoost: magBoostPct, _luckyStrikeDmgBonus: luckyStrikeDmgBonus, 
-    _finalDmgPct: finalDmgPct,
     _oblivionPct: oblivionPct, _oblivionMainStatPct: oblivionMainStatPct, _oblivionAllElementPct: oblivionAllElementPct,
     _serumOilEnabled: serumOilEnabled, _serumOilType: serumOilType, _serumOilValue: serumOilValue, _serumOilPct: serumOilPct,
     _targetType: targetType,
@@ -643,17 +625,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     if (imagineDreamParts) ps.push(imagineDreamParts);
     return ps.length ? ps.join(' + ') + `=${(c._dreamDmgPct*100).toFixed(2)}%` : `${(c._dreamDmgPct*100).toFixed(2)}%`;
   }
-  function buildFinalStr(c) {
-    if (finalDmgPct > 0) {
-      const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(2)}%`);
-      const classFinalParts = getClassFormulaParts('final');
-      if (classFinalParts) ps.push(classFinalParts);
-      const total = finalDmgPct;
-      return ps.length ? '× <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
-    }
-    return '';
-  }
   function buildLuckyGenStr(c) {
     const ps = [];
     if (c._genBase)     ps.push(`gen ${(c._genBase*100).toFixed(2)}%`);
@@ -685,24 +656,11 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     const total = dreamDmgPctLucky;
     return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
   }
-  function buildLuckyFinalStr(c) {
-    if (luckFinalDamagePct > 0) {
-      const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(2)}%`);
-      const classLuckyFinal = getClassFormulaParts('luckyFinal');
-      if (classLuckyFinal) ps.push(classLuckyFinal);
-      const total = luckFinalDamagePct;
-      return ps.length ? '× <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
-    }
-    return '';
-  }
   window._buildElemStr    = buildElemStr;
   window._buildGenStr     = buildGenStr;
   window._buildDreamStr   = buildDreamStr;
-  window._buildFinalStr = buildFinalStr;
   window._buildDreamStrLucky = buildDreamStrLucky;
   window._buildLuckyGenStr = buildLuckyGenStr;
-  window._buildLuckyFinalStr = buildLuckyFinalStr;
 
   updateImagineNotes();
 
@@ -710,8 +668,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const tgLabel = targetType === 'boss' ? 'Boss' : targetType === 'elite' ? 'Elite' : 'Normal';
   const luTags = [];
   const luckyTag = luTags.length ? ` [${luTags.join(', ')}]` : '';
-
-
 
   document.getElementById('formula-preview').innerHTML =
     `<span style="color:var(--text-muted)">Target: ${tgLabel} | ${damageType.charAt(0).toUpperCase()+damageType.slice(1)}</span>\n` +
@@ -722,17 +678,15 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     `× <span class="fg">(1 + Gen: ${buildGenStr(c, 0, '')})</span>\n` +
     `× <span class="fdream">(1 + Dream: ${buildDreamStr(c)})</span>\n` +
     `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
-    buildFinalStr(c) +
     `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n\n` +
     `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
     `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">Elemental(${(elementalAtk)})</span>) × skill multiplier + skill flat damage` +
     `\n× <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(2)}%)</span>\n` +
-    `× <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
-    `× <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
-    `× <span class="fg">(1 + Gen: ${buildLuckyGenStr(c)})</span>\n` +
+    `× <span class="fvers">(1+Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
+    `× <span class="felem">(1+Elem: ${buildElemStr(c)})</span>\n` +
+    `× <span class="fg">(1+Gen: ${buildLuckyGenStr(c)}</span>)\n` +
     `× <span class="fdream">(1 + Dream: ${buildDreamStrLucky(c)})</span>\n` +
     `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
-    buildLuckyFinalStr(c) +
     `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
 
   if (!optimizingSubstats && optimizerDone) {

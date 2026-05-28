@@ -123,7 +123,6 @@ function calcSkill(id) {
   });
 
   effectCritChance += psychoscopeTargetCritPct;
-  effectCritChance = Math.max(effectCritChance, -c.critRatePct); // Don't allow negative crit rate
 
   const preDeductionGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + effectGen;
   const specialAttackElemBonus = (skillType === 'special') ? (c._moduleSpecialAttackElem || 0) : 0;
@@ -139,26 +138,17 @@ function calcSkill(id) {
   const finalCritMult = c.critMultPct + effectCritDmg;
   const finalMagBoost = effectNoMagBoost ? 0 : originalMag;
   const versDmgPct = effectNoVers ? 0 : originalVers;
-  const finalDmgPct = c._finalDmgPct;
 
   const skillResistance = skillDamageType === 'physical' ? c._physRes : (skillDamageType === 'magical' ? (c._magResEnabled ? 0.08 : 0) : c.resistance);
   const skillAtkDefReduced = c.effectiveAtk * (1 - skillResistance);
   const stdBase   = (skillAtkDefReduced + c.defenseFreeAtk) * mult + flat;
-  const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler) * (1 + finalDmgPct); // Assume final is after other
-
-  let additionalDamage = 0;
-  if (imagineBonuses.additionalDamageProc !== undefined && skillType !== 'none') {
-    const additionalDamageProc = imagineBonuses.additionalDamageProc / 100 || 0;
-    additionalDamage = c.effectiveAtk * additionalDamageProc * stdMult;
-  }
-  const normalHit = (stdBase * stdMult) + additionalDamage;
+  const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler);
+  const normalHit = stdBase * stdMult;
   const critHit   = normalHit * finalCritMult;
   const avgSkillHit = normalHit * (1 - finalCritRatePct) + critHit * finalCritRatePct;
 
   const luckyContrib  = triggersLucky ? (c.luckChancePct + psychoscopeTargetLuckPct) * c.lsAvg : 0;
   const avgWithLucky  = avgSkillHit + luckyContrib;
-
-
 
   document.getElementById(`sk-res-normal-${id}`).textContent = fmt(normalHit);
   document.getElementById(`sk-res-crit-${id}`).textContent   = fmt(critHit);
@@ -249,9 +239,6 @@ function calcSkill(id) {
     const otherLine = effectOtherScaler !== 0
       ? `× <span class="forange">(1+Other:${otherText})</span>\n`
       : '';
-    const finalDmgLine = finalDmgPct !== 0
-      ? `× <span class="ffinal">(1+Final:${(finalDmgPct*100).toFixed(2)}%)</span>\n`
-      : '';
     const skillResLabel = skillDamageType === 'physical' 
       ? `${(c._physRes*100).toFixed(1)}%` 
       : (skillDamageType === 'magical' ? (c._magResEnabled ? '8%' : '0%') : c._resLabel);
@@ -268,7 +255,6 @@ function calcSkill(id) {
       `× <span class="fdream">(1+Dream:${finalDreamStr})</span>\n` +
       `× <span class="fmag">(1+MAG:${magText})</span>\n` +
       otherLine +
-      finalDmgLine +
       `× <span class="fr">CRIT(${critMultText}) (if crit)</span>\n`;
   } else if (formulaEl) {
     formulaEl.style.display = 'none';
