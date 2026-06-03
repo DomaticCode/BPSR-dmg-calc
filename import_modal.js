@@ -107,11 +107,11 @@ function displayZdpsAttributePreview() {
 
   const expectedAttrs = [
     { key: mainAttrKey, label: mainAttrLabel[mainAttrKey], isMainStat: true },
-    { key: 'AttrLuckTotal', label: 'Luck' },
-    { key: 'AttrCriTotal', label: 'Crit' },
-    { key: 'AttrHasteTotal', label: 'Haste' },
-    { key: 'AttrMasteryTotal', label: 'Mastery' },
-    { key: 'AttrVersatilityTotal', label: 'Versatility' },
+    { key: 'AttrLuck', label: 'Luck' },
+    { key: 'AttrCri', label: 'Crit' },
+    { key: 'AttrHaste', label: 'Haste' },
+    { key: 'AttrMastery', label: 'Mastery' },
+    { key: 'AttrVersatility', label: 'Versatility' },
     { key: 'AttrRefineMattack', label: 'Refined ATK' }, // We'll handle total below
     { key: 'AttrElementAtkTotal', label: 'Elemental ATK' }
   ];
@@ -202,11 +202,11 @@ function applyElementSelection() {
     if (mainStatPctInput) mainStatPctInput.value = '0';
   }
 
-  if (parsedAttrs.AttrLuckTotal !== undefined) document.getElementById('luck-stat').value = parsedAttrs.AttrLuckTotal;
-  if (parsedAttrs.AttrCriTotal !== undefined) document.getElementById('crit-rate-stat').value = parsedAttrs.AttrCriTotal;
-  if (parsedAttrs.AttrHasteTotal !== undefined) document.getElementById('haste-stat').value = parsedAttrs.AttrHasteTotal;
-  if (parsedAttrs.AttrMasteryTotal !== undefined) document.getElementById('mastery-stat').value = parsedAttrs.AttrMasteryTotal;
-  if (parsedAttrs.AttrVersatilityTotal !== undefined) document.getElementById('vers-dmg-pct').value = parsedAttrs.AttrVersatilityTotal;
+  if (parsedAttrs.AttrLuck !== undefined) document.getElementById('luck-stat').value = parsedAttrs.AttrLuck;
+  if (parsedAttrs.AttrCri !== undefined) document.getElementById('crit-rate-stat').value = parsedAttrs.AttrCri;
+  if (parsedAttrs.AttrHaste !== undefined) document.getElementById('haste-stat').value = parsedAttrs.AttrHaste;
+  if (parsedAttrs.AttrMastery !== undefined) document.getElementById('mastery-stat').value = parsedAttrs.AttrMastery;
+  if (parsedAttrs.AttrVersatility !== undefined) document.getElementById('vers-dmg-pct').value = parsedAttrs.AttrVersatility;
 
   const refinedAtk = parsedAttrs.AttrRefineMattack ?? parsedAttrs.AttrRefineAttackTotal;
   if (refinedAtk !== undefined) document.getElementById('refined-atk').value = refinedAtk;

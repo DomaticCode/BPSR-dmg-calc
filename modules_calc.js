@@ -11,6 +11,7 @@
     //TODO rewrite to use same pct structure as imagines/psychoscope (10.00 = 10% instead of 0.10)
     // Initialize module-related outputs (match names used in damage-calc.html)
     let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
+    let moduleLifeWavePct = 0;
     let moduleAtkBonus = 0, moduleMatkBonus = 0, moduleAllAtkBonus = 0, moduleEliteDmgBonus = 0;
     let moduleMagicDmgBonus = 0, modulePhysicalDmgBonus = 0, moduleAllDmgBonus = 0, moduleCritDmgBonus = 0;
     let moduleLuckyStrikeBonus = 0, moduleSpecialAttackElemBonus = 0, autoTeamLuckCritOption = null;
@@ -44,12 +45,7 @@
         moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
         if (moduleLevel >= 5) {
           const bonus = moduleLevel === 5 ? 0.06 : 0.10;
-          const highest = substats.reduce((a, b) => a.val >= b.val ? a : b);
-          if (highest.key === 'crit')    moduleBonusCrit    += bonus;
-          if (highest.key === 'luck')    moduleBonusLuck    += bonus;
-          if (highest.key === 'mastery') moduleBonusMastery += bonus;
-          if (highest.key === 'vers')    moduleBonusVers    += bonus;
-          if (highest.key === 'haste')   moduleBonusHaste   += bonus;
+          moduleLifeWavePct += bonus;
         }
       }
 
@@ -208,7 +204,8 @@
       moduleLuckyStrikeBonus, moduleSpecialAttackElemBonus, autoTeamLuckCritOption,
       moduleElementalAtkBonus, moduleElementalDmgStatBonus,
       moduleIntellectBonus, moduleAgilityBonus, moduleStrengthBonus, moduleAllMainStatBonus,
-      moduleAtkBreakdown, moduleMatkBreakdown, moduleCastSpeedBonus, moduleAttackSpdLevel, strengthBoostLevel
+      moduleAtkBreakdown, moduleMatkBreakdown, moduleCastSpeedBonus, moduleAttackSpdLevel, strengthBoostLevel,
+      moduleLifeWavePct
     };
   }
 

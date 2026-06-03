@@ -191,6 +191,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   let autoTeamLuckCritOption = moduleResults.autoTeamLuckCritOption ?? null; // Auto-update team luck/crit dropdown from the module
   let moduleElementalAtkBonus = moduleResults.moduleElementalAtkBonus || 0; // All Element Attack bonus from modules
   let moduleElementalDmgStatBonus = moduleResults.moduleElementalDmgStatBonus || 0; // Raw all-elemental DMG stat from modules
+  let moduleLifeWavePct = moduleResults.moduleLifeWavePct || 0;
+  let moduleLifeWaveStat = null;
 
   // These are locally calculated but not used anywhere outside the note for Modules. (if at all).
   let moduleIntellectBonus =  moduleResults.moduleIntellectBonus || 0; // Intellect stat bonus
@@ -216,33 +218,57 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     if (teamLuckCritSelect) teamLuckCritSelect.value = autoTeamLuckCritOption;
   }
 
-  let psBonusCrit = 0, psBonusLuck = 0, psBonusMastery = 0, psBonusHaste = 0;
-  if (psychoscopeHighestSubstatPctBonus) {
-    const substats = [
-      { key: 'crit', val: critRatePct + moduleBonusCrit },
-      { key: 'luck', val: luckChancePct + moduleBonusLuck },
-      { key: 'mastery', val: masteryPct + moduleBonusMastery },
-      { key: 'haste', val: hastePct + moduleBonusHaste },
-    ];
-    const highest = substats.reduce((a, b) => a.val >= b.val ? a : b);
-    if (highest.key === 'crit')    psBonusCrit    = 0.03;
-    if (highest.key === 'luck')    psBonusLuck    = 0.03;
-    if (highest.key === 'mastery') psBonusMastery = 0.03;
-    if (highest.key === 'haste')   psBonusHaste   = 0.03;
-  }
-
   // Weapon line substats: flat boosts added directly to final substat %s
   const wlCritBonus  = getVal('wl-crit-pct') / 100;
   const wlHasteBonus = getVal('wl-haste-pct') / 100;
   const wlLuckBonus  = getVal('wl-luck-pct') / 100;
   const wlMasteryBonus = getVal('wl-mastery-pct') / 100;
   const wlVersBonus  = getVal('wl-vers-pct') / 100;
-  // include imagine-provided crit bonus into final crit stat before WL
-  const postWlCritPct    = critRatePct + moduleBonusCrit + psBonusCrit + wlCritBonus;
-  const postWlHastePct   = hastePct + moduleBonusHaste + psBonusHaste + wlHasteBonus;
-  const postWlLuckPct    = luckChancePct + moduleBonusLuck + psBonusLuck + psychoscopeLuckPct + wlLuckBonus;
-  const postWlMasteryPct = masteryPct + moduleBonusMastery + psBonusMastery + wlMasteryBonus;
-  const postWlVersPct    = versPct + moduleBonusVers + wlVersBonus;
+
+  let postWlCritPct    = critRatePct + moduleBonusCrit + wlCritBonus;
+  let postWlHastePct   = hastePct + moduleBonusHaste + wlHasteBonus;
+  let postWlLuckPct    = luckChancePct + moduleBonusLuck + psychoscopeLuckPct + wlLuckBonus;
+  let postWlMasteryPct = masteryPct + moduleBonusMastery + wlMasteryBonus;
+  let postWlVersPct    = versPct + moduleBonusVers + wlVersBonus;
+
+  if (moduleLifeWavePct) {
+    moduleLifeWaveStat = [
+      { key: 'crit', val: postWlCritPct },
+      { key: 'luck', val: postWlLuckPct },
+      { key: 'mastery', val: postWlMasteryPct },
+      { key: 'vers', val: postWlVersPct },
+      { key: 'haste', val: postWlHastePct },
+    ].reduce((a, b) => a.val >= b.val ? a : b).key;
+
+    if (moduleLifeWaveStat === 'crit')    postWlCritPct += moduleLifeWavePct;
+    if (moduleLifeWaveStat === 'luck')    postWlLuckPct += moduleLifeWavePct;
+    if (moduleLifeWaveStat === 'mastery') postWlMasteryPct += moduleLifeWavePct;
+    if (moduleLifeWaveStat === 'vers')    postWlVersPct += moduleLifeWavePct;
+    if (moduleLifeWaveStat === 'haste')   postWlHastePct += moduleLifeWavePct;
+  }
+
+  let psBonusCrit = 0, psBonusLuck = 0, psBonusMastery = 0, psBonusHaste = 0, psBonusVersatility = 0;
+  if (psychoscopeHighestSubstatPctBonus) {
+    const substats = [
+      { key: 'crit', val: postWlCritPct },
+      { key: 'luck', val: postWlLuckPct },
+      { key: 'mastery', val: postWlMasteryPct },
+      { key: 'haste', val: postWlHastePct },
+      { key: 'vers', val: postWlVersPct },
+    ];
+    const highest = substats.reduce((a, b) => a.val >= b.val ? a : b);
+    if (highest.key === 'crit')    psBonusCrit    = 0.03;
+    if (highest.key === 'luck')    psBonusLuck    = 0.03;
+    if (highest.key === 'mastery') psBonusMastery = 0.03;
+    if (highest.key === 'haste')   psBonusHaste   = 0.03;
+    if (highest.key === 'vers')    psBonusVersatility   = 0.03;
+  }
+
+  postWlCritPct    += psBonusCrit;
+  postWlHastePct   += psBonusHaste;
+  postWlLuckPct    += psBonusLuck;
+  postWlMasteryPct += psBonusMastery;
+  postWlVersPct    += psBonusVersatility;
   const postWlVersDmgPct = postWlVersPct * 0.35;
 
   // Update substat displays (dropped weapon-line until postWl* is computed)
@@ -471,7 +497,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const serumOilEnabled = getChecked('serum-oil-enabled');
   const serumOilType = document.getElementById('serum-oil-type')?.value || 'serum';
   const serumOilValue = serumOilEnabled ? getVal('serum-oil-value') : 0;
-  const serumOilPct = serumOilEnabled && serumOilValue > 0 ? serumOilValue / (serumOilValue + 6492) : 0;
+  const serumOilPct = serumOilEnabled && serumOilValue > 0 ? serumOilValue / (serumOilValue + 11000) : 0;
   if (serumOilEnabled && serumOilType === 'serum') {
     elemDmgPct += serumOilPct;
   }
@@ -581,11 +607,11 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   // helper: build imagine specific damage formula detail strings
   function getImagineFormulaParts(kind = 'gen') {
     const parts = [];
-    for (let slot = 1; slot <= 3; slot++) {
+    for (let slot = 1; slot < 3; slot++) {
       const state = getImagineState(slot);
       if (!state.imagine || state.imagine === 'none') continue;
 
-      const module = window.IMAGINE_MODULES?.[state.imagine];
+      const module = window.IMAGINES?.[state.imagine];
       try {
         const part = module?.provideFormulaParts?.(kind, state);
         if (part) parts.push(part);
@@ -853,7 +879,7 @@ function updateDamageSummary() {
       totalDamage += skillTotalDamage;
     }
 
-    if (triggersLucky) {
+    if (triggersLucky && !isDisabled) {
       const skillLuckyChance = Math.min(finalLuckyChance + psychoscopeTargetLuckPct, 1);
       luckyHitCount += hitsPerParse * skillLuckyChance;
     }

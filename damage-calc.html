@@ -13,7 +13,7 @@
     <h1>BP<span>:</span>SR Damage Calculator</h1>
     <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
     <div class="header-meta">
-      <span class="header-version">v0.7.0</span>
+      <span class="header-version">v0.7.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -117,7 +117,7 @@
           <option value="serum">Serum</option>
           <option value="oil">Oil</option>
         </select>
-        <input type="number" id="serum-oil-value" value="1250" step="1" min="0" placeholder="Value" oninput="calc()">
+        <input type="number" id="serum-oil-value" value="2000" step="1" min="0" placeholder="Value" oninput="calc()">
       </div>
     </div>
     <div class="field">
@@ -1129,9 +1129,9 @@
 
     const type = typeSelect.value;
     if (type === 'serum') {
-      valueEl.value = 1250;
+      valueEl.value = 2000;
     } else {
-      valueEl.value = 800;
+      valueEl.value = 1350;
     }
 
     calc();
@@ -1148,9 +1148,9 @@
       const valueEl = document.getElementById('serum-oil-value');
       if (!typeSelect || !valueEl) return;
       if (typeSelect.value === 'oil') {
-        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 800;
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 1350;
       } else {
-        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 1250;
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 2000;
       }
     }
 
@@ -2062,6 +2062,7 @@
         <option value="elemDmg">Element damage</option>
         <option value="magBoost">MAG boost</option>
         <option value="otherScaler">Other scaler</option>
+        <option value="finalDamage">Final Damage</option>
         <option value="damageType">Damage type</option>
       </select>
       <input type="text" value="0" placeholder="physical, magical, no-intellect-boost, no-elem, no-season-dmg, no-mag, no-vers, no-gen," oninput="calc()" />

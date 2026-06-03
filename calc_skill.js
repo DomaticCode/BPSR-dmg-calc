@@ -76,7 +76,7 @@ function calcSkill(id) {
   };
 
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
-  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectNoIntellectBoostDeduction = 0, skillDamageType = null;
+  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, skillDamageType = null;
   let effectNoElem = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false;
   effectRows.forEach(row => {
     const kind = row.querySelector('select')?.value;
@@ -119,6 +119,7 @@ function calcSkill(id) {
       case 'elemDmg': effectElem += value / 100; break;
       case 'magBoost': effectMagBoost += value / 100; break;
       case 'otherScaler': effectOtherScaler += value / 100; break;
+      case 'finalDamage': effectFinalDamage += value / 100; break;
     }
   });
 
@@ -139,7 +140,7 @@ function calcSkill(id) {
   const finalCritMult = c.critMultPct + effectCritDmg;
   const finalMagBoost = effectNoMagBoost ? 0 : originalMag;
   const versDmgPct = effectNoVers ? 0 : originalVers;
-  const finalDmgPct = c._finalDmgPct;
+  const finalDmgPct = c._finalDmgPct + effectFinalDamage;
 
   const skillResistance = skillDamageType === 'physical' ? c._physRes : (skillDamageType === 'magical' ? (c._magResEnabled ? 0.08 : 0) : c.resistance);
   const skillAtkDefReduced = c.effectiveAtk * (1 - skillResistance);
