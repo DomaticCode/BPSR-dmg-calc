@@ -28,6 +28,47 @@
   .header-meta { display: flex; align-items: center; gap: 10px; margin-left: auto; }
   .header-version { font-size: 12px; color: var(--text-muted); }
 
+  .copy-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    text-decoration: none;
+    font-size: 12px;
+  }
+
+  .copy-trigger:hover {
+    border-color: var(--accent);
+    background: rgba(124,58,237,0.12);
+  }
+
+  .copy-trigger::after {
+    content: '⧉';
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  #copy-float {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(20, 26, 40, 0.94);
+    color: var(--accent-green);
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+    transform-origin: center top;
+  }
+
+  #copy-float.float-animate {
+    opacity: 0;
+    transform: translate(-50%, -40px);
+  }
+
   /* Class + Inspiration bar */
   .config-bar { display: flex; gap: 10px; margin-bottom: 16px; margin-top: 14px; align-items: flex-end; flex-wrap: wrap; background: var(--bg-card); border: 1px solid var(--border-focus); border-radius: 8px; padding: 14px; box-shadow: 0 6px 18px rgba(20,26,40,0.55); }
   .config-bar .field { min-width: 180px; }
@@ -104,6 +145,11 @@
   .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; align-items: end; }
   .input-row.single { grid-template-columns: 1fr; }
   .input-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .substat-factor-row { grid-template-columns: 1.5fr 0.9fr 1fr; }
+  .substat-factor-row .field { min-width: 0; }
+  .substat-factor-row .field select,
+  .substat-factor-row .field input[type="number"] { width: 100%; }
+  .substat-factor-row .substat-factor-checkbox { align-self: end; }
 
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field label { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }

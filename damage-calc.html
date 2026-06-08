@@ -5,18 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+<link rel="shortcut icon" href="favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+<link rel="manifest" href="favicon/site.webmanifest" />
 </head>
 <body>
 <div class="container">
 
   <header>
     <h1>BP<span>:</span>SR Damage Calculator</h1>
-    <span class="header-version">Made by Doma (#36888), Discord: doma__</span>
+    <span class="header-version">Made by Doma (<span class="copy-trigger" role="button" title="Click to copy Discord ID" onclick="copyTextValue(event, '#36888','Discord ID copied: #36888');">#36888</span>),
+      Discord: <span class="copy-trigger" role="button" title="Click to copy Discord username" onclick="copyTextValue(event, 'doma__','Discord username copied: doma__');">doma__
+      </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
+      <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v0.7.1</span>
+      <span class="header-version">v0.7.2</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
+  <div id="copy-float" style="display:none; position:absolute; pointer-events:none; z-index:9999;"></div>
 
   <div class="panel" id="setup-panel">
     <div class="panel-header" style="cursor:pointer;" onclick="toggleSetupPanel()"><h2>Profiles / Export / Import</h2><span id="setup-panel-chevron" style="font-size:14px;">▸</span></div>
@@ -27,10 +36,10 @@
       </div>
       <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
         <button class="btn-import-skills" style="width:auto; padding:8px 10px;" onclick="importSetup()">Import Setup</button>
-        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="exportSetup()" title="When sharing on discord in public please use the file option instead and upload the file. This paste will spam the channel.">Export Setup</button>
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="exportSetup(event)" title="When sharing on discord in public please use the file option instead and upload the file. This paste will spam the channel.">Export Setup</button>
         <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="downloadSetup()">Export Setup as file</button>
         <button class="btn-import-skills" style="width:auto; padding:8px 10px; margin-left: auto;" onclick="importSkills()">Import Skills</button>
-        <button class="btn-export-skills" style="width:auto; padding:8px 10px;" onclick="exportSkills()">Export Skills</button>
+        <button class="btn-export-skills" style="width:auto; padding:8px 10px;" onclick="exportSkills(event)">Export Skills</button>
       </div>
       <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center;">
         <input id="profile-name" placeholder="Profile name" style="flex:1; min-width:160px; background:var(--bg-input); border:1px solid var(--border); border-radius:5px; color:var(--text); padding:6px;" />
@@ -88,16 +97,6 @@
       </select>
     </div>
     <div class="field">
-      <label>Substat Factor</label>
-      <select id="substat-factor" onchange="onOptimizerInputsChange()">
-        <option value="none">None</option>
-        <option value="crit+10_mastery-6">Crit +10%, Mastery -6%</option>
-        <option value="luck+10_haste-6">Luck +10%, Haste -6%</option>
-        <option value="mastery+10_luck-6">Mastery +10%, Luck -6%</option>
-        <option value="haste+10_crit-6">Haste +10%, Crit -6%</option>
-      </select>
-    </div>
-    <div class="field">
       <label class="checkbox-label" for="food-enabled">
         <input type="checkbox" id="food-enabled" onchange="onFoodToggle()">
         Food Buff
@@ -126,19 +125,21 @@
       </label>
       <select id="team-luck-crit" onchange="calc()">
         <option value="none">None</option>
-        <option value="tier1">3.1% Crit DMG, 2% Lucky Damage (other's lvl 5)</option>
-        <option value="tier2">5.2% Crit DMG, 3.4% Lucky Damage (other's lvl 6)</option>
-        <option value="tier3">6.1% Crit DMG, 4% Lucky Damage (self lvl 5)</option>
-        <option value="tier4">10.2% Crit DMG, 6.8% Lucky Damage (self lvl 6)</option>
+        <option value="tier1">3.1%/2% (other's lvl 5)</option>
+        <option value="tier2">5.2%/3.4% (other's lvl 6)</option>
+        <option value="tier3">6.1%/4% (self lvl 5)</option>
+        <option value="tier4">10.2%/6.8% (self lvl 6)</option>
       </select>
     </div>
     <div class="field">
-      <label>Oblivion</label>
+      <label>Oblivion
+        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Seasonal Damage for self and allies<br>2% main stat is a node for self and allies with ~50% uptime.<br>3% All Element is self buff.</span></span>
+      </label>
       <select id="oblivion-buff" onchange="calc()">
         <option value="none">None</option>
-        <option value="ob">10% Damage</option>
-        <option value="ob-ms">10% Damage, +2% Main Stat</option>
-        <option value="ob-ae" class="ob-self">10% Damage, +3% All Element</option>
+        <option value="ob">10% DMG</option>
+        <option value="ob-ms">10% DMG, +2% MS</option>
+        <option value="ob-ae" class="ob-self">10% DMG, +3% AE</option>
       </select>
     </div>
     <div class="field">
@@ -216,7 +217,8 @@
           <div class="section-label" id="refined-elemental-label">Refined & Elemental ATK<span class="tip"><span class="tip-icon">i</span><span id="refined-elemental-tip" class="tip-box">Not in MATK stat. Bypasses defense entirely. Does not scale with MATK%.</span></span></div>
           <div class="input-row">
             <div class="field"><label><span class="dot dot-refined"></span><span id="refined-atk-label">Refined MATK</span></label><input type="number" id="refined-atk" value="0" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-elemental"></span>Elemental ATK</label><input type="number" id="elemental-atk" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-elemental"></span>All Element ATK</label><input type="number" id="elemental-atk" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-elemental"></span>Class Element ATK</label><input type="number" id="class-elemental-atk" value="0" oninput="calc()"></div>
           </div>
 
 
@@ -403,6 +405,50 @@
         <div class="panel">
           <div class="panel-header"><h2>Psychoscope Tree</h2></div>
           <div class="panel-body">
+              <div class="input-row substat-factor-row">
+              <div class="field">
+                <label>Substat Factor 1</label>
+                <select id="substat-factor" value="none" onchange="onSubstatFactorTypeChange(1)">
+                  <option value="none">None</option>
+                  <option value="luck">Luck</option>
+                  <option value="crit">Crit</option>
+                  <option value="mastery">Mastery</option>
+                  <option value="haste">Haste</option>
+                </select>
+              </div>
+              <div class="field" style="display:none;">
+                <label>Value</label>
+                <input type="number" id="substat-factor-value" value="10" min="0" max="10" step="0.1" oninput="clamp(this); onOptimizerInputsChange()">
+              </div>
+              <div class="field substat-factor-checkbox" style="display:none;">
+                <label class="checkbox-label" for="substat-factor-apply-imported">
+                  <input type="checkbox" id="substat-factor-apply-imported" onchange="calc()">
+                  Apply to imported stats
+                </label>
+              </div>
+            </div>
+            <div class="input-row substat-factor-row" id="substat-factor-2-row">
+              <div class="field">
+                <label>Substat Factor 2</label>
+                <select id="substat-factor-2" value="none" onchange="onSubstatFactorTypeChange(2)">
+                  <option value="none">None</option>
+                  <option value="luck">Luck</option>
+                  <option value="crit">Crit</option>
+                  <option value="mastery">Mastery</option>
+                  <option value="haste">Haste</option>
+                </select>
+              </div>
+              <div class="field" style="display:none;">
+                <label>Value</label>
+                <input type="number" id="substat-factor-value-2" value="10" min="0" max="10" step="0.1" oninput="clamp(this); onOptimizerInputsChange()">
+              </div>
+              <div class="field substat-factor-checkbox" style="display:none;">
+                <label class="checkbox-label" for="substat-factor-2-apply-imported">
+                  <input type="checkbox" id="substat-factor-2-apply-imported" onchange="calc()">
+                  Apply to imported stats
+                </label>
+              </div>
+            </div>
             <div class="input-row single" style="margin-bottom:10px;">
               <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
                 <option value="none">None</option>
@@ -547,6 +593,7 @@
                     <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
                     <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
                     <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                    <div class="module-option" data-value="boyce">Boyce</div>
                     <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
                     <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
@@ -602,6 +649,7 @@
                     <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
                     <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
                     <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                    <div class="module-option" data-value="boyce">Boyce</div>
                     <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
                     <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                     <div class="module-option" data-value="dorothy">Dorothy</div>
@@ -649,6 +697,7 @@
           <div class="note" id="imagine-notes" style="margin-top:10px;">
             <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is always active.</div>
             <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+            <div id="imagine-note-boyce" style="display:none;"><span class="hl">Boyce:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
             <div id="imagine-note-olvera" style="display:none;"><span class="hl">Olvera:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
@@ -829,6 +878,7 @@
 <script src="imagines/fafala.js"></script>
 <script src="imagines/olvera.js"></script>
 <script src="imagines/bloodthirsty-furball.js"></script>
+<script src="imagines/boyce.js"></script>
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -885,17 +935,37 @@
   }
 
   function getOptimizerFactor() {
-    const option = document.getElementById('substat-factor');
-    const key = option ? option.value : 'none';
-    switch (key) {
-      case 'luck+10_haste-6':
-        return { crit: 1, luck: 1.10, mastery: 1, haste: 0.94, vers: 1 };
-      case 'crit+10_mastery-6':
-        return { crit: 1.10, luck: 1, mastery: 0.94, haste: 1, vers: 1 };
-      case 'mastery+10_luck-6':
-        return { crit: 1, luck: 0.94, mastery: 1.10, haste: 1, vers: 1 };
-      case 'haste+10_crit-6':
-        return { crit: 0.94, luck: 1, mastery: 1, haste: 1.10, vers: 1 };
+    const factor1 = getSubstatFactorValues('substat-factor', 'substat-factor-value');
+    const factor2 = getSubstatFactorValues('substat-factor-2', 'substat-factor-value-2');
+    return {
+      crit: factor1.crit * factor2.crit,
+      luck: factor1.luck * factor2.luck,
+      mastery: factor1.mastery * factor2.mastery,
+      haste: factor1.haste * factor2.haste,
+      vers: factor1.vers * factor2.vers,
+    };
+  }
+
+  function getSubstatFactorValues(selectId, inputId) {
+    const option = document.getElementById(selectId);
+    const valueInput = document.getElementById(inputId);
+    if (!option || option.value === 'none') {
+      return { crit: 1, luck: 1, mastery: 1, haste: 1, vers: 1 };
+    }
+    const rawValue = parseFloat(valueInput?.value);
+    const value = Number.isFinite(rawValue) ? Math.max(0, Math.min(10, rawValue)) : 0;
+    const plusFactor = 1 + value / 100;
+    const minusFactor = 1 - (value * 0.6) / 100;
+
+    switch (option.value) {
+      case 'luck':
+        return { crit: 1, luck: plusFactor, mastery: 1, haste: minusFactor, vers: 1 };
+      case 'crit':
+        return { crit: plusFactor, luck: 1, mastery: minusFactor, haste: 1, vers: 1 };
+      case 'mastery':
+        return { crit: 1, luck: minusFactor, mastery: plusFactor, haste: 1, vers: 1 };
+      case 'haste':
+        return { crit: minusFactor, luck: 1, mastery: 1, haste: plusFactor, vers: 1 };
       default:
         return { crit: 1, luck: 1, mastery: 1, haste: 1, vers: 1 };
     }
@@ -910,6 +980,55 @@
     calc();
   }
 
+  function getSubstatFactorControlId(index) {
+    return index === 1 ? 'substat-factor' : `substat-factor-${index}`;
+  }
+  function getSubstatFactorValueId(index) {
+    return index === 1 ? 'substat-factor-value' : `substat-factor-value-${index}`;
+  }
+  function getSubstatFactorApplyImportedId(index) {
+    return index === 1 ? 'substat-factor-apply-imported' : `substat-factor-${index}-apply-imported`;
+  }
+  function updateSubstatFactorControls(index) {
+    const select = document.getElementById(getSubstatFactorControlId(index));
+    const valueField = document.getElementById(getSubstatFactorValueId(index))?.closest('.field');
+    const checkboxField = document.getElementById(getSubstatFactorApplyImportedId(index))?.closest('.field');
+    if (!select || !valueField || !checkboxField) return;
+    const active = select.value !== 'none';
+    valueField.style.display = active ? '' : 'none';
+    checkboxField.style.display = active ? '' : 'none';
+  }
+
+  function onSubstatFactorTypeChange(index) {
+    const select = document.getElementById(getSubstatFactorControlId(index));
+    if (select) {
+      updateSubstatFactorControls(index);
+    }
+    updateSubstatFactorOptionStates();
+    onOptimizerInputsChange();
+  }
+
+  function updateSubstatFactorOptionStates() {
+    const select1 = document.getElementById('substat-factor');
+    const select2 = document.getElementById('substat-factor-2');
+    if (!select1 || !select2) return;
+
+    const value1 = select1.value;
+    const value2 = select2.value;
+
+    Array.from(select1.options).forEach(opt => {
+      opt.disabled = opt.value !== 'none' && opt.value === value2;
+    });
+    Array.from(select2.options).forEach(opt => {
+      opt.disabled = opt.value !== 'none' && opt.value === value1;
+    });
+
+    if (value1 !== 'none' && value1 === value2) {
+      select2.value = 'none';
+      updateSubstatFactorControls(2);
+    }
+  }
+
   function onImagineChange(slot) {
     const val = document.getElementById(`imagine-${slot}`).value;
     const levelField = document.getElementById(`imagine-${slot}-level-field`);
@@ -919,12 +1038,12 @@
     levelField.style.display = hasImagine ? '' : 'none';
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
-    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball'];
+    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball', 'boyce'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
-    if (stacksField) stacksField.style.display = (val === 'rorola') ? '' : 'none';
+    if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce') ? '' : 'none';
     // Show passive stats checkbox for passive stats imagines
     const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king'];
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
@@ -1098,7 +1217,6 @@
     atkMatkSwap('matk-pct-label', `${atkName} %`);
     atkMatkSwap('int-pct-label', `${mainStatName} %`);
     atkMatkSwap('refined-atk-label', `Refined ${atkName}`);
-    atkMatkSwap('muku-scout-note', `${atkName}% stacks additively with purple line ${atkName}%`);
     atkMatkSwap('food-atk-label', atkName);
     atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base × (1+${atkName}%)).`);
     atkMatkSwap('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
@@ -1209,6 +1327,44 @@
     el.textContent = message;
     window.clearTimeout(setStatus._timeout);
     setStatus._timeout = window.setTimeout(() => { el.style.display = 'none'; }, 4800);
+  }
+
+  function showFloatingCopyStatus(message, x, y, isError = false) {
+    const el = document.getElementById('copy-float');
+    if (!el) return;
+    el.textContent = message;
+    el.style.display = 'block';
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.opacity = '1';
+    el.style.transform = 'translate(-50%, 0)';
+    el.style.color = isError ? 'var(--accent-red)' : 'var(--accent-green)';
+    el.classList.remove('float-animate');
+    void el.offsetWidth;
+    el.classList.add('float-animate');
+    window.clearTimeout(el._copyFloatTimeout);
+    el._copyFloatTimeout = window.setTimeout(() => {
+      el.style.display = 'none';
+      el.classList.remove('float-animate');
+    }, 1200);
+  }
+
+  function copyTextToClipboard(text, statusMessage, x = window.innerWidth / 2, y = 60) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showFloatingCopyStatus(statusMessage, x, y, false);
+      }).catch(() => {
+        showFloatingCopyStatus(`Failed to copy '${text}'. Copy manually.`, x, y, true);
+      });
+    } else {
+      showFloatingCopyStatus(`Clipboard not supported. Copy manually: ${text}`, x, y, true);
+    }
+  }
+
+  function copyTextValue(evt, text, statusMessage) {
+    const x = evt?.clientX || window.innerWidth / 2;
+    const y = (evt?.clientY || 0) + 20;
+    copyTextToClipboard(text, statusMessage, x, y);
   }
 
   function resetAll() {
@@ -1505,6 +1661,9 @@
       }
     }
 
+    onSubstatFactorTypeChange(1);
+    onSubstatFactorTypeChange(2);
+
     const skillsArray = Array.isArray(state.skills) ? state.skills : (Array.isArray(state.s) ? state.s : null);
     if (Array.isArray(skillsArray)) {
       removeAllSkills();
@@ -1713,17 +1872,26 @@
     calc();
   }
 
-  function exportSetup() {
+  function exportSetup(evt) {
     try {
       const state = getCompactSetupState();
       const json = JSON.stringify(state);
       const area = document.getElementById('setup-json');
       if (area) area.value = json;
-      navigator.clipboard?.writeText(json).then(() => {
-        setStatus('Setup copied to clipboard and displayed in textbox.', false);
-      }).catch(() => {
+      const x = evt?.clientX || window.innerWidth / 2;
+      const y = (evt?.clientY || 0) + 20;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(() => {
+          setStatus('Setup copied to clipboard and displayed in textbox.', false);
+          showFloatingCopyStatus('Setup copied to clipboard', x, y, false);
+        }).catch(() => {
+          setStatus('Setup output is ready in textbox. Copy manually.', false);
+          showFloatingCopyStatus('Copy setup manually', x, y, true);
+        });
+      } else {
         setStatus('Setup output is ready in textbox. Copy manually.', false);
-      });
+        showFloatingCopyStatus('Clipboard not supported', x, y, true);
+      }
     } catch (err) {
       setStatus(`Export failed: ${err.message}`, true);
     }
@@ -1806,17 +1974,26 @@
     return skillsState;
   }
 
-  function exportSkills() {
+  function exportSkills(evt) {
     try {
       const skillsState = getSkillsState();
       const json = JSON.stringify(skillsState);
       const area = document.getElementById('setup-json');
       if (area) area.value = json;
-      navigator.clipboard?.writeText(json).then(() => {
-        setStatus('Skills copied to clipboard and displayed in textbox.', false);
-      }).catch(() => {
+      const x = evt?.clientX || window.innerWidth / 2;
+      const y = (evt?.clientY || 0) + 20;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(() => {
+          setStatus('Skills copied to clipboard and displayed in textbox.', false);
+          showFloatingCopyStatus('Skills copied to clipboard', x, y, false);
+        }).catch(() => {
+          setStatus('Skills output is ready in textbox. Copy manually.', false);
+          showFloatingCopyStatus('Copy skills manually', x, y, true);
+        });
+      } else {
         setStatus('Skills output is ready in textbox. Copy manually.', false);
-      });
+        showFloatingCopyStatus('Clipboard not supported', x, y, true);
+      }
     } catch (err) {
       setStatus(`Export failed: ${err.message}`, true);
     }

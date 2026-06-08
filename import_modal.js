@@ -113,7 +113,7 @@ function displayZdpsAttributePreview() {
     { key: 'AttrMastery', label: 'Mastery' },
     { key: 'AttrVersatility', label: 'Versatility' },
     { key: 'AttrRefineMattack', label: 'Refined ATK' }, // We'll handle total below
-    { key: 'AttrElementAtkTotal', label: 'Elemental ATK' }
+    { key: 'AttrElementAtkTotal', label: 'All Element ATK' }
   ];
 
   const lines = expectedAttrs.map(attr => {
@@ -212,15 +212,17 @@ function applyElementSelection() {
   if (refinedAtk !== undefined) document.getElementById('refined-atk').value = refinedAtk;
 
   let elementalAtk = 0;
+  let classElementalAtk = 0;
   if (parsedAttrs.AttrElementAtkTotal !== undefined) {
     elementalAtk += parsedAttrs.AttrElementAtkTotal;
   }
   if (selectedElementKey && parsedAttrs[selectedElementKey] !== undefined) {
-    elementalAtk += parsedAttrs[selectedElementKey];
+    classElementalAtk += parsedAttrs[selectedElementKey];
   }
-  if (parsedAttrs.AttrElementAtkTotal !== undefined || (selectedElementKey && parsedAttrs[selectedElementKey] !== undefined)) {
+  if (parsedAttrs.AttrElementAtkTotal !== undefined) {
     document.getElementById('elemental-atk').value = elementalAtk;
   }
+  document.getElementById('class-elemental-atk').value = classElementalAtk;
 
   finishLoad();
 }

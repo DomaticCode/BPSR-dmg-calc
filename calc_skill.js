@@ -77,7 +77,7 @@ function calcSkill(id) {
 
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
   let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, skillDamageType = null;
-  let effectNoElem = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false;
+  let effectNoElem = false, effectNoElemAtk = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false;
   effectRows.forEach(row => {
     const kind = row.querySelector('select')?.value;
     const rawValue = row.querySelector('input')?.value;
@@ -91,6 +91,8 @@ function calcSkill(id) {
         else if (token === 'magical') skillDamageType = 'magical';
         else if (token === 'no-intellect-boost') noIntellectBoost = true;
         else if (['no-elem', 'no-element', 'no-elemental'].includes(token)) effectNoElem = true;
+        else if (['no-elem-atk', 'no-elemental-atk'].includes(token)) effectNoElemAtk = true;
+        else if (['imagine'].includes(token)) effectNoElemAtk = true, effectNoElem = true;
         else if (['no-season-dmg', 'no-seasonal-dmg', 'no-season'].includes(token)) effectNoDream = true;
         else if (token === 'no-mag' || token === 'no-phy') effectNoMagBoost = true;
         else if (['no-vers', 'no-versatility'].includes(token)) effectNoVers = true;
@@ -144,7 +146,9 @@ function calcSkill(id) {
 
   const skillResistance = skillDamageType === 'physical' ? c._physRes : (skillDamageType === 'magical' ? (c._magResEnabled ? 0.08 : 0) : c.resistance);
   const skillAtkDefReduced = c.effectiveAtk * (1 - skillResistance);
-  const stdBase   = (skillAtkDefReduced + c.defenseFreeAtk) * mult + flat;
+  const classElementalAtk = c.classElementalAtk || 0;
+  const defenseFreeAtk = effectNoElemAtk ? Math.max(0, c.defenseFreeAtk - classElementalAtk) : c.defenseFreeAtk;
+  const stdBase   = (skillAtkDefReduced + defenseFreeAtk) * mult + flat;
   const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler) * (1 + finalDmgPct); // Assume final is after other
 
   let additionalDamage = 0;
@@ -260,9 +264,13 @@ function calcSkill(id) {
     const versPctText = effectNoVers ? `${(originalVers*100).toFixed(2)}% - no-vers ${(originalVers*100).toFixed(2)}% = 0%` : `${(originalVers*100).toFixed(2)}%`;
 
     formulaEl.style.display = '';
+    const refElemSegment = effectNoElemAtk
+      ? `<span class="fref">Refined</span> + <span class="felem">All Element</span>`
+      : `<span class="fref">Refined</span> + <span class="felem">All Element</span> + <span class="felem">Class Element</span>`;
+
     formulaEl.innerHTML =
       `<span class="fb">${typeName}${dmgTypeNote}:</span> ` +
-      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">×(1-${skillResLabel})<span> + <span class="fref">Refined</span> + <span class="felem">Elemental</span> ) × <span class="fwhite">${(mult*100).toFixed(2)}%</span> + <span class="fwhite">${flat}</span>\n` +
+      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">×(1-${skillResLabel})</span> + ${refElemSegment} ) × <span class="fwhite">${(mult*100).toFixed(2)}%</span> + <span class="fwhite">${flat}</span>\n` +
       `× <span class="fvers">(1+Vers:${versPctText})</span>\n` +
       `× <span class="felem">(1+Elem:${finalElemStr})</span>\n` +
       `× <span class="fg">(1+Gen:${finalGenStr})</span>\n` +

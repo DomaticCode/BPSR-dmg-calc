@@ -113,6 +113,12 @@ const SAVE_FIELD_ORDER = [
   'extra-main-attr',
   'lucky-strike-dmg-bonus',
   'luck-crit-chance',
+  'substat-factor-value',
+  'substat-factor-2',
+  'substat-factor-value-2',
+  'substat-factor-apply-imported',
+  'substat-factor-2-apply-imported',
+  'class-elemental-atk',
 ];
 
 // Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
