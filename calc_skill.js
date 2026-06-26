@@ -224,11 +224,37 @@ function calcSkill(id) {
 
 
 
-  document.getElementById(`sk-res-normal-${id}`).textContent = fmt(normalHit);
-  document.getElementById(`sk-res-crit-${id}`).textContent   = fmt(critHit);
-  document.getElementById(`sk-res-avg-${id}`).textContent    = fmt(avgSkillHit);
-  document.getElementById(`sk-res-lucky-${id}`).textContent  = triggersLucky ? fmt(avgWithLucky) : '—';
-  document.getElementById(`sk-res-lucky-${id}`).style.opacity = triggersLucky ? '1' : '0.3';
+  const normalEl = document.getElementById(`sk-res-normal-${id}`);
+  const critEl = document.getElementById(`sk-res-crit-${id}`);
+  const avgEl = document.getElementById(`sk-res-avg-${id}`);
+  const luckyEl = document.getElementById(`sk-res-lucky-${id}`);
+  if (normalEl) { normalEl.textContent = fmt(normalHit); normalEl.dataset.value = String(normalHit); }
+  if (critEl) { critEl.textContent = fmt(critHit); critEl.dataset.value = String(critHit); }
+  if (avgEl) { avgEl.textContent = fmt(avgSkillHit); avgEl.dataset.value = String(avgSkillHit); }
+  if (luckyEl) { luckyEl.textContent = triggersLucky ? fmt(avgWithLucky) : '—'; luckyEl.dataset.value = triggersLucky ? String(avgWithLucky) : ''; luckyEl.style.opacity = triggersLucky ? '1' : '0.3'; }
+
+  // Persist raw numeric skill results so other parts of the app can read numbers without parsing formatted DOM.
+  window._skillResults = window._skillResults || {};
+  try {
+    const nameInput = document.querySelector(`#skill-card-${id} .skill-name-input`);
+    const skillName = nameInput ? String(nameInput.value || `Skill ${id}`).trim() : `Skill ${id}`;
+    const hitsEl = document.getElementById(`sk-hits-${id}`);
+    const hitsValue = hitsEl ? parseFloat(hitsEl.value) : 1;
+    const hitsPerParse = Number.isNaN(hitsValue) ? 1 : hitsValue;
+    window._skillResults[id] = {
+      id: id,
+      name: skillName,
+      normal: normalHit,
+      crit: critHit,
+      avg: avgSkillHit,
+      avgWithLucky: triggersLucky ? avgWithLucky : null,
+      triggersLucky: !!triggersLucky,
+      hitsPerParse: hitsPerParse,
+      totalDamage: avgSkillHit * hitsPerParse
+    };
+  } catch (e) {
+    // non-fatal
+  }
 
   // Build per-skill formula (only if a type is selected)
   const formulaEl = document.getElementById(`sk-formula-${id}`);

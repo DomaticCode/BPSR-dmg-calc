@@ -585,19 +585,25 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const setText = (id, value) => {
     const el = document.getElementById(id);
-    if (el) el.textContent = value;
+    if (!el) return;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      el.textContent = fmt(value);
+      el.dataset.value = String(value);
+    } else {
+      el.textContent = value;
+    }
   };
 
-  setText('ls-normal', fmt(lsNormal));
-  setText('ls-crit', fmt(lsCrit));
-  setText('ls-avg', fmt(lsAvg));
-  setText('s-atk-matk', fmt(effectiveAtk));
+  setText('ls-normal', lsNormal);
+  setText('ls-crit', lsCrit);
+  setText('ls-avg', lsAvg);
+  setText('s-atk-matk', effectiveAtk);
   setText('s-crit-chance', `${(finalCritPct * 100).toFixed(2)}%`);
   setText('s-crit-dmg', `${(effectiveCritMult * 100).toFixed(2)}%`);
   setText('s-lucky-chance', `${(finalLuckChance * 100).toFixed(2)}%`);
 
-  setText('s-eff-atk', fmt(effectiveAtk));
-  setText('s-def-atk', fmt(atkDefReduced));
+  setText('s-eff-atk', effectiveAtk);
+  setText('s-def-atk', atkDefReduced);
   setText('s-elem-pct', `${(elemDmgPct * 100).toFixed(1)}%`);
   setText('s-crit-rate', `${(finalCritPct * 100).toFixed(2)}%`);
 
@@ -895,8 +901,11 @@ function updateDamageSummary() {
   const skillDamages = [];
 
   const lsAvgEl = document.getElementById('ls-avg');
-  const lsAvgValue = lsAvgEl ? parseFloat(lsAvgEl.textContent.replace(/,/g, '')) : 0;
-  const lsAvg = Number.isNaN(lsAvgValue) ? 0 : lsAvgValue;
+  let lsAvg = 0;
+  if (lsAvgEl) {
+    if (lsAvgEl.dataset && lsAvgEl.dataset.value) lsAvg = parseFloat(lsAvgEl.dataset.value) || 0;
+    else lsAvg = parseFloat(lsAvgEl.textContent.replace(/,/g, '')) || 0;
+  }
 
   const psych = (typeof getPsychoscopeBonuses === 'function') ? getPsychoscopeBonuses() : {};
   const psychoscopeTargetLuckPct = (psych.targetLuckPct || 0) / 100;
@@ -925,27 +934,34 @@ function updateDamageSummary() {
     }
     const isDisabled = isManualDisabled || isAutoDisabled;
 
-    // Get the average skill damage per hit (exclude lucky hit damage)
-    let damageValue = 0;
-    const avgEl = document.getElementById(`sk-res-avg-${id}`);
-    if (avgEl && avgEl.textContent !== '—') {
-      damageValue = parseFloat(avgEl.textContent.replace(/,/g, '')) || 0;
+    // Prefer cached numeric results when available (avoid reading formatted DOM)
+    const skillResult = window._skillResults?.[id];
+    let skillTotalDamage = 0;
+    let hitsPerParse = 1;
+    let triggersLuckyEffective = triggersLucky;
+    if (skillResult) {
+      hitsPerParse = skillResult.hitsPerParse || 1;
+      skillTotalDamage = (skillResult.totalDamage != null) ? skillResult.totalDamage : (skillResult.avg || 0) * hitsPerParse;
+      triggersLuckyEffective = typeof skillResult.triggersLucky === 'boolean' ? skillResult.triggersLucky : triggersLucky;
+    } else {
+      // Fallback: parse from DOM (legacy)
+      let damageValue = 0;
+      const avgEl = document.getElementById(`sk-res-avg-${id}`);
+      if (avgEl && avgEl.textContent !== '—') {
+        if (avgEl.dataset && avgEl.dataset.value) damageValue = parseFloat(avgEl.dataset.value) || 0;
+      }
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      const hitsValue = hitsEl ? parseFloat(hitsEl.value) : 1;
+      hitsPerParse = Number.isNaN(hitsValue) ? 1 : hitsValue;
+      skillTotalDamage = damageValue * hitsPerParse;
     }
 
-    // Get hits per parse
-    const hitsEl = document.getElementById(`sk-hits-${id}`);
-    const hitsValue = hitsEl ? parseFloat(hitsEl.value) : 1;
-    const hitsPerParse = Number.isNaN(hitsValue) ? 1 : hitsValue;
-
-    // Calculate total damage for this skill
-    const skillTotalDamage = damageValue * hitsPerParse;
-    
     // Only add to total if not disabled
     if (!isDisabled) {
       totalDamage += skillTotalDamage;
     }
 
-    if (triggersLucky && !isDisabled) {
+    if (triggersLuckyEffective && !isDisabled) {
       const skillLuckyChance = Math.min(finalLuckyChance + psychoscopeTargetLuckPct, 1);
       luckyHitCount += hitsPerParse * skillLuckyChance;
     }
@@ -985,7 +1001,7 @@ function updateDamageSummary() {
   const dpsEl = document.getElementById('summary-total-dps');
   const breakdownEl = document.getElementById('summary-skill-breakdown');
 
-  if (totalDamageEl) totalDamageEl.textContent = Math.round(totalDamage).toLocaleString();
+  if (totalDamageEl) { totalDamageEl.textContent = Math.round(totalDamage).toLocaleString(); totalDamageEl.dataset.value = String(Math.round(totalDamage)); }
   if (dpsEl) dpsEl.textContent = fmt(dps);
 
   // Build breakdown
@@ -1008,7 +1024,7 @@ function updateDamageSummary() {
         return `
           <div class="breakdown-row ${disabledClass}" data-item-id="${skill.itemId}" style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 3px; font-size: 11px; align-items: center; cursor: pointer; transition: opacity 0.15s ease;">
             <div style="color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${skill.name}</div>
-            <div style="color: var(--accent); text-align: right; white-space: nowrap;">${Math.round(skill.totalDamage).toLocaleString()}</div>
+            <div style="color: var(--accent); text-align: right; white-space: nowrap;" data-total-value="${Math.round(skill.totalDamage)}">${Math.round(skill.totalDamage).toLocaleString()}</div>
             <div style="color: var(--accent-green); text-align: right; white-space: nowrap;">${fmt(skillDps)}/s</div>
             <div style="color: var(--text-muted); text-align: right; width: 50px;">${skillPct}%</div>
           </div>

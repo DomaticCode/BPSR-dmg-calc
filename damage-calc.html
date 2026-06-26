@@ -2180,10 +2180,6 @@
     calc();
   }
 
-  function fmt(n) {
-    return Math.round(n).toLocaleString();
-  }
-
 
   function addSkill() {
     const id = ++skillCount;
@@ -2813,11 +2809,19 @@
     const luckyEl = document.getElementById(`sk-res-lucky-${id}`);
     const avgEl = document.getElementById(`sk-res-avg-${id}`);
     let value = 0;
-    if (luckyEl && luckyEl.textContent && luckyEl.textContent.trim() !== '—') {
-      value = parseFloat(luckyEl.textContent.replace(/,/g, ''));
+    if (luckyEl) {
+      if (luckyEl.dataset && luckyEl.dataset.value) {
+        value = parseFloat(luckyEl.dataset.value) || 0;
+      } else if (luckyEl.textContent && luckyEl.textContent.trim() !== '—') {
+        value = parseFloat(luckyEl.textContent.replace(/,/g, '')) || 0;
+      }
     }
-    if (!value && avgEl && avgEl.textContent) {
-      value = parseFloat(avgEl.textContent.replace(/,/g, ''));
+    if (!value && avgEl) {
+      if (avgEl.dataset && avgEl.dataset.value) {
+        value = parseFloat(avgEl.dataset.value) || 0;
+      } else if (avgEl.textContent) {
+        value = parseFloat(avgEl.textContent.replace(/,/g, '')) || 0;
+      }
     }
     return isNaN(value) ? 0 : value;
   }
@@ -2897,6 +2901,10 @@
     const getSummaryTotalDamage = () => {
       const totalEl = document.getElementById('summary-total-damage');
       if (!totalEl || !totalEl.textContent) return NaN;
+      if (totalEl.dataset && totalEl.dataset.value) {
+        const v = parseFloat(totalEl.dataset.value);
+        return Number.isNaN(v) ? NaN : v;
+      }
       const value = parseFloat(totalEl.textContent.replace(/,/g, '').replace(/[^0-9.+\-]/g, ''));
       return Number.isNaN(value) ? NaN : value;
     };

@@ -32,6 +32,10 @@ function setStatus(message, isError = false) {
   setStatus._timeout = window.setTimeout(() => { el.style.display = 'none'; }, 4800);
 }
 
+function fmt(n) {
+  return Math.round(n).toLocaleString();
+}
+
 
 
 
