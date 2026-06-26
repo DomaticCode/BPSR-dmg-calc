@@ -233,7 +233,7 @@ function calcSkill(id) {
   if (avgEl) { avgEl.textContent = fmt(avgSkillHit); avgEl.dataset.value = String(avgSkillHit); }
   if (luckyEl) { luckyEl.textContent = triggersLucky ? fmt(avgWithLucky) : '—'; luckyEl.dataset.value = triggersLucky ? String(avgWithLucky) : ''; luckyEl.style.opacity = triggersLucky ? '1' : '0.3'; }
 
-  // Persist raw numeric skill results so other parts of the app can read numbers without parsing formatted DOM.
+  // Store skill results for use to avoid parsing from DOM
   window._skillResults = window._skillResults || {};
   try {
     const nameInput = document.querySelector(`#skill-card-${id} .skill-name-input`);
