@@ -109,7 +109,7 @@ const DISSONANCE_OPTIONS_HTML = `
   <div class="checkbox-group" style="margin:0; gap:6px;">
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="in-rhapsody" style="width:14px;height:14px;" checked onchange="calc()"><label for="in-rhapsody">In Rhapsody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">User is inside ground rhapsody.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="in-heroic-melody" style="width:14px;height:14px;" checked onchange="calc()"><label for="in-heroic-melody">Heroic Melody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles Luck Multiplier conversion.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="center-stage" style="width:14px;height:14px;" checked onchange="calc()"><label for="center-stage">Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% MATK + 80 (15s) </span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="center-stage" style="width:14px;height:14px;" onchange="calc()"><label for="center-stage">Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% MATK + 80 (15s) </span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-multiplier" style="width:14px;height:14px;" checked onchange="calc()"><label for="luck-multiplier">Luck Multiplier Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Every 1% luck -> 0.5% Lucky Strike DMG Multiplier.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="fire-day" style="width:14px;height:14px;" checked onchange="calc()"><label for="fire-day">Fire Day Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% Elite+ Fire damage.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="s2-2-set" style="width:14px;height:14px;" checked onchange="calc()"><label for="s2-2-set">Season2 2-piece set</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">+5% fire damage in Heroic Melody</span></span></div>
@@ -140,6 +140,10 @@ function mainStatType() {
   return 'int';
 }
 
+function elemType() {
+  return 'fire';
+}
+
 function mainStatModifier() {
   return 0.5;
 }
@@ -156,6 +160,7 @@ window.CLASS_MODULES.dissonance = {
   provideClassBonuses: provideDissonanceClassBonuses,
   provideFormulaParts: provideDissonanceFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

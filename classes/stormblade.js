@@ -37,6 +37,10 @@ function mainStatType() {
   return 'agi';
 }
 
+function elemType() {
+  return 'thunder';
+}
+
 function mainStatModifier() {
   return 0.6;
 }
@@ -53,6 +57,7 @@ window.CLASS_MODULES.stormblade = {
   provideClassBonuses: provideStormbladeClassBonuses,
   provideFormulaParts: provideStormbladeFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

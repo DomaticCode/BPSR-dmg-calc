@@ -19,5 +19,35 @@
 
     return { masteryStat, masteryPct };
   }
-  window.IMAGINES['phantom-arachnocrab'] = { provideBonuses };
+
+  function provideSkills(state) {
+    if (state.imagine !== 'phantom-arachnocrab') return [];
+    const level = Number.isFinite(state.level) ? state.level : 0;
+    const damageMultipliers = [1500, 1612.5, 1725, 2062.5, 2175, 2287.5];
+    const damageMultiplier = damageMultipliers[level] || damageMultipliers[0];
+    const cooldown = level >= 5 ? 80 : level >= 3 ? 100 : 120;
+
+    let parseDurationSeconds = 180;
+    const parseDurationEl = document.getElementById('parse-duration');
+    if (parseDurationEl) {
+      const parsed = parseFloat(parseDurationEl.value);
+      if (Number.isFinite(parsed) && parsed > 0) parseDurationSeconds = parsed;
+    }
+
+    const hitsPerParse = Math.max(1, Math.floor((parseDurationSeconds + cooldown) / cooldown));
+    const skillName = `Phantom Arachnocrab (${level})`;
+    return [[
+      'imagine',
+      damageMultiplier,
+      150,
+      true,
+      skillName,
+      [
+        ['damageType', 'physical'],
+      ],
+      hitsPerParse,
+      0
+    ]];
+  }
+  window.IMAGINES['phantom-arachnocrab'] = { displayName: 'Phantom Arachnocrab', provideBonuses, provideSkills };
 })();

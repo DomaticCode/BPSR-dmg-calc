@@ -37,6 +37,10 @@ function mainStatType() {
   return 'str';
 }
 
+function elemType() {
+  return 'wind';
+}
+
 function mainStatModifier() {
   return 0.6;
 }
@@ -53,6 +57,7 @@ window.CLASS_MODULES.windknight = {
   provideClassBonuses: provideWindKnightClassBonuses,
   provideFormulaParts: provideWindKnightFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

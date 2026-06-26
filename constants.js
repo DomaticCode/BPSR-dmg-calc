@@ -5,6 +5,10 @@ const CLASS_BASES = {
   dissonance: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
 };
 
+const STAT_SCALER = 50015;
+const VERS_SCALER = 28000;
+const ALL_ELEMENTAL_DMG_SCALER = 11032;
+
 // Module data
 const MODULE_DATA = {
   'agile': { name: 'Agile' },
@@ -38,8 +42,22 @@ const IMAGINE_DATA = {
   'rorola': { name: 'Rorola' },
 };
 
+// Legacy weapon line fields. These are currently saved as individual wl-* values.
+const WEAPON_LINE_EFFECT_FIELDS = [
+  'wl-crit-pct',
+  'wl-haste-pct',
+  'wl-luck-pct',
+  'wl-mastery-pct',
+  'wl-vers-pct',
+  'wl-elem-bonus',
+  'wl-crit-dmg',
+  'wl-atk-dmg',
+  'wl-magic-dmg',
+  'wl-atk-pct'
+];
+
 // ADD NEW FIELDS AT THE END OF THE ARRAY
-const SAVE_FIELD_ORDER = [
+const LEGACY_SAVE_FIELD_ORDER = [
   'damageType',
   'magResEnabled',
   'inspiration',
@@ -72,6 +90,78 @@ const SAVE_FIELD_ORDER = [
   'wl-atk-dmg',
   'wl-magic-dmg',
   'wl-atk-pct',
+  'matk-pct',
+  'int-pct',
+  'cast-speed-pct',
+  'atk-speed-pct',
+  'boss-dmg-pct',
+  'mastery-elem-dmg-pct',
+  'elem-dmg-pct',
+  'elem-power',
+  'gen-dmg-pct',
+  'elite-dmg-pct',
+  'mag-boost-pct',    
+  'type-dmg-bonus',
+  'type-dmg-expertise',
+  'type-dmg-special',
+  'type-dmg-basic',
+  'type-dmg-ultimate',
+  'lucky-mult-display',
+  'lucky-mult-bonus',
+  'lucky-mult-manual',
+  'enemy-armour',
+  'phys-resist-override',
+  'lock-crit',
+  'lock-luck',
+  'lock-mastery',
+  'lock-vers',
+  'substat-factor',
+  'food-enabled',
+  'food-atk',
+  'food-dmg-bonus',
+  'dream-dmg-pct',    
+  'team-luck-crit',
+  'main-stat-pct',
+  'serum-oil-enabled',
+  'serum-oil-type',
+  'serum-oil-value',
+  'oblivion-buff',
+  'endless-mind',
+  'parse-duration',
+  'extra-main-attr',
+  'lucky-strike-dmg-bonus',
+  'luck-crit-chance',
+  'substat-factor-value',
+  'substat-factor-2',
+  'substat-factor-value-2',
+  'substat-factor-apply-imported',
+  'substat-factor-2-apply-imported',
+  'class-elemental-atk',
+];
+
+const SAVE_FIELD_ORDER = [
+  'damageType',
+  'PhysResEnabled',
+  'magResEnabled',
+  'inspiration',
+  'target-type',
+  'main-attr',
+  'adaptive-atk',
+  'base-atk',
+  'refined-atk',
+  'elemental-atk',
+  'crit-rate-stat',
+  'base-crit-pct',
+  'haste-stat',
+  'base-haste-pct',
+  'luck-stat',
+  'base-luck-pct',
+  'mastery-stat',
+  'base-mastery-pct',
+  'vers-dmg-pct',
+  'base-vers-pct',
+  'crit-mult',
+  'luck-effect-bonus',
   'matk-pct',
   'int-pct',
   'cast-speed-pct',

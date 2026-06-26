@@ -21,7 +21,7 @@
       </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
       <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v0.7.2</span>
+      <span class="header-version">v0.8.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -170,7 +170,7 @@
             <button id="btn-mag"  onclick="setType('magical')">Magical</button>
           </div>
           <div class="res-tags">
-            <span class="res-tag phys" id="res-phys-tag">Phys Res: 30.00%</span>
+            <button class="res-tag phys active" id="res-phys-tag" onclick="togglePhysRes()">Phys Res: 30.00% ✓</button>
             <button class="res-tag mag active" id="res-mag-tag" onclick="toggleMagRes()">Mag Res: 8.00% ✓</button>
           </div>
 
@@ -268,7 +268,6 @@
 
           <div class="input-row" style="margin-top:4px;">
             <div class="field"><label>CRIT Multiplier %</label><input type="number" id="crit-mult" value="150" step="1" oninput="calc()"></div>
-            <div class="field"><label><del>Luck Chance % bonus</del><span class="tip"><span class="tip-icon">i</span><span class="tip-box">To be removed, this was originally just for testing but got overlooked.</span></span></label><input type="number" id="luck-chance-bonus" value="0" step="0.1" oninput="calc()"></div>
           </div>
 
         </div>
@@ -278,31 +277,38 @@
         <div class="panel-header"><h2>Other Buffs</h2></div>
         <div class="panel-body">
 
-          <!-- Weapon Line Effect -->
-          <div class="section-label">Weapon Line Effect</div>
-          <div class="input-row triple">
-            <div class="field"><label><span class="dot dot-red"></span>CRIT %</label><input type="number" id="wl-crit-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label>Haste %</label><input type="number" id="wl-haste-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-purple"></span>Luck %</label><input type="number" id="wl-luck-pct" value="0" step="0.1" oninput="calc()"></div>
+          <!-- Weapon Line Effects -->
+          <div class="section-label">Weapon Line Effects</div>
+          <div id="weapon-line-effects-container">
+            <div id="weapon-line-effects-list" class="weapon-line-effects-list"></div>
+            <button type="button" class="btn-add-skill" id="add-weapon-line-btn" onclick="addWeaponLineEffectRow()">+ Add weapon line effect</button>
           </div>
-          <div class="input-row">
-            <div class="field"><label>Mastery %</label><input type="number" id="wl-mastery-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-purple"></span>Versatility %</label><input type="number" id="wl-vers-pct" value="0" step="0.1" oninput="calc()"></div>
+
+          <div id="legacy-wl-fields" style="display:none;">
+            <div class="input-row triple">
+              <div class="field"><label><span class="dot dot-red"></span>CRIT %</label><input type="number" id="wl-crit-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label>Haste %</label><input type="number" id="wl-haste-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-purple"></span>Luck %</label><input type="number" id="wl-luck-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row">
+              <div class="field"><label>Mastery %</label><input type="number" id="wl-mastery-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-purple"></span>Versatility %</label><input type="number" id="wl-vers-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row double">
+              <div class="field"><label><span class="dot dot-ls"></span>Lucky Strike DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Generic damage added to lucky strikes</span></span></label><input type="number" id="lucky-strike-dmg-bonus" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-ls"></span>Luck Effect DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Effect bonus</span></span></label><input type="number" id="luck-effect-bonus" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row double">
+              <div class="field"><label><span class="dot dot-cyan"></span>Element Bonus % *</label><input type="number" id="wl-elem-bonus" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-red"></span>Crit DMG % *</label><input type="number" id="wl-crit-dmg" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row triple">
+              <div class="field"><label><span class="dot dot-green"></span>Attack DMG % *</label><input type="number" id="wl-atk-dmg" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-green"></span>Magic DMG % *</label><input type="number" id="wl-magic-dmg" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label>ATK % *</label><input type="number" id="wl-atk-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="note">* Untested</div>
           </div>
-          <div class="input-row double">
-            <div class="field"><label><span class="dot dot-ls"></span>Lucky Strike DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Generic damage added to lucky strikes</span></span></label><input type="number" id="lucky-strike-dmg-bonus" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-ls"></span>Luck Effect DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Effect bonus</span></span></label><input type="number" id="luck-effect-bonus" value="0" step="0.1" oninput="calc()"></div>
-          </div>
-          <div class="input-row double">
-            <div class="field"><label><span class="dot dot-cyan"></span>Element Bonus % *</label><input type="number" id="wl-elem-bonus" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-red"></span>Crit DMG % *</label><input type="number" id="wl-crit-dmg" value="0" step="0.1" oninput="calc()"></div>
-          </div>
-          <div class="input-row triple">
-            <div class="field"><label><span class="dot dot-green"></span>Attack DMG % *</label><input type="number" id="wl-atk-dmg" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-green"></span>Magic DMG % *</label><input type="number" id="wl-magic-dmg" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label>ATK % *</label><input type="number" id="wl-atk-pct" value="0" step="0.1" oninput="calc()"></div>
-          </div>
-          <div class="note">* Untested</div>
 
           <!-- Gear -->
           <div class="section-label">Gear — Purple Lines</div>
@@ -344,7 +350,7 @@
           <div class="input-row">
             <div class="field"><label><span class="dot dot-green"></span>Elite DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Applies vs Elite and Boss targets only. Stacks additively with Other Generic DMG%.</span></span></label><input type="number" id="elite-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-green"></span>Generic DMG %</label><input type="number" id="gen-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-dream"></span>Dream DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additional dream damage.</span></span></label><input type="number" id="dream-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-dream"></span>Seasonal DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additional seasonal damage (Illusion-Breaking).</span></span></label><input type="number" id="dream-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-mag"></span>MAG Boost %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Rare damage scaler, appears on some ocean weapons, and factors.</span></span></label><input type="number" id="mag-boost-pct" value="0" step="0.1" oninput="calc()"></div>
             <div class="field"><label><span class="dot dot-final"></span>Final DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Final Damage, unique scaler.</span></span></label><input type="number" id="final-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
           </div>
@@ -463,7 +469,7 @@
                 <div class="cb-row" style="align-items:center; gap:8px;">
                   <input type="checkbox" id="psychoscope-bond-lvl35" onchange="calc()">
                   <label for="psychoscope-bond-lvl35">Bond lvl 35 (Dreamforce)
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 2% Dream DMG.</span></span>
+                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 2% Seasonal DMG.</span></span>
                   </label>
                 </div>
                 <div class="cb-row" style="align-items:center; gap:8px;">
@@ -569,7 +575,7 @@
                 <div class="cb-row" style="align-items:center; gap:8px;">
                   <input type="checkbox" id="psychoscope-oblivion-feint-strike" onchange="calc()">
                   <label for="psychoscope-oblivion-feint-strike">Feint Strike
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">(self) 6% dream damage to enemies with oblivion.</span></span>
+                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">(self) 6% seasonal damage to enemies with oblivion.</span></span>
                   </label>
                 </div>
               </div>
@@ -616,24 +622,29 @@
                     <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                    <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
                   </div>
                 </div>
               </div>
               <div class="field" id="imagine-1-level-field">
                 <label>Level</label>
-                <select id="imagine-1-level" onchange="calc()">
+                <select id="imagine-1-level" onchange="onImagineSlotSettingsChange(1)">
                   <option value="0">0</option><option value="1">1</option><option value="2">2</option>
                   <option value="3">3</option><option value="4">4</option><option value="5">5</option>
                 </select>
               </div>
               <div class="field" id="imagine-1-passive-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-1-passive-stats" onchange="calc()"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                <label><input type="checkbox" id="imagine-1-passive-stats" onchange="onImagineSlotSettingsChange(1)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+              </div>
+              <div class="field" id="imagine-1-sgk-t5-field" style="display:none;">
+                <label><input type="checkbox" id="imagine-1-sgk-t5" onchange="onImagineSlotSettingsChange(1)"> SGK t5</label>
               </div>
               <div class="field" id="imagine-1-mode-field" style="display:none;">
                 <div class="radio-group">
-                  <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="calc()"> Passive</label>
-                  <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="calc()"> Active</label>
-                  <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="calc()" style="width:54px;"></span>
+                  <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="onImagineSlotSettingsChange(1)"> Passive</label>
+                  <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="onImagineSlotSettingsChange(1)"> Active</label>
+                  <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="onImagineSlotSettingsChange(1)" style="width:54px;"></span>
                 </div>
               </div>
             </div>
@@ -672,24 +683,28 @@
                     <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
                     <div class="module-option" data-value="tatta">Tatta</div>
                     <div class="module-option" data-value="tina">Tina</div>
+                    <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
                   </div>
                 </div>
               </div>
               <div class="field" id="imagine-2-level-field">
                 <label>Level</label>
-                <select id="imagine-2-level" onchange="calc()">
+                <select id="imagine-2-level" onchange="onImagineSlotSettingsChange(2)">
                   <option value="0">0</option><option value="1">1</option><option value="2">2</option>
                   <option value="3">3</option><option value="4">4</option><option value="5">5</option>
                 </select>
               </div>
               <div class="field" id="imagine-2-passive-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-2-passive-stats" onchange="calc()"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                <label><input type="checkbox" id="imagine-2-passive-stats" onchange="onImagineSlotSettingsChange(2)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+              </div>
+              <div class="field" id="imagine-2-sgk-t5-field" style="display:none;">
+                <label><input type="checkbox" id="imagine-2-sgk-t5" onchange="onImagineSlotSettingsChange(2)"> SGK t5</label>
               </div>
               <div class="field" id="imagine-2-mode-field" style="display:none;">
                 <div class="radio-group">
-                  <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="calc()"> Passive</label>
-                  <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="calc()"> Active</label>
-                  <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="calc()" style="width:54px;"></span>
+                  <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="onImagineSlotSettingsChange(2)"> Passive</label>
+                  <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="onImagineSlotSettingsChange(2)"> Active</label>
+                  <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
                 </div>
               </div>
             </div>
@@ -708,7 +723,7 @@
             <div id="imagine-note-brigand-scout-leader" style="display:none;"><span class="hl">Brigand Scout Leader:</span> <span class="highlight-purple">Assumes AGI class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
             <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
             <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
-            <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple"> Unsure on if Luck effect bonus is flat or multiplicative of luck effect bonus.</span> (Currently applied flat)</div>
+            <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
           </div>
         </div>
       </div>
@@ -850,6 +865,7 @@
 <script src="classes/shieldknight.js"></script>
 <script src="classes/frostmage.js"></script>
 <script src="classes/twinaxe.js"></script>
+<script src="util.js"></script>
 <!-- Imagines -->
 <script src="imagines/muku-scout.js"></script>
 <script src="imagines/muku-chief.js"></script>
@@ -879,6 +895,8 @@
 <script src="imagines/olvera.js"></script>
 <script src="imagines/bloodthirsty-furball.js"></script>
 <script src="imagines/boyce.js"></script>
+<script src="imagines/void-bzzar.js"></script>
+<!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
 <!-- Psychoscope Trees -->
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
@@ -890,10 +908,28 @@
 <script>
   let damageType = 'physical';
   let magResEnabled = true;
+  let physResEnabled = true;
   let skillCount = 0;
   let skills = [];
   let moduleCount = 0;
   let modules = [];
+  let weaponLineEffectCount = 0;
+  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v0.8.0';
+  const WEAPON_LINE_EFFECT_OPTIONS = {
+    'wl-crit-pct': 'CRIT %',
+    'wl-haste-pct': 'Haste %',
+    'wl-luck-pct': 'Luck %',
+    'wl-mastery-pct': 'Mastery %',
+    'wl-vers-pct': 'Versatility %',
+    'wl-elem-bonus': 'Element Bonus %',
+    'wl-crit-dmg': 'Crit DMG %',
+    'wl-atk-dmg': 'Attack DMG %',
+    'wl-magic-dmg': 'Magic DMG %',
+    'wl-atk-pct': 'ATK %',
+    'wl-ranged-dmg': 'Ranged DMG %',
+    'luck-effect-bonus': 'Luck Effect DMG %',
+    'lucky-strike-dmg-bonus': 'Lucky Strike DMG %',
+  };
   let optimizerBackup = null;
   let optimizerDone = false;
   let optimizingSubstats = false;
@@ -929,106 +965,6 @@
     calc();
   }
 
-  function getChecked(id) {
-    const el = document.getElementById(id);
-    return el ? el.checked : false;
-  }
-
-  function getOptimizerFactor() {
-    const factor1 = getSubstatFactorValues('substat-factor', 'substat-factor-value');
-    const factor2 = getSubstatFactorValues('substat-factor-2', 'substat-factor-value-2');
-    return {
-      crit: factor1.crit * factor2.crit,
-      luck: factor1.luck * factor2.luck,
-      mastery: factor1.mastery * factor2.mastery,
-      haste: factor1.haste * factor2.haste,
-      vers: factor1.vers * factor2.vers,
-    };
-  }
-
-  function getSubstatFactorValues(selectId, inputId) {
-    const option = document.getElementById(selectId);
-    const valueInput = document.getElementById(inputId);
-    if (!option || option.value === 'none') {
-      return { crit: 1, luck: 1, mastery: 1, haste: 1, vers: 1 };
-    }
-    const rawValue = parseFloat(valueInput?.value);
-    const value = Number.isFinite(rawValue) ? Math.max(0, Math.min(10, rawValue)) : 0;
-    const plusFactor = 1 + value / 100;
-    const minusFactor = 1 - (value * 0.6) / 100;
-
-    switch (option.value) {
-      case 'luck':
-        return { crit: 1, luck: plusFactor, mastery: 1, haste: minusFactor, vers: 1 };
-      case 'crit':
-        return { crit: plusFactor, luck: 1, mastery: minusFactor, haste: 1, vers: 1 };
-      case 'mastery':
-        return { crit: 1, luck: minusFactor, mastery: plusFactor, haste: 1, vers: 1 };
-      case 'haste':
-        return { crit: minusFactor, luck: 1, mastery: 1, haste: plusFactor, vers: 1 };
-      default:
-        return { crit: 1, luck: 1, mastery: 1, haste: 1, vers: 1 };
-    }
-  }
-
-  function onOptimizerInputsChange() {
-    optimizerDone = false;
-    const output = document.getElementById('optimize-substats-output');
-    if (output) {
-      output.textContent = 'Optimizer is no longer current due to input changes. Click Optimize again.';
-    }
-    calc();
-  }
-
-  function getSubstatFactorControlId(index) {
-    return index === 1 ? 'substat-factor' : `substat-factor-${index}`;
-  }
-  function getSubstatFactorValueId(index) {
-    return index === 1 ? 'substat-factor-value' : `substat-factor-value-${index}`;
-  }
-  function getSubstatFactorApplyImportedId(index) {
-    return index === 1 ? 'substat-factor-apply-imported' : `substat-factor-${index}-apply-imported`;
-  }
-  function updateSubstatFactorControls(index) {
-    const select = document.getElementById(getSubstatFactorControlId(index));
-    const valueField = document.getElementById(getSubstatFactorValueId(index))?.closest('.field');
-    const checkboxField = document.getElementById(getSubstatFactorApplyImportedId(index))?.closest('.field');
-    if (!select || !valueField || !checkboxField) return;
-    const active = select.value !== 'none';
-    valueField.style.display = active ? '' : 'none';
-    checkboxField.style.display = active ? '' : 'none';
-  }
-
-  function onSubstatFactorTypeChange(index) {
-    const select = document.getElementById(getSubstatFactorControlId(index));
-    if (select) {
-      updateSubstatFactorControls(index);
-    }
-    updateSubstatFactorOptionStates();
-    onOptimizerInputsChange();
-  }
-
-  function updateSubstatFactorOptionStates() {
-    const select1 = document.getElementById('substat-factor');
-    const select2 = document.getElementById('substat-factor-2');
-    if (!select1 || !select2) return;
-
-    const value1 = select1.value;
-    const value2 = select2.value;
-
-    Array.from(select1.options).forEach(opt => {
-      opt.disabled = opt.value !== 'none' && opt.value === value2;
-    });
-    Array.from(select2.options).forEach(opt => {
-      opt.disabled = opt.value !== 'none' && opt.value === value1;
-    });
-
-    if (value1 !== 'none' && value1 === value2) {
-      select2.value = 'none';
-      updateSubstatFactorControls(2);
-    }
-  }
-
   function onImagineChange(slot) {
     const val = document.getElementById(`imagine-${slot}`).value;
     const levelField = document.getElementById(`imagine-${slot}-level-field`);
@@ -1038,7 +974,7 @@
     levelField.style.display = hasImagine ? '' : 'none';
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
-    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball', 'boyce'];
+    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
@@ -1048,9 +984,12 @@
     const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king'];
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
     if (passiveField) passiveField.style.display = passiveFieldImagines.includes(val) ? '' : 'none';
+
+    const sgkT5Field = document.getElementById(`imagine-${slot}-sgk-t5-field`);
+    if (sgkT5Field) sgkT5Field.style.display = val === 'goblin-king' ? '' : 'none';
     
     updateImagineNotes();
-    calc();
+    if (!isApplyingSetupState) updateImagineSkills();
     persistCurrentState();
   }
 
@@ -1103,7 +1042,9 @@
 
       stacks: Math.min(parseInt(document.getElementById(`imagine-${slot}-stacks`)?.value) || 0, 5),
 
-      applyPassiveStats: document.getElementById(`imagine-${slot}-passive-stats`) ? document.getElementById(`imagine-${slot}-passive-stats`).checked : false
+      applyPassiveStats: document.getElementById(`imagine-${slot}-passive-stats`) ? document.getElementById(`imagine-${slot}-passive-stats`).checked : false,
+
+      sgkT5: document.getElementById(`imagine-${slot}-sgk-t5`) ? document.getElementById(`imagine-${slot}-sgk-t5`).checked : false
     };
   }
 
@@ -1184,6 +1125,15 @@
 
     lastTree = select.value;
 
+    calc();
+  }
+
+  function togglePhysRes() {
+    console.log('toggling phys res', physResEnabled);
+    physResEnabled = !physResEnabled;
+    const btn = document.getElementById('res-phys-tag');
+    btn.textContent = `Phys Res: 30.00% ${physResEnabled ? '✓' : '✗'}`;
+    btn.classList.toggle('inactive', !physResEnabled);
     calc();
   }
 
@@ -1311,23 +1261,6 @@
     chevron.textContent = open ? '▸' : '▾';
   }
 
-  function getVal(id, fallback = 0) {
-    const el = document.getElementById(id);
-    if (!el) return fallback;
-    const v = parseFloat(el.value);
-    return isNaN(v) ? fallback : v;
-  }
-
-
-  function setStatus(message, isError = false) {
-    const el = document.getElementById('setup-status');
-    if (!el) return;
-    el.style.display = 'block';
-    el.style.color = isError ? 'var(--accent-red)' : 'var(--accent-green)';
-    el.textContent = message;
-    window.clearTimeout(setStatus._timeout);
-    setStatus._timeout = window.setTimeout(() => { el.style.display = 'none'; }, 4800);
-  }
 
   function showFloatingCopyStatus(message, x, y, isError = false) {
     const el = document.getElementById('copy-float');
@@ -1483,6 +1416,7 @@
 
     const values = SAVE_FIELD_ORDER.map(id => {
       if (id === 'damageType') return damageType;
+      if (id === 'PhysResEnabled') return physResEnabled ? 1 : 0;
       if (id === 'magResEnabled') return magResEnabled ? 1 : 0;
       const el = document.getElementById(id);
       if (!el) return '';
@@ -1495,36 +1429,7 @@
       return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
     });
 
-    const skillsState = [];
-    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
-      const id = card.id.replace('skill-card-', '');
-      const typeEl = document.getElementById(`sk-type-${id}`);
-      const multEl = document.getElementById(`sk-mult-${id}`);
-      const flatEl = document.getElementById(`sk-flat-${id}`);
-      const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
-      const nameEl = card.querySelector('.skill-name-input');
-
-      const hitsEl = document.getElementById(`sk-hits-${id}`);
-      const hitValue = hitsEl ? hitsEl.value.trim() !== '' ? Number(hitsEl.value) : 1 : 1;
-      const hitsPerParse = Number.isNaN(hitValue) ? 1 : hitValue;
-
-      const skillEffects = [];
-      document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`).forEach(row => {
-        const kind = row.querySelector('select')?.value;
-        const value = String(row.querySelector('input')?.value || '').trim();
-        if (kind && value) skillEffects.push([kind, value]);
-      });
-
-      skillsState.push([
-        typeEl ? typeEl.value : 'none',
-        multEl ? Number(multEl.value) || 0 : 100,
-        flatEl ? Number(flatEl.value) || 0 : 0,
-        luckyEl && luckyEl.checked ? 1 : 0,
-        nameEl ? nameEl.value : '',
-        skillEffects,
-        hitsPerParse
-      ]);
-    });
+    const skillsState = getSkillsState();
 
     const modulesState = [];
     document.querySelectorAll('#modules-list .module-card').forEach(card => {
@@ -1537,6 +1442,8 @@
         levelEl ? Number(levelEl.value) || 0 : 0
       ]);
     });
+
+    const weaponLineEffectsState = getWeaponLineEffectState();
 
     // Get class-specific fields
     const classSelect = document.getElementById('class-select');
@@ -1592,9 +1499,11 @@
 
     // We split class and psychoscope tree to decrease export length by just exporting relevant fields
     return {
+      vers: SAVE_FORMAT_VERSION,
       v: values,
       s: skillsState,
       m: modulesState,
+      w: weaponLineEffectsState,
       i: imagineState,
       c: selectedClass,
       cf: classValues,
@@ -1606,7 +1515,7 @@
   function getCompactSetupState() {
     // kept for compatibility, but main path uses getSetupState() now.
     const state = getSetupState();
-    return {v: state.v, c: state.c, cf: state.cf, t: state.t, tf: state.tf, m: state.m, s: state.s, i: state.i};
+    return {vers: state.vers, v: state.v, c: state.c, cf: state.cf, t: state.t, tf: state.tf, m: state.m, s: state.s, i: state.i, w: state.w};
   }
 
   function removeAllSkills() {
@@ -1621,11 +1530,172 @@
     moduleCount = 0;
   }
 
+  function getImagineDisplayName(imagineKey) {
+    const module = window.IMAGINES?.[imagineKey];
+    if (module?.displayName) return module.displayName;
+    return imagineKey
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  function getImagineSkillName(imagineKey, level) {
+    return `${getImagineDisplayName(imagineKey)} (${level})`;
+  }
+
+  function getImagineSkillNamePrefix(imagineKey) {
+    return `${getImagineDisplayName(imagineKey)} (`;
+  }
+
+  function getImagineSkillNamesForState(state) {
+    const module = window.IMAGINES?.[state.imagine];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills(state);
+    if (!Array.isArray(skillData)) return [];
+    return skillData
+      .map(data => Array.isArray(data) ? data[4] : data.name)
+      .filter(Boolean);
+  }
+
+  function findSkillCardByName(skillName) {
+    return document.querySelector(`#skills-list .skill-card .skill-name-input[value="${CSS.escape(skillName)}"]`)
+      || Array.from(document.querySelectorAll('#skills-list .skill-card')).find(card => {
+        const nameInput = card.querySelector('.skill-name-input');
+        return nameInput && nameInput.value.trim() === skillName;
+      });
+  }
+
+  function removeImagineSkillsForSlot(slot) {
+    const state = getImagineState(slot);
+    const expectedNames = new Set(getImagineSkillNamesForState(state));
+    const imagineKey = document.getElementById(`imagine-${slot}`)?.value;
+    const prefix = imagineKey ? getImagineSkillNamePrefix(imagineKey) : null;
+
+    const cards = Array.from(document.querySelectorAll(`#skills-list .skill-card`));
+    cards.forEach(card => {
+      const origin = card.getAttribute('data-imagine-skill-origin');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (String(origin) === String(slot)) {
+        if (expectedNames.has(name)) {
+          card.setAttribute('data-imagine-skill', state.imagine || '');
+          console.log('keeping existing imagine skill card', { id, name, origin });
+          return;
+        }
+        removeSkill(id);
+        return;
+      }
+
+      if ((!origin || origin === '') && expectedNames.has(name)) {
+        card.setAttribute('data-imagine-skill-origin', String(slot));
+        card.setAttribute('data-imagine-skill', state.imagine || '');
+        return;
+      }
+
+      if (prefix && (!origin || origin === '') && name.startsWith(prefix) && name.endsWith(')')) {
+        if (!expectedNames.has(name)) {
+          removeSkill(id);
+        }
+      }
+    });
+  }
+
+  function populateSkillCardFromData(id, data) {
+    const typeEl = document.getElementById(`sk-type-${id}`);
+    const multEl = document.getElementById(`sk-mult-${id}`);
+    const flatEl = document.getElementById(`sk-flat-${id}`);
+    const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+    const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
+    const hitsEl = document.getElementById(`sk-hits-${id}`);
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+
+    const typeValue = Array.isArray(data) ? data[0] : data.type;
+    const multValue = Array.isArray(data) ? data[1] : data.mult;
+    const flatValue = Array.isArray(data) ? data[2] : data.flat;
+    const luckyValue = Array.isArray(data) ? data[3] : data.lucky;
+    const nameValue = Array.isArray(data) ? data[4] : data.name;
+    const effectsValue = Array.isArray(data) ? data[5] : data.effects;
+    const hitsValue = Array.isArray(data) ? data[6] : data.hits;
+    const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+
+    if (typeEl && typeValue !== undefined) typeEl.value = typeValue || 'none';
+    if (multEl && multValue !== undefined) multEl.value = multValue;
+    if (flatEl && flatValue !== undefined) flatEl.value = flatValue;
+    if (luckyEl && luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
+    if (nameEl && nameValue !== undefined) nameEl.value = nameValue;
+    if (hitsEl && hitsValue !== undefined) hitsEl.value = hitsValue;
+
+    if (effectsContainer && Array.isArray(effectsValue)) {
+      effectsContainer.innerHTML = '';
+      effectsValue.forEach(effect => {
+        if (!Array.isArray(effect) || effect.length < 2) return;
+        addSkillEffect(id);
+        const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+        if (!row) return;
+        const select = row.querySelector('select');
+        const input = row.querySelector('input');
+        if (select) select.value = effect[0] || 'generic';
+        if (input) input.value = effect[1];
+      });
+    }
+
+    if (collapsedValue) setSkillCollapsed(id, true);
+  }
+
+  function addImagineSkill(slot, state, skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      console.log('found existing imagine skill card, not adding new one', { slot, skillName, imagine: state.imagine });
+      existingCard.setAttribute('data-imagine-skill-origin', String(slot));
+      existingCard.setAttribute('data-imagine-skill', String(state.imagine || ''));
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-imagine-skill-origin', String(slot));
+      card.setAttribute('data-imagine-skill', String(state.imagine || ''));
+    }
+    populateSkillCardFromData(id, skillData);
+  }
+
+  function onImagineSlotSettingsChange(slot) {
+    updateImagineSkills();
+    persistCurrentState();
+  }
+
+  function updateImagineSkills() {
+    for (let slot = 1; slot <= 2; slot++) {
+      const state = getImagineState(slot);
+      removeImagineSkillsForSlot(slot);
+      if (!state.imagine || state.imagine === 'none') continue;
+      const module = window.IMAGINES?.[state.imagine];
+      if (module?.provideSkills) {
+        const skillData = module.provideSkills(state);
+        if (Array.isArray(skillData)) {
+          skillData.forEach(data => addImagineSkill(slot, state, data));
+        }
+      }
+    }
+    calc();
+  }
+
   function applySetupState(state) {
+    state = migrateSetupState(state);
     if (!state || typeof state !== 'object') throw new Error('Invalid setup object');
 
     const valueArray = Array.isArray(state.v) ? state.v : null;
     if (!Array.isArray(valueArray)) throw new Error('Invalid setup object: expected `v` array of values');
+
+    isApplyingSetupState = true;
 
     for (let i = 0; i < Math.min(SAVE_FIELD_ORDER.length, valueArray.length); i++) {
       const fieldId = SAVE_FIELD_ORDER[i];
@@ -1638,6 +1708,18 @@
           setType('magical');
         } else {
           setType('physical');
+        }
+        continue;
+      }
+
+      if (fieldId === 'PhysResEnabled') {
+        physResEnabled = Boolean(fieldValue);
+        const btn = document.getElementById('res-phys-tag');
+        if (btn) {
+          const armourValue = Number(document.getElementById('enemy-armour')?.value || 2786);
+          const physResAuto = armourValue / (armourValue + 6500);
+          btn.textContent = `Phys Res: ${(physResAuto * 100).toFixed(2)}% ${physResEnabled ? '✓' : '✗'}`;
+          btn.classList.toggle('inactive', !physResEnabled);
         }
         continue;
       }
@@ -1721,6 +1803,11 @@
             });
           }
         }
+
+        const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+        if (collapsedValue !== undefined) {
+          setSkillCollapsed(id, Boolean(collapsedValue));
+        }
       });
     }
 
@@ -1750,6 +1837,9 @@
         }
       });
     }
+
+    const weaponLineEffectsArray = Array.isArray(state.w) ? state.w : (Array.isArray(state.wl) ? state.wl : []);
+    populateWeaponLineEffectsFromState(weaponLineEffectsArray);
 
     // Set class and psychoscope tree from state
     if (state.c) {
@@ -1869,6 +1959,8 @@
     onFoodToggle();
     onSerumOilToggle();
     onPsychoscopeChange();
+    isApplyingSetupState = false;
+    updateImagineSkills();
     calc();
   }
 
@@ -2078,6 +2170,11 @@
           });
         }
       }
+
+      const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+      if (collapsedValue !== undefined) {
+        setSkillCollapsed(id, Boolean(collapsedValue));
+      }
     });
     skills.forEach(s => calcSkill(s.id));
     calc();
@@ -2105,6 +2202,8 @@
           <option value="special">Special</option>
           <option value="basic">Basic Attack</option>
           <option value="ultimate">Ultimate</option>
+          <option value="imagine">Imagine</option>
+          <option value="imagine(passive)">Imagine (passive)</option>
         </select>
         <button class="btn-remove" onclick="removeSkill(${id})" title="Remove">✕</button>
       </div>
@@ -2168,17 +2267,6 @@
     calc();
   }
 
-  function clamp(el) {
-    const min = parseFloat(el.min);
-    const max = parseFloat(el.max);
-    let val = parseFloat(el.value);
-
-    if (isNaN(val)) return;
-
-    if (val > max) el.value = max;
-    if (val < min) el.value = min;
-  }
-
   function setSkillCollapsed(id, collapsed) {
     const card = document.getElementById(`skill-card-${id}`);
     if (!card) return;
@@ -2193,6 +2281,7 @@
       btn.setAttribute('aria-expanded', String(!collapsed));
     }
     updateSkillCompact(id);
+    persistCurrentState();
   }
 
   function toggleSkillCompact(id) {
@@ -2233,7 +2322,7 @@
     row.innerHTML = `
       <select onchange="calc()" style="min-width:150px;">
         <option value="generic">Generic damage</option>
-        <option value="dreamDmg">Dream damage</option>
+        <option value="dreamDmg">Seasonal damage</option>
         <option value="critChance">Crit chance</option>
         <option value="critDamage">Crit damage</option>
         <option value="elemDmg">Element damage</option>
@@ -2242,7 +2331,7 @@
         <option value="finalDamage">Final Damage</option>
         <option value="damageType">Damage type</option>
       </select>
-      <input type="text" value="0" placeholder="physical, magical, no-intellect-boost, no-elem, no-season-dmg, no-mag, no-vers, no-gen," oninput="calc()" />
+      <input type="text" value="0" placeholder="physical, magical, no-intellect-boost, no-elem, no-seasonal-dmg, no-mag, no-vers, no-gen," oninput="calc()" />
       <span style="font-size:11px;color:var(--text-muted);">%</span>
       <button type="button" class="skill-effect-remove" onclick="this.closest('.skill-effect-row').remove(); calc();">✕</button>
     `;
@@ -2420,6 +2509,172 @@
         }
       });
     });
+  }
+
+  function addWeaponLineEffectRow(effectKey = '', effectValue = '') {
+    const list = document.getElementById('weapon-line-effects-list');
+    if (!list) return;
+
+    const id = ++weaponLineEffectCount;
+    const card = document.createElement('div');
+    card.className = 'weapon-line-effect-card';
+    card.id = `weapon-line-effect-${id}`;
+    card.dataset.selectedEffect = effectKey || '';
+    card.innerHTML = `
+      <div class="module-card-header">
+        <div class="module-select-container">
+          <input type="text" class="module-search-input weapon-line-search-input" id="weapon-line-search-${id}" placeholder="Select effect..." autocomplete="off">
+          <div class="module-dropdown" id="weapon-line-dropdown-${id}" style="display:none;">
+            ${Object.entries(WEAPON_LINE_EFFECT_OPTIONS).map(([key, label]) => `<div class="module-option" data-value="${key}">${label}</div>`).join('')}
+          </div>
+        </div>
+        <input type="number" class="module-level-input weapon-line-value" id="weapon-line-value-${id}" placeholder="%" value="${effectValue !== '' && effectValue !== null ? effectValue : ''}" step="0.1" min="0" oninput="clamp(this); calc()">
+        <button type="button" class="btn-remove" onclick="removeWeaponLineEffectRow(${id})" title="Remove">✕</button>
+      </div>
+    `;
+    list.appendChild(card);
+
+    const searchInput = document.getElementById(`weapon-line-search-${id}`);
+    const dropdown = document.getElementById(`weapon-line-dropdown-${id}`);
+
+    if (searchInput) {
+      if (effectKey) {
+        const option = dropdown.querySelector(`[data-value="${effectKey}"]`);
+        if (option) searchInput.value = option.textContent;
+      }
+
+      searchInput.addEventListener('click', () => showWeaponLineDropdown(dropdown));
+      searchInput.addEventListener('focus', () => showWeaponLineDropdown(dropdown));
+      searchInput.addEventListener('input', () => filterWeaponLineEffectOptions(searchInput, dropdown));
+      searchInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (!dropdown.matches(':hover')) {
+            hideWeaponLineDropdown(dropdown);
+          }
+        }, 150);
+      });
+    }
+
+    if (dropdown) {
+      dropdown.addEventListener('click', (e) => {
+        if (e.target.classList.contains('module-option')) {
+          selectWeaponLineEffectOption(e.target, searchInput, dropdown, id);
+        }
+      });
+    }
+
+    updateWeaponLineEffectDropdownVisibility();
+    return id;
+  }
+
+  function removeWeaponLineEffectRow(id) {
+    const card = document.getElementById(`weapon-line-effect-${id}`);
+    if (!card) return;
+    card.remove();
+    calc();
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function showWeaponLineDropdown(dropdown) {
+    if (!dropdown) return;
+    dropdown.style.display = 'block';
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function hideWeaponLineDropdown(dropdown) {
+    if (!dropdown) return;
+    dropdown.style.display = 'none';
+  }
+
+  function filterWeaponLineEffectOptions(input, dropdown) {
+    if (!input || !dropdown) return;
+    const filter = input.value.toLowerCase();
+    const options = dropdown.querySelectorAll('.module-option');
+    let hasVisible = false;
+
+    options.forEach(option => {
+      const text = option.textContent.toLowerCase();
+      const effectKey = option.dataset.value;
+      const isSelectedElsewhere = Array.from(document.querySelectorAll('.weapon-line-effect-card'))
+        .some(card => card.id !== dropdown.closest('.weapon-line-effect-card')?.id && card.dataset.selectedEffect === effectKey);
+
+      if (text.includes(filter) && !isSelectedElsewhere) {
+        option.style.display = 'block';
+        hasVisible = true;
+      } else {
+        option.style.display = 'none';
+      }
+    });
+
+    dropdown.style.display = hasVisible ? 'block' : 'none';
+  }
+
+  function selectWeaponLineEffectOption(option, input, dropdown, id) {
+    if (!option || !input) return;
+    input.value = option.textContent;
+    const card = document.getElementById(`weapon-line-effect-${id}`);
+    if (card) card.dataset.selectedEffect = option.dataset.value || '';
+    hideWeaponLineDropdown(dropdown);
+    calc();
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function updateWeaponLineEffectDropdownVisibility() {
+    const selectedEffects = new Set();
+    document.querySelectorAll('.weapon-line-effect-card').forEach(card => {
+      const selected = card.dataset.selectedEffect;
+      if (selected) selectedEffects.add(selected);
+    });
+
+    document.querySelectorAll('.weapon-line-effect-card .module-dropdown').forEach(dropdown => {
+      const card = dropdown.closest('.weapon-line-effect-card');
+      dropdown.querySelectorAll('.module-option').forEach(option => {
+        const effectValue = option.dataset.value;
+        const currentCardSelected = card?.dataset.selectedEffect === effectValue;
+        if (selectedEffects.has(effectValue) && !currentCardSelected) {
+          option.style.display = 'none';
+        } else {
+          option.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  function getWeaponLineEffects() {
+    const effects = [];
+    document.querySelectorAll('#weapon-line-effects-list .weapon-line-effect-card').forEach(card => {
+      const effectKey = card.dataset.selectedEffect;
+      const valueEl = card.querySelector('.weapon-line-value');
+      if (!effectKey || !valueEl) return;
+      const value = parseFloat(valueEl.value);
+      if (!Number.isFinite(value) || value === 0) return;
+      effects.push({ key: effectKey, value });
+    });
+    return effects;
+  }
+
+  function getWeaponLineEffectState() {
+    return getWeaponLineEffects().map(effect => [effect.key, effect.value]);
+  }
+
+  function removeAllWeaponLineEffects() {
+    document.querySelectorAll('.weapon-line-effect-card').forEach(card => card.remove());
+  }
+
+  function populateWeaponLineEffectsFromState(savedEffects) {
+    removeAllWeaponLineEffects();
+    if (Array.isArray(savedEffects)) {
+      savedEffects.forEach(data => {
+        const key = Array.isArray(data) ? data[0] : data.key;
+        const value = Array.isArray(data) ? data[1] : data.value;
+        if (key) {
+          addWeaponLineEffectRow(key, value);
+        }
+      });
+    }
+    if (document.querySelectorAll('#weapon-line-effects-list .weapon-line-effect-card').length === 0) {
+      addWeaponLineEffectRow();
+    }
   }
 
   // Imagine search/dropdown handlers (behave like module search inputs)
@@ -2760,6 +3015,10 @@
 
   updateProfileDropdown();
   loadPersistedState();
+
+  if (document.querySelectorAll('.weapon-line-effect-card').length === 0) {
+    addWeaponLineEffectRow();
+  }
 
   if (skills.length === 0) {
     addSkill();

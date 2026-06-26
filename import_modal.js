@@ -190,7 +190,7 @@ function applyElementSelection() {
     mainAttrInput.value = mainStatInfo.add;
     if (mainStatInfo.total !== null && mainStatInfo.add > 0) {
       const percent = (mainStatInfo.total / mainStatInfo.add - 1) * 100;
-      if (mainStatPctInput) mainStatPctInput.value = Number.isFinite(percent) ? percent.toFixed(1) : '0';
+      if (mainStatPctInput) mainStatPctInput.value = Number.isFinite(percent) ? percent.toFixed(2) : '0';
     } else if (mainStatPctInput) {
       mainStatPctInput.value = '0';
     }

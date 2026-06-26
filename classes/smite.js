@@ -90,7 +90,7 @@ function provideSmiteFormulaParts(kind = 'elem') {
     const parts = [];
     if (getChecked('flowers-ascension')) parts.push(`Flowers ${(0.10*100).toFixed(2)}%`);
     if (getChecked('thorn')) parts.push(`Thorn ${(0.20*100).toFixed(2)}%`);
-    if (getChecked('wide-area-thorns') && (document.getElementById('target-type')?.value === 'elite' || document.getElementById('target-type')?.value === 'boss')) parts.push(`W.Thorns ${(0.04*100).toFixed(2)}%`);
+    if (getChecked('wide-area-thorns') && (document.getElementById('target-type')?.value === 'elite' || document.getElementById('target-type')?.value === 'boss')) parts.push(`W.Thorns ${(0.08*100).toFixed(2)}%`);
     // Mastery element bonus: prefer the input element if present, else leave out
     const masteryEl = document.getElementById('mastery-elem-dmg-pct');
     const masteryVal = masteryEl ? parseFloat(masteryEl.value) : NaN;
@@ -152,6 +152,10 @@ function mainStatType() {
   return 'int';
 }
 
+function elemType() {
+  return 'forest';
+}
+
 function mainStatModifier() {
   return 0.5;
 }
@@ -168,6 +172,7 @@ window.CLASS_MODULES.smite = {
   provideClassBonuses: provideSmiteClassBonuses,
   provideFormulaParts: provideSmiteFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

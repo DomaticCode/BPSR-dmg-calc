@@ -23,5 +23,35 @@
         activeDamage + (extraPerStack * state.stacks)
     };
   }
-  window.IMAGINES['boyce'] = { provideBonuses };
+
+  function provideSkills(state) {
+    if (state.imagine !== 'boyce') return [];
+    const level = Number.isFinite(state.level) ? state.level : 0;
+    const damageMultipliers = [1050, 1207.4, 1365, 1522.5, 1680, 1837.5];
+    const damageMultiplier = damageMultipliers[level] || damageMultipliers[0];
+    const cooldown = level >= 5 ? 80 : level >= 3 ? 100 : 120;
+
+    let parseDurationSeconds = 180;
+    const parseDurationEl = document.getElementById('parse-duration');
+    if (parseDurationEl) {
+      const parsed = parseFloat(parseDurationEl.value);
+      if (Number.isFinite(parsed) && parsed > 0) parseDurationSeconds = parsed;
+    }
+
+    const hitsPerParse = 1 * Math.max(1, Math.floor((parseDurationSeconds + cooldown) / cooldown));
+    const skillName = `Boyce (${level})`;
+    return [[
+      'imagine',
+      damageMultiplier,
+      105,
+      true,
+      skillName,
+      [
+        ['damageType', 'magical'],
+      ],
+      hitsPerParse,
+      0
+    ]];
+  }
+  window.IMAGINES['boyce'] = { displayName: 'Boyce', provideBonuses, provideSkills };
 })();

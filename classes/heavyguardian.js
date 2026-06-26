@@ -37,6 +37,10 @@ function mainStatType() {
   return 'str';
 }
 
+function elemType() {
+  return 'rock';
+}
+
 function mainStatModifier() {
   return 0.6;
 }
@@ -53,6 +57,7 @@ window.CLASS_MODULES.heavyguardian = {
   provideClassBonuses: provideHeavyGuardianClassBonuses,
   provideFormulaParts: provideHeavyGuardianFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

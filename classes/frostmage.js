@@ -37,6 +37,10 @@ function mainStatType() {
   return 'int';
 }
 
+function elemType() {
+  return 'ice';
+}
+
 function mainStatModifier() {
   return 0.5;
 }
@@ -53,6 +57,7 @@ window.CLASS_MODULES.frostmage = {
   provideClassBonuses: provideFrostMageClassBonuses,
   provideFormulaParts: provideFrostMageFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

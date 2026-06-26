@@ -278,6 +278,8 @@
   .modules-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 10px; }
   .module-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
   .module-card-header { display: flex; align-items: center; gap: 4px; }
+  .weapon-line-effects-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .weapon-line-effect-card { background: var(--bg-card); }
   .module-select-container { position: relative; flex: 1; min-width: 140px; }
   .module-search-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 6px 8px; font-family: inherit; font-size: 13px; cursor: pointer; }
   .module-search-input:focus { outline: none; border-color: var(--accent); }

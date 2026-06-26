@@ -38,6 +38,10 @@ function mainStatType() {
   return 'str';
 }
 
+function elemType() {
+  return 'fire';
+}
+
 function mainStatModifier() {
   return 0.6;
 }
@@ -54,6 +58,7 @@ window.CLASS_MODULES.twinaxe = {
   provideClassBonuses: provideTwinAxeClassBonuses,
   provideFormulaParts: provideTwinAxeFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

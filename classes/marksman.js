@@ -37,6 +37,10 @@ function mainStatType() {
   return 'agi';
 }
 
+function elemType() {
+  return 'light';
+}
+
 function mainStatModifier() {
   return 0.58;
 }
@@ -53,6 +57,7 @@ window.CLASS_MODULES.marksman = {
   provideClassBonuses: provideMarksmanClassBonuses,
   provideFormulaParts: provideMarksmanFormulaParts,
   mainStatType: mainStatType,
+  elemType: elemType,
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };

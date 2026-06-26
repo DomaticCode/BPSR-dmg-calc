@@ -13,12 +13,14 @@
     let moduleBonusCrit = 0, moduleBonusLuck = 0, moduleBonusMastery = 0, moduleBonusVers = 0, moduleBonusHaste = 0;
     let moduleLifeWavePct = 0;
     let moduleAtkBonus = 0, moduleMatkBonus = 0, moduleAllAtkBonus = 0, moduleEliteDmgBonus = 0;
-    let moduleMagicDmgBonus = 0, modulePhysicalDmgBonus = 0, moduleAllDmgBonus = 0, moduleCritDmgBonus = 0;
+    let moduleMagicDmgBonus = 0, moduleAllDmgBonus = 0, moduleCritDmgBonus = 0;
     let moduleLuckyStrikeBonus = 0, moduleSpecialAttackElemBonus = 0, autoTeamLuckCritOption = null;
     let moduleElementalAtkBonus = 0, moduleElementalDmgStatBonus = 0;
     let moduleIntellectBonus = 0, moduleAgilityBonus = 0, moduleStrengthBonus = 0, moduleAllMainStatBonus = 0;
     let moduleAtkBreakdown = [], moduleMatkBreakdown = [];
     let moduleCastSpeedBonus = 0, moduleAttackSpdLevel = 0, strengthBoostLevel = 0;
+    let moduleAllAtkPct = 0;
+    let modulePhysicalDmgBonus = 0; // not in use since only use is actually ALL dmg bonus not just physical (agility boost).
 
     // Compute temporary substat values to determine highest for life-wave logic
     const baseCritStat = (window.getVal ? window.getVal('crit-rate-stat') : 0) || 0;
@@ -136,13 +138,14 @@
         strengthBoostLevel = moduleLevel;
       }
 
+      // lvl 5/6 effect actually applies to both MATK and physical based classes
       if (moduleType === 'agility-boost' && moduleLevel > 0) {
         const atkBonuses = [0, 5, 10, 15, 20, 25, 30];
         const agilityBonuses = [0, 0, 0, 10, 20, 30, 40];
         moduleAtkBonus += atkBonuses[moduleLevel] || 0;
         moduleAgilityBonus += agilityBonuses[moduleLevel] || 0;
-        if (moduleLevel === 5) modulePhysicalDmgBonus += 3.6;
-        if (moduleLevel === 6) modulePhysicalDmgBonus += 6;
+        if (moduleLevel === 5) moduleAllDmgBonus += 3.6;
+        if (moduleLevel === 6) moduleAllDmgBonus += 6;
       }
 
       if (moduleType === 'armor' && moduleLevel > 0) {
@@ -156,13 +159,14 @@
         moduleAttackSpdLevel = moduleLevel;
       }
 
+      // ATK boost works on paper, not fully tested. (adjusted in middle of testing other stuff)
       if (moduleType === 'agile' && moduleLevel > 0) {
         const allAtkBonuses = [0, 10, 20, 30, 40, 50, 60];
         const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
         moduleAllAtkBonus += allAtkBonuses[moduleLevel] || 0;
         moduleAllMainStatBonus += allMainStatBonuses[moduleLevel] || 0;
-        if (moduleLevel === 5) modulePhysicalDmgBonus += 6;
-        if (moduleLevel === 6) modulePhysicalDmgBonus += 10;
+        if (moduleLevel === 5) moduleAllAtkPct += 6;
+        if (moduleLevel === 6) moduleAllAtkPct += 10;
       }
 
       if (moduleType === 'final-protection' && moduleLevel > 0) {
@@ -205,7 +209,7 @@
       moduleElementalAtkBonus, moduleElementalDmgStatBonus,
       moduleIntellectBonus, moduleAgilityBonus, moduleStrengthBonus, moduleAllMainStatBonus,
       moduleAtkBreakdown, moduleMatkBreakdown, moduleCastSpeedBonus, moduleAttackSpdLevel, strengthBoostLevel,
-      moduleLifeWavePct
+      moduleLifeWavePct, moduleAllAtkPct
     };
   }
 

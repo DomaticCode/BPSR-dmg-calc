@@ -22,5 +22,35 @@
 
     return { critStat, critDmgPct };
   }
-  window.IMAGINES['muku-chief'] = { provideBonuses };
+  function provideSkills(state) {
+    if (state.imagine !== 'muku-chief') return [];
+    const level = Number.isFinite(state.level) ? state.level : 0;
+    // averaged out, first hit is small, 2nd hit is much larger, but for this calc its just doing 2 hits with same dmg.
+    const damageMultipliers = [500, 575, 650, 725, 800, 875];
+    const damageMultiplier = damageMultipliers[level] || damageMultipliers[0];
+    const cooldown = level >= 5 ? 80 : level >= 3 ? 100 : 120;
+
+    let parseDurationSeconds = 180;
+    const parseDurationEl = document.getElementById('parse-duration');
+    if (parseDurationEl) {
+      const parsed = parseFloat(parseDurationEl.value);
+      if (Number.isFinite(parsed) && parsed > 0) parseDurationSeconds = parsed;
+    }
+
+    const hitsPerParse = 2 * Math.max(1, Math.floor((parseDurationSeconds + cooldown) / cooldown));
+    const skillName = `Muku Chief (${level})`;
+    return [[
+      'imagine',
+      damageMultiplier,
+      50,
+      true,
+      skillName,
+      [
+        ['damageType', 'physical'],
+      ],
+      hitsPerParse,
+      0
+    ]];
+  }
+  window.IMAGINES['muku-chief'] = { displayName: 'Muku Chief', provideBonuses, provideSkills };
 })();
