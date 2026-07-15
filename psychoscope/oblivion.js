@@ -39,8 +39,6 @@
 
     dropdown.value = value;
 
-    console.log('Oblivion bonuses:', { targetLuckPct, targetCritPct, refinePct, dreamDmgPct });
-
     return {
       tree: tree,
       targetLuckPct,
@@ -54,25 +52,3 @@
 })();
 
 
-document.addEventListener('DOMContentLoaded', () => {
-  const harmony_grace = document.getElementById('psychoscope-oblivion-harmony-grace');
-  const tuning = document.getElementById('psychoscope-oblivion-tuning');
-
-  harmony_grace.addEventListener('change', () => {
-    if (harmony_grace.checked) {
-      tuning.checked = false;
-      tuning.disabled = true;
-    } else {
-      tuning.disabled = false;
-    }
-  });
-
-  tuning.addEventListener('change', () => {
-    if (tuning.checked) {
-      harmony_grace.checked = false;
-      harmony_grace.disabled = true;
-    } else {
-      harmony_grace.disabled = false;
-    }
-  });
-});

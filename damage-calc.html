@@ -21,7 +21,7 @@
       </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
       <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v0.8.0</span>
+      <span class="header-version">v1.0.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -204,7 +204,7 @@
               <input type="number" id="main-stat-pct" value="0" step="0.1" oninput="calc()">
             </div>
             <div class="field">
-              <label id="attr-atk-before-label">MATK before %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">FLOOR(INT×0.1 + FLOOR(INT×0.5 + Adaptive + Weapon)).</span></span></label>
+              <label id="attr-atk-before-label">MATK before %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">FLOOR(INTx0.1 + FLOOR(INTx0.5 + Adaptive + Weapon)).</span></span></label>
               <input type="number" id="attr-atk" readonly>
             </div>
             <div class="field">
@@ -260,7 +260,7 @@
           </div>
 
           <div class="substat-row">
-            <div class="field"><label><span class="dot dot-vers"></span>Versatility Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Versatility uses Stat/(Stat+11206)+base%. DMG bonus = total Vers% × 0.35.</span></span></label><input type="number" id="vers-dmg-pct" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-vers"></span>Versatility Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Versatility uses Stat/(Stat+11206)+base%. DMG bonus = total Vers% x 0.35.</span></span></label><input type="number" id="vers-dmg-pct" value="0" oninput="calc()"></div>
             <input type="number" class="substat-base" id="base-vers-pct" value="0" step="0.1" oninput="calc()">
             <div class="substat-arrow">→</div>
             <div class="field"><label style="font-size:10px;color:var(--text-muted);">Vers %</label><div class="substat-pct" id="sub-vers-pct">0.00%</div></div>
@@ -406,380 +406,240 @@
     </div>
 
     <!-- RIGHT (middle) COLUMN -->
-    <div class="right-col">
-      <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; align-items:start; margin-bottom:14px;">
-        <div class="panel">
-          <div class="panel-header"><h2>Psychoscope Tree</h2></div>
-          <div class="panel-body">
-              <div class="input-row substat-factor-row">
-              <div class="field">
-                <label>Substat Factor 1</label>
-                <select id="substat-factor" value="none" onchange="onSubstatFactorTypeChange(1)">
-                  <option value="none">None</option>
-                  <option value="luck">Luck</option>
-                  <option value="crit">Crit</option>
-                  <option value="mastery">Mastery</option>
-                  <option value="haste">Haste</option>
-                </select>
-              </div>
-              <div class="field" style="display:none;">
-                <label>Value</label>
-                <input type="number" id="substat-factor-value" value="10" min="0" max="10" step="0.1" oninput="clamp(this); onOptimizerInputsChange()">
-              </div>
-              <div class="field substat-factor-checkbox" style="display:none;">
-                <label class="checkbox-label" for="substat-factor-apply-imported">
-                  <input type="checkbox" id="substat-factor-apply-imported" onchange="calc()">
-                  Apply to imported stats
-                </label>
-              </div>
+    <div class="center-col">
+      <div class="two-col-layout">
+        <div class="sub-col">
+          <!-- Stats Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Stats Panel</h2>
             </div>
-            <div class="input-row substat-factor-row" id="substat-factor-2-row">
-              <div class="field">
-                <label>Substat Factor 2</label>
-                <select id="substat-factor-2" value="none" onchange="onSubstatFactorTypeChange(2)">
-                  <option value="none">None</option>
-                  <option value="luck">Luck</option>
-                  <option value="crit">Crit</option>
-                  <option value="mastery">Mastery</option>
-                  <option value="haste">Haste</option>
-                </select>
-              </div>
-              <div class="field" style="display:none;">
-                <label>Value</label>
-                <input type="number" id="substat-factor-value-2" value="10" min="0" max="10" step="0.1" oninput="clamp(this); onOptimizerInputsChange()">
-              </div>
-              <div class="field substat-factor-checkbox" style="display:none;">
-                <label class="checkbox-label" for="substat-factor-2-apply-imported">
-                  <input type="checkbox" id="substat-factor-2-apply-imported" onchange="calc()">
-                  Apply to imported stats
-                </label>
-              </div>
-            </div>
-            <div class="input-row single" style="margin-bottom:10px;">
-              <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
-                <option value="none">None</option>
-                <option value="dreamforce">Dreamforce</option>
-                <option value="fantasia-impact">Fantasia Impact</option>
-                <option value="endless-mind">Endless Mind</option>
-                <option value="oblivion">Oblivion</option>
-              </select></div>
-            </div>
-            <div id="psychoscope-options" style="display:none;">
-              <div id="psychoscope-dreamforce-options" class="checkbox-group" style="display:none;">
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-bond-lvl35" onchange="calc()">
-                  <label for="psychoscope-bond-lvl35">Bond lvl 35 (Dreamforce)
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 2% Seasonal DMG.</span></span>
-                  </label>
+            <div class="panel-body">
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label" id="s-atk-matk-label">ATK/MATK</div>
+                  <div class="lucky-stat-value" id="s-atk-matk">—</div>
                 </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-main-stats" onchange="calc()">
-                  <label for="psychoscope-main-stats">Main Stats Active
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">lvl 100 = 1050, (Displayed as 100% uptime, but impossible in game).</span></span>
-                  </label>
-                  <input type="number" id="psychoscope-main-stats-bonus" value="1050" step="1" min="0" style="width:100px;" oninput="calc()" title="Dreamforce Main Stats INT bonus" />
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Chance</div>
+                  <div class="lucky-stat-value crit" id="s-crit-chance">—</div>
                 </div>
-                <div class="cb-row">
-                  <input type="checkbox" id="psychoscope-amplify-rare" onchange="calc()">
-                  <label for="psychoscope-amplify-rare">Amplify - Rare Active
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">For damage calculation assumes 100% uptime. (Displayed as 100% uptime, but impossible in game).</span></span>
-                  </label>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Damage</div>
+                  <div class="lucky-stat-value crit" id="s-crit-dmg">—</div>
                 </div>
               </div>
-              <div id="psychoscope-fantasia-options" class="checkbox-group" style="display:none;">
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-fantasia-bond-35" onchange="calc()">
-                  <label for="psychoscope-fantasia-bond-35">Bond lvl 35 (Fantasia Impact)
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds +1% flat Luck %.</span></span>
-                  </label>
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Chance</div>
+                  <div class="lucky-stat-value luck" id="s-lucky-chance">—</div>
                 </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-fantasia-linkage" onchange="calc()">
-                  <label for="psychoscope-fantasia-linkage">Linkage</label>
-                  <select id="psychoscope-fantasia-linkage-pct" onchange="calc()" style="width:80px;">
-                    <option value="1">1%</option>
-                    <option value="2">2%</option>
-                    <option value="3" selected>3%</option>
-                  </select>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Hit</div>
+                  <div class="lucky-stat-value luck" id="ls-normal">—</div>
                 </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-fantasia-reconstruct" onchange="calc()">
-                  <label for="psychoscope-fantasia-reconstruct">Reconstruct</label>
-                  <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds +10% Lucky Strike DMG Mult.</span></span>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Crit</div>
+                  <div class="lucky-stat-value crit" id="ls-crit">—</div>
                 </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-fantasia-ultimate-fortune" onchange="calc()">
-                  <label for="psychoscope-fantasia-ultimate-fortune">Ultimate Fortune
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds +10% main stat % bonus every 10 lucky hits for 5 seconds<br>(Assumes 100% uptime).</span></span>
-                  </label>
-                </div>
-              </div>
-              <div id="psychoscope-endless-mind-options" class="checkbox-group" style="display:none;">
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-endless-bond-35" onchange="calc()">
-                  <label for="psychoscope-endless-bond-35">Bond lvl 35
-                    <span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span class="tip-box">Adds 100 to main stats. <span  class="highlight-purple">Only check if endless mind was not selected when you imported your stats.</span></span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-endless-aegis" checked>
-                  <label for="psychoscope-endless-aegis">Aegis of the soul
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Each stack of Endless mind provides a 1% bonus to main stats.</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                    <input type="checkbox" id="psychoscope-endless-still-continuum" onchange="calc()">
-                  <label for="psychoscope-endless-still-continuum">Still-Continuum
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Max stacks +1. (selfish)</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-endless-split-brilliance" onchange="calc()">
-                  <label for="psychoscope-endless-split-brilliance">Split Brilliance
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Max stacks -1, applies to teammates.</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-endless-finale-chant" onchange="calc()">
-                  <label for="psychoscope-endless-finale-chant">Finale Chant
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles all stack effects, (after casting ult).</span></span>
-                  </label>
-                </div>
-              </div>
-              <div id="psychoscope-oblivion-options" class="checkbox-group" style="display:none;">
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-oblivion-bond-35" onchange="calc()">
-                  <label for="psychoscope-oblivion-bond-35">Bond lvl 35
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds 2% crit, 2% luck against enemies with oblivion.</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-oblivion-harmony-grace" onchange="calc()">
-                  <label for="psychoscope-oblivion-harmony-grace">Harmony of Grace
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Grants 2% main stat to self and allies for 8 seconds every 15 seconds.</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-oblivion-tuning" onchange="calc()">
-                  <label for="psychoscope-oblivion-tuning">Tuning
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Grants (self) 3% all element bonus.</span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-oblivion-beauty-refinement" onchange="calc()">
-                  <label for="psychoscope-oblivion-beauty-refinement">Beauty of Refinement
-                    <span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span class="tip-box">
-                      <span  class="highlight-purple">Only check if beauty of refinement was not included in your imported stats.</span> +10% refined attack bonus. </span></span>
-                  </label>
-                </div>
-                <div class="cb-row" style="align-items:center; gap:8px;">
-                  <input type="checkbox" id="psychoscope-oblivion-feint-strike" onchange="calc()">
-                  <label for="psychoscope-oblivion-feint-strike">Feint Strike
-                    <span class="tip"><span class="tip-icon">i</span><span class="tip-box">(self) 6% seasonal damage to enemies with oblivion.</span></span>
-                  </label>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Average (w/ crit)</div>
+                  <div class="lucky-stat-value avg" id="ls-avg">—</div>
                 </div>
               </div>
             </div>
           </div>
+
+
+          <div class="panel">
+            <div class="panel-header"><h2>Psychoscope Tree</h2></div>
+            <div class="panel-body">
+              <div class="input-row single" style="margin-bottom:10px;">
+                <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
+                  <option value="none">None</option>
+                  <option value="dreamforce">Dreamforce</option>
+                  <option value="fantasia-impact">Fantasia Impact</option>
+                  <option value="endless-mind">Endless Mind</option>
+                  <option value="oblivion">Oblivion</option>
+                </select></div>
+              </div>
+
+              <div id="psychoscope-options" style="display:none;">
+                <div id="psychoscope-dreamforce-options" style="display:none;"></div>
+                <div id="psychoscope-fantasia-options" style="display:none;"></div>
+                <div id="psychoscope-endless-mind-options" style="display:none;"></div>
+                <div id="psychoscope-oblivion-options" style="display:none;"></div>
+              </div>
+
+              <!-- Populated by initFactorsShell()/updateFactors() in psychoscope-tree.js.
+                  Hidden whenever no tree is selected. -->
+              <div id="psychoscope-factors" style="display:none;"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-header"><h2>Imagine Buffs <span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span class="tip-box"><span class="hl-gold">Only buffs applied to your character are calculated.</span> Damage from the imagine procs itself are not.</span></span></h2> </div>
-          <div class="panel-body">
-            <div class="imagine-slots">
-              <div class="imagine-slot">
-                <div class="field">
-                  <label>Imagine Slot 1</label>
-                <div class="module-select-container">
-                  <input type="text" class="module-search-input" id="imagine-1-search" placeholder="Select imagine..." autocomplete="off">
-                  <input type="hidden" id="imagine-1" value="">
-                  <div class="module-dropdown" id="imagine-dropdown-1" style="display:none;">
-                    <div class="module-option" data-value="airona">Airona</div>
-                    <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
-                    <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
-                    <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
-                    <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
-                    <div class="module-option" data-value="boyce">Boyce</div>
-                    <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
-                    <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
-                    <div class="module-option" data-value="dorothy">Dorothy</div>
-                    <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
-                    <div class="module-option" data-value="fafala">Fafala</div>
-                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
-                    <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
-                    <div class="module-option" data-value="goblin-king">Goblin King</div>
-                    <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
-                    <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
-                    <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
-                    <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
-                    <div class="module-option" data-value="muku-chief">Muku Chief</div>
-                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
-                    <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
-                    <div class="module-option" data-value="olvera">Olvera</div>
-                    <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
-                    <div class="module-option" data-value="rorola">Rorola</div>
-                    <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
-                    <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
-                    <div class="module-option" data-value="tatta">Tatta</div>
-                    <div class="module-option" data-value="tina">Tina</div>
-                    <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
-                    <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
+        <div class="sub-col">
+          <div class="panel">
+            <div class="panel-header"><h2>Imagine Buffs <span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span class="tip-box"><span class="hl-gold">Adding an imagine will add the skills for that Imagine.</span></span></span></h2> </div>
+              <div class="panel-body">
+                <div class="imagine-slots">
+                  <div class="imagine-slot">
+                    <div class="field">
+                      <label>Imagine Slot 1</label>
+                    <div class="module-select-container">
+                      <input type="text" class="module-search-input" id="imagine-1-search" placeholder="Select imagine..." autocomplete="off">
+                      <input type="hidden" id="imagine-1" value="">
+                      <div class="module-dropdown" id="imagine-dropdown-1" style="display:none;">
+                        <div class="module-option" data-value="airona">Airona</div>
+                        <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
+                        <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
+                        <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
+                        <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                        <div class="module-option" data-value="boyce">Boyce</div>
+                        <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
+                        <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                        <div class="module-option" data-value="dorothy">Dorothy</div>
+                        <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="fafala">Fafala</div>
+                        <div class="module-option" data-value="flamehorn">Flamehorn</div>
+                        <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
+                        <div class="module-option" data-value="goblin-king">Goblin King</div>
+                        <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
+                        <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
+                        <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
+                        <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
+                        <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                        <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                        <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
+                        <div class="module-option" data-value="olvera">Olvera</div>
+                        <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
+                        <div class="module-option" data-value="rorola">Rorola</div>
+                        <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
+                        <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
+                        <div class="module-option" data-value="tatta">Tatta</div>
+                        <div class="module-option" data-value="tina">Tina</div>
+                        <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                        <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field" id="imagine-1-level-field">
+                    <label>Level</label>
+                    <select id="imagine-1-level" onchange="onImagineSlotSettingsChange(1)">
+                      <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                      <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                    </select>
+                  </div>
+                  <div class="field" id="imagine-1-passive-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-1-passive-stats" onchange="onImagineSlotSettingsChange(1)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                  </div>
+                  <div class="field" id="imagine-1-sgk-t5-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-1-sgk-t5" onchange="onImagineSlotSettingsChange(1)"> SGK t5</label>
+                  </div>
+                  <div class="field" id="imagine-1-mode-field" style="display:none;">
+                    <div class="radio-group">
+                      <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="onImagineSlotSettingsChange(1)"> Passive</label>
+                      <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="onImagineSlotSettingsChange(1)"> Active</label>
+                      <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="onImagineSlotSettingsChange(1)" style="width:54px;"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="imagine-slot">
+                  <div class="field">
+                    <label>Imagine Slot 2</label>
+                    <div class="module-select-container">
+                      <input type="text" class="module-search-input" id="imagine-2-search" placeholder="Select imagine..." autocomplete="off">
+                      <input type="hidden" id="imagine-2" value="">
+                      <div class="module-dropdown" id="imagine-dropdown-2" style="display:none;">
+                        <div class="module-option" data-value="airona">Airona</div>
+                        <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
+                        <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
+                        <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
+                        <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                        <div class="module-option" data-value="boyce">Boyce</div>
+                        <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
+                        <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                        <div class="module-option" data-value="dorothy">Dorothy</div>
+                        <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="fafala">Fafala</div>
+                        <div class="module-option" data-value="flamehorn">Flamehorn</div>
+                        <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
+                        <div class="module-option" data-value="goblin-king">Goblin King</div>
+                        <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
+                        <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
+                        <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
+                        <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
+                        <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                        <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                        <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
+                        <div class="module-option" data-value="olvera">Olvera</div>
+                        <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
+                        <div class="module-option" data-value="rorola">Rorola</div>
+                        <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
+                        <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
+                        <div class="module-option" data-value="tatta">Tatta</div>
+                        <div class="module-option" data-value="tina">Tina</div>
+                        <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field" id="imagine-2-level-field">
+                    <label>Level</label>
+                    <select id="imagine-2-level" onchange="onImagineSlotSettingsChange(2)">
+                      <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                      <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                    </select>
+                  </div>
+                  <div class="field" id="imagine-2-passive-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-2-passive-stats" onchange="onImagineSlotSettingsChange(2)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                  </div>
+                  <div class="field" id="imagine-2-sgk-t5-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-2-sgk-t5" onchange="onImagineSlotSettingsChange(2)"> SGK t5</label>
+                  </div>
+                  <div class="field" id="imagine-2-mode-field" style="display:none;">
+                    <div class="radio-group">
+                      <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="onImagineSlotSettingsChange(2)"> Passive</label>
+                      <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="onImagineSlotSettingsChange(2)"> Active</label>
+                      <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="field" id="imagine-1-level-field">
-                <label>Level</label>
-                <select id="imagine-1-level" onchange="onImagineSlotSettingsChange(1)">
-                  <option value="0">0</option><option value="1">1</option><option value="2">2</option>
-                  <option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                </select>
-              </div>
-              <div class="field" id="imagine-1-passive-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-1-passive-stats" onchange="onImagineSlotSettingsChange(1)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
-              </div>
-              <div class="field" id="imagine-1-sgk-t5-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-1-sgk-t5" onchange="onImagineSlotSettingsChange(1)"> SGK t5</label>
-              </div>
-              <div class="field" id="imagine-1-mode-field" style="display:none;">
-                <div class="radio-group">
-                  <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="onImagineSlotSettingsChange(1)"> Passive</label>
-                  <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="onImagineSlotSettingsChange(1)"> Active</label>
-                  <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="onImagineSlotSettingsChange(1)" style="width:54px;"></span>
-                </div>
-              </div>
-            </div>
-            <div class="imagine-slot">
-              <div class="field">
-                <label>Imagine Slot 2</label>
-                <div class="module-select-container">
-                  <input type="text" class="module-search-input" id="imagine-2-search" placeholder="Select imagine..." autocomplete="off">
-                  <input type="hidden" id="imagine-2" value="">
-                  <div class="module-dropdown" id="imagine-dropdown-2" style="display:none;">
-                    <div class="module-option" data-value="airona">Airona</div>
-                    <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
-                    <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
-                    <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
-                    <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
-                    <div class="module-option" data-value="boyce">Boyce</div>
-                    <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
-                    <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
-                    <div class="module-option" data-value="dorothy">Dorothy</div>
-                    <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
-                    <div class="module-option" data-value="fafala">Fafala</div>
-                    <div class="module-option" data-value="flamehorn">Flamehorn</div>
-                    <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
-                    <div class="module-option" data-value="goblin-king">Goblin King</div>
-                    <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
-                    <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
-                    <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
-                    <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
-                    <div class="module-option" data-value="muku-chief">Muku Chief</div>
-                    <div class="module-option" data-value="muku-scout">Muku Scout</div>
-                    <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
-                    <div class="module-option" data-value="olvera">Olvera</div>
-                    <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
-                    <div class="module-option" data-value="rorola">Rorola</div>
-                    <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
-                    <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
-                    <div class="module-option" data-value="tatta">Tatta</div>
-                    <div class="module-option" data-value="tina">Tina</div>
-                    <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
-                  </div>
-                </div>
-              </div>
-              <div class="field" id="imagine-2-level-field">
-                <label>Level</label>
-                <select id="imagine-2-level" onchange="onImagineSlotSettingsChange(2)">
-                  <option value="0">0</option><option value="1">1</option><option value="2">2</option>
-                  <option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                </select>
-              </div>
-              <div class="field" id="imagine-2-passive-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-2-passive-stats" onchange="onImagineSlotSettingsChange(2)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
-              </div>
-              <div class="field" id="imagine-2-sgk-t5-field" style="display:none;">
-                <label><input type="checkbox" id="imagine-2-sgk-t5" onchange="onImagineSlotSettingsChange(2)"> SGK t5</label>
-              </div>
-              <div class="field" id="imagine-2-mode-field" style="display:none;">
-                <div class="radio-group">
-                  <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="onImagineSlotSettingsChange(2)"> Passive</label>
-                  <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="onImagineSlotSettingsChange(2)"> Active</label>
-                  <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
-                </div>
+              <div class="note" id="imagine-notes" style="margin-top:10px;">
+                <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is always active.</div>
+                <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-boyce" style="display:none;"><span class="hl">Boyce:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-olvera" style="display:none;"><span class="hl">Olvera:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-fafala" style="display:none;"><span class="hl">Fafala:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-tatta" style="display:none;"><span class="hl">Tatta:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-dorothy" style="display:none;"><span class="hl">Dorothy:</span> <span class="highlight-purple">Transformation not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
+                <div id="imagine-note-inferno-goblin-mage" style="display:none;"><span class="hl">Inferno Goblin Mage:</span> <span class="highlight-purple">Assumes INT class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-brigand-scout-leader" style="display:none;"><span class="hl">Brigand Scout Leader:</span> <span class="highlight-purple">Assumes AGI class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
+                <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
               </div>
             </div>
           </div>
-          <div class="note" id="imagine-notes" style="margin-top:10px;">
-            <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is always active.</div>
-            <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-boyce" style="display:none;"><span class="hl">Boyce:</span> If you imported stats with this imagine equipped, remove the main stat % from  <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-olvera" style="display:none;"><span class="hl">Olvera:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-fafala" style="display:none;"><span class="hl">Fafala:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-tatta" style="display:none;"><span class="hl">Tatta:</span> If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-dorothy" style="display:none;"><span class="hl">Dorothy:</span> <span class="highlight-purple">Transformation not calculated. </span>If you imported stats with this imagine equipped, remove the main stat % from   <span class="highlight-purple">Main Stat % bonus</span>  under the main stat formula</div>
-            <div id="imagine-note-inferno-goblin-mage" style="display:none;"><span class="hl">Inferno Goblin Mage:</span> <span class="highlight-purple">Assumes INT class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
-            <div id="imagine-note-brigand-scout-leader" style="display:none;"><span class="hl">Brigand Scout Leader:</span> <span class="highlight-purple">Assumes AGI class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
-            <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
-            <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
-            <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Stats Panel -->
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Stats Panel</h2>
-        </div>
-        <div class="panel-body">
-          <div class="lucky-panel-grid" style="grid-template-columns: 1fr; margin-bottom:8px;">
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label" id="s-atk-matk-label">ATK/MATK</div>
-              <div class="lucky-stat-value" id="s-atk-matk">—</div>
-            </div>
-          </div>
-          <div class="lucky-panel-grid" style="margin-bottom:8px;">
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Crit Chance</div>
-              <div class="lucky-stat-value crit" id="s-crit-chance">—</div>
-            </div>
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Crit Damage</div>
-              <div class="lucky-stat-value crit" id="s-crit-dmg">—</div>
-            </div>
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Lucky Chance</div>
-              <div class="lucky-stat-value luck" id="s-lucky-chance">—</div>
-            </div>
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Lucky Strike Hit</div>
-              <div class="lucky-stat-value luck" id="ls-normal">—</div>
-            </div>
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Lucky Strike Crit</div>
-              <div class="lucky-stat-value crit" id="ls-crit">—</div>
-            </div>
-            <div class="lucky-stat-box">
-              <div class="lucky-stat-label">Lucky Average (w/ crit)</div>
-              <div class="lucky-stat-value avg" id="ls-avg">—</div>
+
+          <!-- Modules -->
+          <div class="panel">
+            <div class="panel-header"><h2>Modules<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Input total points NOT LEVEL.<br> e.g. 20 points for power core lvl 6</span></span></h2> <label><input type="checkbox" id="module-apply-main-stats" onchange="calc()" style="margin-right:4px;"/>Apply main stats</label></div>
+            <div class="panel-body">
+              <div class="modules-list" id="modules-list"></div>
+              <button class="btn-add-skill" onclick="addModule()">+ Add Module</button>
+              <div class="note" id="modules-total-note" style="margin-top:8px; display:none;"></div>
             </div>
           </div>
         </div>
       </div>
 
 
-      <!-- Modules -->
-      <div class="panel">
-        <div class="panel-header"><h2>Modules</h2></div>
-        <div class="panel-body">
-          <div class="modules-list" id="modules-list"></div>
-          <button class="btn-add-skill" onclick="addModule()">+ Add Module</button>
-          <div class="note" id="modules-total-note" style="margin-top:8px; display:none;"></div>
-        </div>
-      </div>
-    </div>
       <div class="panel">
         <div class="panel-header"><h2>Live Formula</h2></div>
         <div class="panel-body">
@@ -790,7 +650,7 @@
         <div class="panel-header"><h2>Substat Optimization</h2></div>
         <div class="panel-body">
           <div class="note" style="margin-bottom:10px;">
-            Optimizes substat allocation for maximum damage on the first skill in the skills list. <span class="highlight-purple">Does not currently support haste; Mastery only supported for Smite.</span> Some stats like luck might be undervalued here if lucky hits help your rotation.
+            Optimizes substat allocation for maximum damage on the first skill in the skills list. <span class="highlight-purple">Does not currently support haste; Mastery only supported if class supports it.</span> Some stats like luck might be undervalued here if lucky hits help your rotation.
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
             <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-crit" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Crit</label>
@@ -807,8 +667,6 @@
           <div id="optimize-substats-output" class="note" style="margin-top:8px;">Click optimize to begin optimizing for the Total Damage summary.</div>
         </div>
       </div>
-
-    
   </div>
   <!-- RIGHT SIDEBAR (skills / utilities) -->
     <div class="right-sidebar">
@@ -896,8 +754,10 @@
 <script src="imagines/bloodthirsty-furball.js"></script>
 <script src="imagines/boyce.js"></script>
 <script src="imagines/void-bzzar.js"></script>
+<script src="imagines/wandering-vagrant.js"></script>
 <!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
 <!-- Psychoscope Trees -->
+<script src="psychoscope/psychoscope-tree.js"></script>
 <script src="psychoscope/dreamforce.js"></script>
 <script src="psychoscope/fantasia-impact.js"></script>
 <script src="psychoscope/endless-mind.js"></script>
@@ -914,7 +774,7 @@
   let moduleCount = 0;
   let modules = [];
   let weaponLineEffectCount = 0;
-  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v0.8.0';
+  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v1.0.0';
   const WEAPON_LINE_EFFECT_OPTIONS = {
     'wl-crit-pct': 'CRIT %',
     'wl-haste-pct': 'Haste %',
@@ -925,15 +785,17 @@
     'wl-crit-dmg': 'Crit DMG %',
     'wl-atk-dmg': 'Attack DMG %',
     'wl-magic-dmg': 'Magic DMG %',
-    'wl-atk-pct': 'ATK %',
+    'wl-atk-pct': 'ATK/MATK %',
     'wl-ranged-dmg': 'Ranged DMG %',
     'luck-effect-bonus': 'Luck Effect DMG %',
     'lucky-strike-dmg-bonus': 'Lucky Strike DMG %',
+    'wl-exp-mag-pct': 'Expertise Skill PHY/MAG Boost',
   };
   let optimizerBackup = null;
   let optimizerDone = false;
   let optimizingSubstats = false;
   let lastTree = 'none';
+  let pendingPsychoscopeState = null;
 
   let atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
 
@@ -947,6 +809,7 @@
   function onClassChange() {
     const cls = document.getElementById('class-select').value;
     const module = window.CLASS_MODULES && window.CLASS_MODULES[cls];
+    const container = document.getElementById('class-options');
 
     // Let the class module handle rendering/options and class-specific state
     if (module && typeof module.onSelected === 'function') {
@@ -962,6 +825,7 @@
     document.getElementById('base-luck-pct').value    = bases.luck;
     document.getElementById('base-mastery-pct').value = bases.mastery;
     document.getElementById('base-vers-pct').value    = bases.vers;
+    updateClassSkills();
     calc();
   }
 
@@ -974,14 +838,15 @@
     levelField.style.display = hasImagine ? '' : 'none';
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
-    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king'];
+    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 
+    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-vagrant'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce') ? '' : 'none';
     // Show passive stats checkbox for passive stats imagines
-    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king'];
+    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-vagrant'];
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
     if (passiveField) passiveField.style.display = passiveFieldImagines.includes(val) ? '' : 'none';
 
@@ -1083,6 +948,203 @@
     return {};
   }
 
+  function getPsychoscopeSkillsForTree(tree) {
+    if (!tree || tree === 'none') return [];
+    const module = window.PSYCHOSCOPE_MODULES?.[tree];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills({ tree });
+    return Array.isArray(skillData) ? skillData : [];
+  }
+
+  function removePsychoscopeSkills() {
+    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
+      if (card.getAttribute('data-psychoscope-skill-origin') === 'psychoscope') {
+        const id = Number(card.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) removeSkill(id);
+      }
+    });
+  }
+
+  function addPsychoscopeSkill(skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData?.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      existingCard.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+      existingCard.setAttribute('data-psychoscope-skill', document.getElementById('psychoscope-tree')?.value || '');
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+      card.setAttribute('data-psychoscope-skill', document.getElementById('psychoscope-tree')?.value || '');
+    }
+    
+    populateSkillCardFromData(id, skillData);
+
+    // Tag the row so it recognizes it as a psychoscope managed row (prevent dupes and proper removal when changed).
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (effectsContainer) {
+      const dreamRow = Array.from(effectsContainer.querySelectorAll('.skill-effect-row')).find(row => {
+        const select = row.querySelector('select');
+        return select && select.value === 'dreamDmg';
+      });
+
+      if (dreamRow) {
+        dreamRow.setAttribute('data-psychoscope-dynamic-effect', 'dreamDmg');
+      }
+    }
+  }
+
+  function getClassSkillsForSelection() {
+    const classSelectVal = document.getElementById('class-select')?.value || 'none';
+    const module = window.CLASS_MODULES?.[classSelectVal];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills({ class: classSelectVal });
+    return Array.isArray(skillData) ? skillData : [];
+  }
+
+  function removeClassSkills() {
+    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
+      if (card.getAttribute('data-class-skill-origin') === 'class') {
+        const id = Number(card.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) removeSkill(id);
+      }
+    });
+  }
+
+  function addClassSkill(skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      existingCard.setAttribute('data-class-skill-origin', 'class');
+      existingCard.setAttribute('data-class-skill', document.getElementById('class-select')?.value || '');
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-class-skill-origin', 'class');
+      card.setAttribute('data-class-skill', document.getElementById('class-select')?.value || '');
+    }
+    populateSkillCardFromData(id, skillData);
+  }
+
+  function updateClassSkills() {
+    const classSelectVal = document.getElementById('class-select')?.value || 'none';
+    const existingCards = Array.from(document.querySelectorAll('#skills-list .skill-card'));
+
+    if (!classSelectVal || classSelectVal === 'none') {
+      existingCards.forEach(card => {
+        if (card.getAttribute('data-class-skill-origin') === 'class') {
+          const id = Number(card.id.replace('skill-card-', ''));
+          if (!Number.isNaN(id)) removeSkill(id);
+        }
+      });
+      return;
+    }
+
+    const expectedNames = new Set(
+      getClassSkillsForSelection()
+        .map(data => Array.isArray(data) ? data[4] : data.name)
+        .filter(Boolean)
+    );
+
+    existingCards.forEach(card => {
+      const origin = card.getAttribute('data-class-skill-origin');
+      const classKey = card.getAttribute('data-class-skill');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (origin !== 'class') return;
+
+      if (classKey !== classSelectVal || !expectedNames.has(name)) {
+        removeSkill(id);
+      }
+    });
+
+    const skillData = getClassSkillsForSelection();
+    skillData.forEach(data => {
+      const skillName = Array.isArray(data) ? data[4] : data.name;
+      if (!skillName) return;
+      const existingCard = findSkillCardByName(skillName);
+      if (existingCard) {
+        existingCard.setAttribute('data-class-skill-origin', 'class');
+        existingCard.setAttribute('data-class-skill', classSelectVal);
+        const id = Number(existingCard.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) {
+          populateSkillCardFromData(id, data, { preserveHits: true, preserveExistingEffects: true, markGeneratedEffects: true });
+        }
+        return;
+      }
+      addClassSkill(data);
+    });
+  }
+
+  function updatePsychoscopeSkills() {
+    const tree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
+    const existingCards = Array.from(document.querySelectorAll('#skills-list .skill-card'));
+
+    if (!tree || tree === 'none') {
+      existingCards.forEach(card => {
+        if (card.getAttribute('data-psychoscope-skill-origin') === 'psychoscope') {
+          const id = Number(card.id.replace('skill-card-', ''));
+          if (!Number.isNaN(id)) removeSkill(id);
+        }
+      });
+      return;
+    }
+
+    const expectedNames = new Set(
+      getPsychoscopeSkillsForTree(tree)
+        .map(data => Array.isArray(data) ? data[4] : data.name)
+        .filter(Boolean)
+    );
+
+    existingCards.forEach(card => {
+      const origin = card.getAttribute('data-psychoscope-skill-origin');
+      const skillTree = card.getAttribute('data-psychoscope-skill');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (origin !== 'psychoscope') return;
+
+      if (skillTree !== tree || !expectedNames.has(name)) {
+        removeSkill(id);
+      }
+    });
+
+    const skillData = getPsychoscopeSkillsForTree(tree);
+    skillData.forEach(data => {
+      const skillName = Array.isArray(data) ? data[4] : data.name;
+      if (!skillName) return;
+      const existingCard = findSkillCardByName(skillName);
+      if (existingCard) {
+        existingCard.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+        existingCard.setAttribute('data-psychoscope-skill', tree);
+        const id = Number(existingCard.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) {
+          populateSkillCardFromData(id, data, { preserveHits: true, preserveExistingEffects: true, markGeneratedEffects: true });
+        }
+        return;
+      }
+      addPsychoscopeSkill(data);
+    });
+    syncPsychoscopeSkillEffects(tree);
+  }
+
   function onPsychoscopeChange() {
     const select = document.getElementById('psychoscope-tree');
     const options = document.getElementById('psychoscope-options');
@@ -1094,6 +1156,9 @@
     const oblivion = document.getElementById('oblivion-buff');
 
     if (!select || !options || !df || !fi || !em || !endlessMind || !ob) return;
+
+    const treeKey = TREE_SELECT_VALUE_MAP?.[select.value] || null;
+    const config = treeKey ? PSYCHOSCOPE_TREES?.[treeKey] : null;
 
     options.style.display = select.value === 'none' ? 'none' : '';
     df.style.display = select.value === 'dreamforce' ? '' : 'none';
@@ -1125,6 +1190,10 @@
 
     lastTree = select.value;
 
+    if (config && typeof handleTreeChange === 'function') {
+      handleTreeChange(treeKey);
+    }
+    updatePsychoscopeSkills();
     calc();
   }
 
@@ -1168,7 +1237,7 @@
     atkMatkSwap('int-pct-label', `${mainStatName} %`);
     atkMatkSwap('refined-atk-label', `Refined ${atkName}`);
     atkMatkSwap('food-atk-label', atkName);
-    atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base × (1+${atkName}%)).`);
+    atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base x (1+${atkName}%)).`);
     atkMatkSwap('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
     atkMatkSwap('extra-main-attr-label', 'Extra ' + mainStatName);
     atkMatkSwap('extra-main-attr-tip', `Additional ${mainStatName} (Any other source of raw ${mainStatName}).`);
@@ -1350,6 +1419,28 @@
     }
   }
 
+  function queuePsychoscopeRestore(state) {
+    pendingPsychoscopeState = state;
+    console.log('[psychoscope] queued restore', state);
+    const tryRestore = () => {
+      if (!pendingPsychoscopeState) return;
+      const treeSelect = document.getElementById('psychoscope-tree');
+      const factorNameInput = document.getElementById('psychoscope-factor-generic-1-name');
+      console.log('[psychoscope] trying queued restore', { hasTreeSelect: !!treeSelect, hasFactorNameInput: !!factorNameInput, pendingState: pendingPsychoscopeState });
+      if (treeSelect && factorNameInput && typeof applyPsychoscopeSaveState === 'function') {
+        applyPsychoscopeSaveState(pendingPsychoscopeState);
+        pendingPsychoscopeState = null;
+        return;
+      }
+      window.requestAnimationFrame(tryRestore);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', tryRestore, { once: true });
+    } else {
+      window.requestAnimationFrame(tryRestore);
+    }
+  }
+
   function loadPersistedState() {
     const raw = localStorage.getItem(LOCAL_STORAGE_STATE_KEY);
     if (!raw) return;
@@ -1461,22 +1552,6 @@
       return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
     });
 
-    // Get psychoscope tree-specific fields
-    const psychoscopeTreeSelect = document.getElementById('psychoscope-tree');
-    const selectedTree = psychoscopeTreeSelect ? psychoscopeTreeSelect.value : 'none';
-    const psychoscopeFieldOrder = PSYCHOSCOPE_FIELDS_ORDER[selectedTree] || [];
-    const psychoscopeValues = psychoscopeFieldOrder.map(id => {
-      const el = document.getElementById(id);
-      if (!el) return '';
-      if (el.type === 'checkbox' || el.type === 'radio') {
-        return el.checked ? 1 : 0;
-      }
-      const val = el.value;
-      if (val === '' || val === null || val === undefined) return '';
-      const num = Number(val);
-      return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
-    });
-
     // Get imagine state
     const imagineState = [];
     for (let slot = 1; slot <= 2; slot++) {
@@ -1498,6 +1573,20 @@
     }
 
     // We split class and psychoscope tree to decrease export length by just exporting relevant fields
+    const psychoscopeState = typeof getPsychoscopeSaveState === 'function'
+      ? getPsychoscopeSaveState()
+      : { tree: selectedTree, values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
+    const psychoscopeSection = {};
+    PSYCHOSCOPE_SAVE_FIELD_ORDER.forEach(key => {
+      if (key === 'tree') {
+        psychoscopeSection[key] = psychoscopeState.tree || 'none';
+      } else if (key === 'values') {
+        psychoscopeSection[key] = psychoscopeState.values || {};
+      } else if (key === 'factors') {
+        psychoscopeSection[key] = psychoscopeState.factors || { generic: [], class: [], 'class-reality': [] };
+      }
+    });
+
     return {
       vers: SAVE_FORMAT_VERSION,
       v: values,
@@ -1507,15 +1596,14 @@
       i: imagineState,
       c: selectedClass,
       cf: classValues,
-      t: selectedTree,
-      tf: psychoscopeValues
+      p: psychoscopeSection
     };
   }
 
   function getCompactSetupState() {
     // kept for compatibility, but main path uses getSetupState() now.
     const state = getSetupState();
-    return {vers: state.vers, v: state.v, c: state.c, cf: state.cf, t: state.t, tf: state.tf, m: state.m, s: state.s, i: state.i, w: state.w};
+    return { vers: state.vers, v: state.v, c: state.c, cf: state.cf, p: state.p, m: state.m, s: state.s, i: state.i, w: state.w };
   }
 
   function removeAllSkills() {
@@ -1565,6 +1653,34 @@
       });
   }
 
+  function collectSkillEffectRows(id) {
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return [];
+    return Array.from(effectsContainer.querySelectorAll('.skill-effect-row')).map(row => {
+      const select = row.querySelector('select');
+      const input = row.querySelector('input');
+      const kind = select ? select.value : '';
+      const value = input ? String(input.value).trim() : '';
+      const source = row.getAttribute('data-generated-effect') || row.getAttribute('data-psychoscope-dynamic-effect') || '';
+      return { kind, value, source };
+    }).filter(effect => effect.kind);
+  }
+
+  function appendSkillEffectRow(id, effect, markGenerated = false, markPsychoscopeDynamic = false) {
+    addSkillEffect(id);
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return;
+    const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+    if (!row) return;
+    const select = row.querySelector('select');
+    const input = row.querySelector('input');
+    if (select) select.value = effect.kind || 'generic';
+    if (input) input.value = effect.value != null ? effect.value : '';
+    if (markGenerated) row.setAttribute('data-generated-effect', 'true');
+    if (markPsychoscopeDynamic) row.setAttribute('data-psychoscope-dynamic-effect', String(effect.kind));
+    return row;
+  }
+
   function removeImagineSkillsForSlot(slot) {
     const state = getImagineState(slot);
     const expectedNames = new Set(getImagineSkillNamesForState(state));
@@ -1603,7 +1719,11 @@
     });
   }
 
-  function populateSkillCardFromData(id, data) {
+  function populateSkillCardFromData(id, data, options = {}) {
+    const preserveHits = Boolean(options.preserveHits);
+    const preserveExistingEffects = Boolean(options.preserveExistingEffects);
+    const markGeneratedEffects = Boolean(options.markGeneratedEffects);
+
     const typeEl = document.getElementById(`sk-type-${id}`);
     const multEl = document.getElementById(`sk-mult-${id}`);
     const flatEl = document.getElementById(`sk-flat-${id}`);
@@ -1621,28 +1741,107 @@
     const hitsValue = Array.isArray(data) ? data[6] : data.hits;
     const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
 
+    let preservedHits = null;
+    if (preserveHits && hitsEl) {
+      preservedHits = String(hitsEl.value || '').trim();
+    }
+
+    let manualEffects = [];
+    if (preserveExistingEffects && effectsContainer) {
+      manualEffects = collectSkillEffectRows(id).filter(effect => !effect.source);
+    }
+
     if (typeEl && typeValue !== undefined) typeEl.value = typeValue || 'none';
     if (multEl && multValue !== undefined) multEl.value = multValue;
     if (flatEl && flatValue !== undefined) flatEl.value = flatValue;
     if (luckyEl && luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
     if (nameEl && nameValue !== undefined) nameEl.value = nameValue;
-    if (hitsEl && hitsValue !== undefined) hitsEl.value = hitsValue;
+    if (hitsEl && hitsValue !== undefined && !preserveHits) hitsEl.value = hitsValue;
+    if (hitsEl && preserveHits && preservedHits !== null && preservedHits !== '') {
+      hitsEl.value = preservedHits;
+    } else if (hitsEl && preserveHits && (preservedHits === '' || preservedHits === null) && hitsValue !== undefined) {
+      hitsEl.value = hitsValue;
+    }
 
     if (effectsContainer && Array.isArray(effectsValue)) {
       effectsContainer.innerHTML = '';
-      effectsValue.forEach(effect => {
-        if (!Array.isArray(effect) || effect.length < 2) return;
-        addSkillEffect(id);
-        const row = effectsContainer.querySelector('.skill-effect-row:last-child');
-        if (!row) return;
-        const select = row.querySelector('select');
-        const input = row.querySelector('input');
-        if (select) select.value = effect[0] || 'generic';
-        if (input) input.value = effect[1];
+      const desiredEffects = effectsValue
+        .filter(effect => Array.isArray(effect) && effect.length >= 2)
+        .map(effect => ({ kind: effect[0], value: String(effect[1]).trim() }));
+
+      desiredEffects.forEach(effect => {
+        const manualIndex = manualEffects.findIndex(old => old.kind === effect.kind && old.value === effect.value);
+        if (manualIndex >= 0) {
+          manualEffects.splice(manualIndex, 1);
+        }
+        const isPsychoscopeDynamic = effect.kind === 'dreamDmg' && markGeneratedEffects;
+        appendSkillEffectRow(id, effect, markGeneratedEffects, isPsychoscopeDynamic);
+      });
+
+      manualEffects.forEach(effect => {
+        appendSkillEffectRow(id, effect, false, false);
       });
     }
 
     if (collapsedValue) setSkillCollapsed(id, true);
+  }
+
+  function syncPsychoscopeSkillEffects(tree) {
+    const module = window.PSYCHOSCOPE_MODULES?.[tree];
+    if (!module?.provideSkills) return;
+
+    const skillData = Array.isArray(module.provideSkills({ tree })) ? module.provideSkills({ tree }) : [];
+    const targetSkill = skillData.find(entry => Array.isArray(entry) || entry?.name);
+    const skillName = Array.isArray(targetSkill) ? targetSkill[4] : targetSkill?.name;
+    if (!skillName) return;
+
+    const card = Array.from(document.querySelectorAll('#skills-list .skill-card')).find(candidate => {
+      const origin = candidate.getAttribute('data-psychoscope-skill-origin');
+      const skillTree = candidate.getAttribute('data-psychoscope-skill');
+      const nameInput = candidate.querySelector('.skill-name-input');
+      return origin === 'psychoscope' && skillTree === tree && nameInput && nameInput.value.trim() === skillName;
+    });
+    if (!card) return;
+
+    const id = Number(card.id.replace('skill-card-', ''));
+    if (Number.isNaN(id)) return;
+
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return;
+
+    const effectsValue = Array.isArray(targetSkill) ? targetSkill[5] : targetSkill?.effects;
+    const dreamEffect = Array.isArray(effectsValue) 
+      ? effectsValue.find(eff => Array.isArray(eff) && eff[0] === 'dreamDmg') 
+      : null;
+
+    // Find the exact dream dmg row managed by Psychoscope provided skill
+    let psychoscopeRow = effectsContainer.querySelector('.skill-effect-row[data-psychoscope-dynamic-effect="dreamDmg"]');
+
+    if (dreamEffect) {
+      const newValue = dreamEffect[1];
+
+      if (psychoscopeRow) {
+        // 1. Update existing row in place
+        const input = psychoscopeRow.querySelector('input');
+        if (input) input.value = newValue;
+      } else {
+        // 2. Row doesn't exist yet: Create and tag it
+        addSkillEffect(id);
+        psychoscopeRow = effectsContainer.querySelector('.skill-effect-row:last-child');
+        if (psychoscopeRow) {
+          psychoscopeRow.setAttribute('data-psychoscope-dynamic-effect', 'dreamDmg');
+          const select = psychoscopeRow.querySelector('select');
+          const input = psychoscopeRow.querySelector('input');
+          if (select) select.value = 'dreamDmg';
+          if (input) input.value = newValue;
+        }
+      }
+    } else if (psychoscopeRow) {
+      // 3. If dreamDmg is 0/disabled, remove only the Psychoscope-managed row
+      psychoscopeRow.remove();
+    }
+
+    calc();
   }
 
   function addImagineSkill(slot, state, skillData) {
@@ -1664,7 +1863,7 @@
       card.setAttribute('data-imagine-skill-origin', String(slot));
       card.setAttribute('data-imagine-skill', String(state.imagine || ''));
     }
-    populateSkillCardFromData(id, skillData);
+    populateSkillCardFromData(id, skillData, { markGeneratedEffects: true });
   }
 
   function onImagineSlotSettingsChange(slot) {
@@ -1689,7 +1888,10 @@
   }
 
   function applySetupState(state) {
-    state = migrateSetupState(state);
+    console.log('loaded setup state.version', state.vers, 'calc current version', SAVE_FORMAT_VERSION);
+    if(compareVersion(state.vers, "v0.8.2") < 0) {
+      state = migrateSetupState(state);
+    }
     if (!state || typeof state !== 'object') throw new Error('Invalid setup object');
 
     const valueArray = Array.isArray(state.v) ? state.v : null;
@@ -1745,6 +1947,7 @@
 
     onSubstatFactorTypeChange(1);
     onSubstatFactorTypeChange(2);
+    onSubstatFactorTypeChange(3);
 
     const skillsArray = Array.isArray(state.skills) ? state.skills : (Array.isArray(state.s) ? state.s : null);
     if (Array.isArray(skillsArray)) {
@@ -1949,6 +2152,10 @@
       }
     }
 
+    if (typeof updateClassSkills === 'function') {
+      updateClassSkills();
+    }
+
     substatBaseIds.forEach(id => {
       const el = document.getElementById(id);
       if (el && savedSubstatBase[id] !== undefined) {
@@ -1956,9 +2163,41 @@
       }
     });
 
+    const psychoscopeState = state.p && typeof state.p === 'object'
+      ? state.p
+      : { tree: state.t || 'none', values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
+    console.log('[psychoscope] loadSetupState payload', { state, psychoscopeState });
+
+    if (state.t && Array.isArray(state.tf)) {
+      const legacyValues = {};
+      const fieldOrder = PSYCHOSCOPE_FIELDS_ORDER[state.t] || [];
+      fieldOrder.forEach((fieldId, index) => {
+        const fieldValue = state.tf[index];
+        if (fieldId && fieldValue !== undefined) {
+          legacyValues[fieldId] = fieldValue;
+        }
+      });
+      psychoscopeState.tree = psychoscopeState.tree || state.t || 'none';
+      psychoscopeState.values = { ...(psychoscopeState.values || {}), ...legacyValues };
+    }
+
+    if (typeof applyPsychoscopeSaveState === 'function') {
+      console.log('[psychoscope] calling applyPsychoscopeSaveState from setup load');
+      if (document.readyState === 'loading') {
+        queuePsychoscopeRestore(psychoscopeState);
+      } else {
+        applyPsychoscopeSaveState(psychoscopeState);
+      }
+    } else {
+      const psychoscopeTree = document.getElementById('psychoscope-tree');
+      if (psychoscopeTree) {
+        psychoscopeTree.value = psychoscopeState.tree || 'none';
+      }
+      onPsychoscopeChange();
+    }
+
     onFoodToggle();
     onSerumOilToggle();
-    onPsychoscopeChange();
     isApplyingSetupState = false;
     updateImagineSkills();
     calc();
@@ -2204,6 +2443,7 @@
           <option value="ultimate">Ultimate</option>
           <option value="imagine">Imagine</option>
           <option value="imagine(passive)">Imagine (passive)</option>
+          <option value="psychoscope">Psychoscope</option>
         </select>
         <button class="btn-remove" onclick="removeSkill(${id})" title="Remove">✕</button>
       </div>
@@ -2325,6 +2565,7 @@
         <option value="dreamDmg">Seasonal damage</option>
         <option value="critChance">Crit chance</option>
         <option value="critDamage">Crit damage</option>
+        <option value="luckUptime">Luck uptime</option>
         <option value="elemDmg">Element damage</option>
         <option value="magBoost">MAG boost</option>
         <option value="otherScaler">Other scaler</option>
@@ -2383,7 +2624,7 @@
             ${Object.keys(MODULE_DATA).map(module => `<div class="module-option" data-value="${module}">${MODULE_DATA[module].name}</div>`).join('')}
           </div>
         </div>
-        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="6" onchange="calc()" oninput="clamp(this); calc()">
+        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="30" onchange="calc()" oninput="clamp(this); calc()">
         <button class="btn-remove" onclick="removeModule(${id})" title="Remove">✕</button>
       </div>
     `;
@@ -3028,16 +3269,18 @@
   updateProfileDropdown();
   loadPersistedState();
 
+  document.addEventListener('DOMContentLoaded', () => {
+    if (pendingPsychoscopeState && typeof applyPsychoscopeSaveState === 'function') {
+      applyPsychoscopeSaveState(pendingPsychoscopeState);
+      pendingPsychoscopeState = null;
+    }
+  });
+
   if (document.querySelectorAll('.weapon-line-effect-card').length === 0) {
     addWeaponLineEffectRow();
   }
 
-  if (skills.length === 0) {
-    addSkill();
-    addSkill();
-  } else {
-    calc();
-  }
+  calc();
 
 
 </script>

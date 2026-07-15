@@ -100,7 +100,7 @@
     .right-sidebar { display: flex; flex-direction: column; gap: 14px; }
     /* Place skills column on the far right and center other panels */
     .right-sidebar { grid-column: 3; align-self: start; }
-    .right-col { grid-column: 2; }
+    .center-col { grid-column: 2; }
 
     /* Left area split into two columns: character stats and weapon/buffs */
     .left-columns { display: grid; grid-template-columns: 1fr 260px; gap: 14px; }
@@ -128,7 +128,7 @@
   @media (max-width: 1619px) and (min-width: 900px) {
     .main-grid { grid-template-columns: 580px 1fr; grid-auto-rows: auto; }
     .left-columns { grid-column: 1; grid-row: 1 / span 2; }
-    .right-col { grid-column: 2; grid-row: 1; }
+    .center-col { grid-column: 2; grid-row: 1; }
     .right-sidebar { grid-column: 2; grid-row: 2; align-self: start; display: flex; flex-direction: column-reverse; gap: 14px; }
   }
 
@@ -198,6 +198,7 @@
   .tip-box .hl-red    { color: var(--accent-red); }
   .tip-box .hl-green  { color: var(--accent-green); }
   .tip-box .hl-gold   { color: var(--accent-gold); }
+  .tip-box .hl-orange { color: var(--accent-orange); }
   .tip-box .hl-purple { color: var(--accent-purple); }
   .tip-box .hl-blue   { color: var(--accent); }
 
@@ -236,10 +237,8 @@
   .stat-box-value.blue { color: var(--accent); }
   .stat-box-value.red  { color: var(--accent-red); }
 
-  /* Lucky Strike dedicated panel */
-    /* Allow lucky stat boxes to shrink a bit so more can fit on one row
-      and avoid introducing extra lines unless necessary. */
-    .lucky-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
+
+  .lucky-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
   .lucky-stat-box { background: var(--bg-card); border: 1px solid rgba(155,127,232,0.25); border-radius: 6px; padding: 10px 12px; text-align: center; }
   .lucky-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
   .lucky-stat-value { font-size: 18px; font-weight: 600; font-family: 'Consolas', 'SF Mono', monospace; color: var(--accent-purple); }
@@ -256,8 +255,21 @@
     grid-column: 1 / -1;
   }
 
-  /* Right column */
-  .right-col { display: flex; flex-direction: column; gap: 14px; }
+  /* center column */
+  .center-col { display: flex; flex-direction: column; gap: 14px; }
+  .two-col-layout {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .sub-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1 1 0;
+    min-width: 0;
+  }
 
   /* Skill cards */
   .skills-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
@@ -556,3 +568,168 @@
 .btn-move:hover {
   background: var(--accent-purple);
 }
+/* ============================================================
+   Psychoscope Tree — skill-tree style option pickers
+   (Dreamforce / Fantasia Impact / Endless Mind / Oblivion)
+   Built on the existing tokens (--bg-card, --border, --accent-purple,
+   .tip / .note / .modal-content / .modal-header / .modal-body / .modal-close)
+   rather than introducing a new visual language.
+   ============================================================ */
+
+.psychoscope-compact {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.psychoscope-compact:hover,
+.psychoscope-compact:focus-visible { border-color: var(--border-focus); outline: none; }
+
+.psychoscope-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.psychoscope-compact-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.psychoscope-compact-edit { font-size: 11px; color: var(--accent); white-space: nowrap; }
+.psychoscope-compact:hover .psychoscope-compact-edit,
+.psychoscope-compact:focus-visible .psychoscope-compact-edit { text-decoration: underline; }
+
+.psychoscope-compact-summary { display: flex; flex-direction: column; gap: 5px; }
+.psychoscope-compact-summary .note { margin-top: 0; }
+
+.psychoscope-summary-row { display: flex; align-items: center; gap: 7px; }
+.psychoscope-summary-text { font-size: 12.5px; color: var(--text-muted); }
+.psychoscope-summary-text--active { color: var(--text); font-weight: 500; }
+
+.psychoscope-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: transparent; border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.psychoscope-dot--active { background: var(--accent-purple); border-color: var(--accent-purple); }
+
+#psychoscope-factors { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.factor-group { display: flex; flex-direction: column; gap: 8px; padding: 4px 5px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
+.factor-group-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.factor-slots { display: flex; flex-direction: column; gap: 8px; }
+.psychoscope-factor-slot { display: grid; grid-template-columns: minmax(0, 1fr) 72px auto; gap: 8px; align-items: center; }
+.psychoscope-factor-select-container { min-width: 0; position: relative; }
+.psychoscope-factor-dropdown { position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 30; display: none; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 18px rgba(0,0,0,0.28); max-height: 180px; overflow: auto; }
+.psychoscope-factor-search { width: 100%; }
+.psychoscope-factor-value { width: 72px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 6px 8px; font-size: 13px; }
+.psychoscope-factor-checkbox-wrap { display: flex; justify-content: flex-end; }
+.psychoscope-factor-checkbox { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 11px; cursor: pointer; white-space: nowrap; }
+.psychoscope-factor-checkbox input { margin: 0; accent-color: var(--accent-purple); }
+.psychoscope-factor-empty { color: var(--text-muted); font-size: 12px; padding: 2px 0; }
+
+/* Modal positioning shell — kept separate from the shared .modal-overlay class
+   (which defaults to visible whenever mounted) since these four modals stay
+   mounted in the DOM and are toggled open/closed rather than created/destroyed.
+   .modal-content / .modal-header / .modal-close / .modal-body underneath are
+   the existing app classes, reused as-is. */
+.psychoscope-modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center; justify-content: center;
+}
+.psychoscope-modal-overlay.open { display: flex; }
+.psychoscope-modal-overlay .modal-content { max-width: 420px; }
+
+.psychoscope-modal-overlay .tip-box {
+  position: fixed;
+  bottom: auto;
+  z-index: 10050;
+}
+/* Standalone controls (Bond lvl 35, Main Stats Active, etc.) that sit above the tree */
+.standalone-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.standalone-row:last-of-type { margin-bottom: 20px; }
+.standalone-label { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.standalone-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent-purple); cursor: pointer; margin: 0; }
+.standalone-row--number .standalone-number { width: 90px; margin-left: auto; }
+
+/* Tree layout */
+.tree-wrap { position: relative; width: 340px; max-width: 100%; margin: 0 auto; }
+.tree-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.tree-lines line {
+  stroke: var(--border); stroke-width: 2; opacity: 0.6;
+  transition: stroke 0.15s ease, opacity 0.15s ease;
+}
+.tree-lines line.active { stroke: var(--accent-purple); opacity: 1; }
+
+.tree-row { position: relative; z-index: 1; display: flex; justify-content: space-between; margin-bottom: 40px; }
+.tree-row.single { justify-content: center; margin-bottom: 0; }
+
+.tree-node {
+  position: relative;
+  width: 150px; min-height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; text-align: center; padding: 8px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  user-select: none;
+}
+.tree-node:hover { border-color: var(--border-focus); }
+.tree-node input { position: absolute; opacity: 0; width: 0; height: 0; }
+.tree-node.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+.tree-node.is-disabled:hover { border-color: var(--border); }
+.tree-node.is-disabled:has(input:checked) {
+  border-color: var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.tree-node:has(input:checked) {
+  border-color: var(--accent-purple);
+  background: rgba(155, 127, 232, 0.12);
+  color: var(--text);
+}
+
+.tree-node.placeholder { border-style: dashed; color: var(--text-muted); }
+.tree-node.placeholder:has(input:checked) { border-color: var(--accent-purple); color: var(--text); }
+.tree-node .node-note {
+  position: absolute; top: -8px; right: -6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 8.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 4px;
+}
+.tree-node-note {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.node-label { pointer-events: none; }
+
+.linkage-pct-row { display: none; justify-content: center; margin: -24px 0 32px; position: relative; z-index: 2; }
+.linkage-pct-row.visible { display: flex; }
+.linkage-pct-row select {
+  width: auto;
+  background: var(--bg-input);
+  border: 1px solid var(--accent-purple);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.tree-node.final-node { width: 190px; }

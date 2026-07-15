@@ -17,7 +17,7 @@
     const dropdown = document.getElementById('endless-mind');
 
     let mainStat = 0;
-    if (bond) mainStat += 100;
+    if (bond) mainStat += 150;
 
     // Endless Mind dropdown logic
     if (tree === 'endless-mind' && dropdown) {
@@ -59,10 +59,3 @@
 
   window.PSYCHOSCOPE_MODULES['endless-mind'] = { getBonuses };
 })();
-
-const aegis = document.getElementById('psychoscope-endless-aegis');
-
-
-aegis.addEventListener('click', (e) => {
-  e.preventDefault();
-});

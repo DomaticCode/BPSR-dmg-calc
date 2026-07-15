@@ -21,6 +21,7 @@
     let moduleCastSpeedBonus = 0, moduleAttackSpdLevel = 0, strengthBoostLevel = 0;
     let moduleAllAtkPct = 0;
     let modulePhysicalDmgBonus = 0; // not in use since only use is actually ALL dmg bonus not just physical (agility boost).
+    let totalModulePoints = 0;
 
     // Compute temporary substat values to determine highest for life-wave logic
     const baseCritStat = (window.getVal ? window.getVal('crit-rate-stat') : 0) || 0;
@@ -40,7 +41,34 @@
     document.querySelectorAll('.module-card').forEach(card => {
       const id = card.id.replace('module-card-', '');
       const moduleType = card.dataset.selectedModule || '';
-      const moduleLevel = parseInt(document.getElementById(`module-level-${id}`)?.value) || 0;
+      const rawInput = parseInt(document.getElementById(`module-level-${id}`)?.value) || 0;
+
+      totalModulePoints += rawInput;
+
+      let moduleLevel = 0;
+
+      switch (true) {
+          case (rawInput >= 1 && rawInput <= 3):
+              moduleLevel = 1;
+              break;
+          case (rawInput >= 4 && rawInput <= 7):
+              moduleLevel = 2;
+              break;
+          case (rawInput >= 8 && rawInput <= 11):
+              moduleLevel = 3;
+              break;
+          case (rawInput >= 12 && rawInput <= 15):
+              moduleLevel = 4;
+              break;
+          case (rawInput >= 16 && rawInput <= 19):
+              moduleLevel = 5;
+              break;
+          case (rawInput >= 20):
+              moduleLevel = 6;
+              break;
+          default:
+              moduleLevel = 0; // For inputs <= 0 or NaN
+      }
 
       if (moduleType === 'life-wave') {
         const allMainStatBonuses = [0, 0, 0, 20, 40, 60, 80];
@@ -200,6 +228,9 @@
         if (moduleLevel === 6) autoTeamLuckCritOption = 'tier4';
       }
     });
+
+    // Effects
+    moduleAllMainStatBonus += totalModulePoints * 2;
 
     return {
       moduleBonusCrit, moduleBonusLuck, moduleBonusMastery, moduleBonusVers, moduleBonusHaste,

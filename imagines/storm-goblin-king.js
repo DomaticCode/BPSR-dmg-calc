@@ -111,7 +111,7 @@
           28,
           0,
           false,
-          'LizardMan Hunter T5 passive (SGK proc), assuming 66 hits per SGK cast',
+          'Lizardman Hunter T5 passive (SGK proc), assuming 66 hits per SGK cast',
           [
             ['damageType', 'magical'],
             ['generic', ' luck-effect'],

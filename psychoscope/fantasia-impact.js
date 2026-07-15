@@ -30,29 +30,39 @@
     };
   }
 
-  window.PSYCHOSCOPE_MODULES['fantasia-impact'] = { getBonuses };
+  function getSkillEffects() {
+    const effects = [
+      ['damageType', 'no-crit'],
+      ['generic', 'luck-effect']
+    ];
+
+    const timeStep = !!document.getElementById('psychoscope-fantasia-time-step')?.checked;
+    const multiPhasic = !!document.getElementById('psychoscope-fantasia-multi-phasic-strike')?.checked;
+    const ripple = !!document.getElementById('psychoscope-fantasia-ripple-of-fate')?.checked;
+    const dreamDmgPct = (timeStep || multiPhasic ? 100 : 0) + (ripple ? 15 : 0);
+
+    if (dreamDmgPct > 0) {
+      effects.push(['dreamDmg', String(dreamDmgPct)]);
+    }
+
+    return effects;
+  }
+
+  function provideSkills(state) {
+    return [
+      [
+        'psychoscope',
+        1375,
+        0,
+        false,
+        'Fantasia Impact',
+        getSkillEffects(),
+        16,
+        0
+      ]
+    ];
+  }
+
+  window.PSYCHOSCOPE_MODULES['fantasia-impact'] = { getBonuses, provideSkills, getSkillEffects };
 })();
 
-
-document.addEventListener('DOMContentLoaded', () => {
-  const linkage = document.getElementById('psychoscope-fantasia-linkage');
-  const reconstruct = document.getElementById('psychoscope-fantasia-reconstruct');
-
-  linkage.addEventListener('change', () => {
-    if (linkage.checked) {
-      reconstruct.checked = false;
-      reconstruct.disabled = true;
-    } else {
-      reconstruct.disabled = false;
-    }
-  });
-
-  reconstruct.addEventListener('change', () => {
-    if (reconstruct.checked) {
-      linkage.checked = false;
-      linkage.disabled = true;
-    } else {
-      linkage.disabled = false;
-    }
-  });
-});

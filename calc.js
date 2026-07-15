@@ -75,7 +75,7 @@ function calc() {
   const imagineMasteryStat = (imagineBonuses.masteryStat || 0) * optimizerFactor.mastery;
   const imagineVersatilityStat = (imagineBonuses.versatilityStat || 0) * optimizerFactor.vers;
 
-  console.log(`imagine added substats: crit ${imagineCritStat.toFixed(2)}, haste ${imagineHasteStat, imagineHasteStat  .toFixed(2)}, luck ${imagineLuckStat.toFixed(2)}, mastery ${imagineMasteryStat.toFixed(2)}, vers ${imagineVersatilityStat.toFixed(2)}`);
+  console.log(`imagine added substats: crit ${imagineCritStat.toFixed(2)}, haste ${imagineHasteStat.toFixed(2)}, luck ${imagineLuckStat.toFixed(2)}, mastery ${imagineMasteryStat.toFixed(2)}, vers ${imagineVersatilityStat.toFixed(2)}`);
 
   const oblivionChoice = document.getElementById('oblivion-buff')?.value || 'none';
   const oblivionPct = oblivionChoice !== 'none' ? 0.10 : 0;
@@ -102,6 +102,7 @@ function calc() {
   }
 
   const classSelectVal = document.getElementById('class-select')?.value || 'none';
+  const classModule = window.CLASS_MODULES?.[classSelectVal];
 
   // === Inspiration ===
   const inspirationBonusStatsPct = parseFloat(document.getElementById('inspiration').value) / 100;
@@ -135,8 +136,22 @@ function calc() {
 
   const factor1 = getSubstatFactorValues('substat-factor', 'substat-factor-value');
   const factor2 = getSubstatFactorValues('substat-factor-2', 'substat-factor-value-2');
-  const applyImportedFactor1 = document.getElementById('substat-factor-apply-imported')?.checked;
-  const applyImportedFactor2 = document.getElementById('substat-factor-2-apply-imported')?.checked;
+  const factor3 = getSubstatFactorValues('substat-factor-3', 'substat-factor-value-3');
+  const classFactorBonuses = classModule?.provideFactorBonuses?.() || {};
+  // Returns object with keys for each generic non-substat value. e.g. genericNonSubstatFactors.versatilityStat
+  const genericNonSubstatFactors = typeof window.getGenericNonSubstatFactorBonuses === 'function'
+    ? window.getGenericNonSubstatFactorBonuses()
+    : [];
+  console.log('Generic non-substat factors:', genericNonSubstatFactors);
+  const factorEntries = [
+    ...getPsychoscopeFactorEntries(),
+  ];
+  console.log('Factor entries:', factorEntries);
+  const getFactorScale = statKey => factorEntries.reduce((acc, entry) => {
+    return acc + (entry.apply && entry.factor ? entry.factor[statKey] - 1 : 0);
+  }, 1);
+
+  const genericFactorVersatilityStat = genericNonSubstatFactors.versatilityStat || 0;
 
   const baseCritStat = getVal('crit-rate-stat');
   const baseHasteStat = getVal('haste-stat');
@@ -145,21 +160,25 @@ function calc() {
   const baseVersStat = getVal('vers-dmg-pct');
 
   // --- Factor Scale Calculations ---
-  const critScale    = 1 + getModifier(applyImportedFactor1, factor1, 'crit')    + getModifier(applyImportedFactor2, factor2, 'crit');
-  const versScale    = 1 + getModifier(applyImportedFactor1, factor1, 'vers')    + getModifier(applyImportedFactor2, factor2, 'vers');
-  const luckScale    = 1 + getModifier(applyImportedFactor1, factor1, 'luck')    + getModifier(applyImportedFactor2, factor2, 'luck');
-  const masteryScale = 1 + getModifier(applyImportedFactor1, factor1, 'mastery') + getModifier(applyImportedFactor2, factor2, 'mastery');
-  const hasteScale   = 1 + getModifier(applyImportedFactor1, factor1, 'haste')   + getModifier(applyImportedFactor2, factor2, 'haste');
+  const critScale    = getFactorScale('crit');
+  const versScale    = getFactorScale('vers');
+  const luckScale    = getFactorScale('luck');
+  const masteryScale = getFactorScale('mastery');
+  const hasteScale   = getFactorScale('haste');
+
+  console.log(`Factor Scales: crit ${critScale.toFixed(4)}, vers ${versScale.toFixed(4)}, luck ${luckScale.toFixed(4)}, mastery ${masteryScale.toFixed(4)}, haste ${hasteScale.toFixed(4)}`);
 
   const critStat    = (baseCritStat * critScale) + imagineCritStat;
   const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonusStatsPct;
 
-  const versStat    = (baseVersStat * versScale) + imagineVersatilityStat;
-  const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct;
+  const versStat    = (baseVersStat * versScale) + imagineVersatilityStat + genericFactorVersatilityStat;
+  const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct ;
   const versDmgPct  = versPct * 0.35;
+  console.log ('baseVersStat = ' + baseVersStat + ', versScale = ' + versScale + ', imagineVersatilityStat = ' + imagineVersatilityStat + ', versStat = ' + versStat + ', versPct = ' + versPct + ', versDmgPct = ' + versDmgPct);
+  console.log('vers stat = ' + versStat + ', vers pct = ' + versPct + ', vers dmg pct = ' + versDmgPct);
 
   const luckStat        = (baseLuckStat * luckScale) + imagineLuckStat;
-  const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct;
+  const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct + imagineLuckPct;
 
   const masteryStat  = (baseMasteryStat * masteryScale) + imagineMasteryStat;
   const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonusStatsPct + imagineMasteryPct + endlessMindMasteryPct;
@@ -236,7 +255,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   }
 
   // Weapon line substats: flat boosts added directly to final substat %s
-  let wlCritBonus  = 0, wlHasteBonus = 0, wlLuckBonus = 0, wlMasteryBonus = 0, wlVersBonus = 0, wlAtkPct = 0, luckEffectBonus = 0, luckyStrikeDmgBonus = 0;
+  let wlCritBonus  = 0, wlHasteBonus = 0, wlLuckBonus = 0, wlMasteryBonus = 0, wlVersBonus = 0, wlAtkPct = 0, luckEffectBonus = 0, luckyStrikeDmgBonus = 0, wlExpMagPct = 0;
 
   const weaponLineEffects = typeof getWeaponLineEffects === 'function' ? getWeaponLineEffects() : [];
   if (weaponLineEffects.length > 0) {
@@ -251,6 +270,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
         case 'wl-atk-pct': wlAtkPct += amount; break;
         case 'luck-effect-bonus': luckEffectBonus += amount; break;
         case 'lucky-strike-dmg-bonus': luckyStrikeDmgBonus += amount; break;
+        case 'wl-exp-mag-pct': wlExpMagPct += amount; break;
       }
     });
   }
@@ -328,8 +348,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   // Get class-provided bonus toggles (smite provider exposes simple flags/values)
 
-  const classModule = window.CLASS_MODULES?.[classSelectVal];
-
   let classBonuses = {};
 
   try {
@@ -346,19 +364,27 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   }
 
   const classElemPct = (classBonuses.classElemPct || 0) / 100;
+  const classThornsPct = (classBonuses.classThornsPct || 0) / 100; // Smite buggy skill which requires special handling...
   const classMagBoostPct = (classBonuses.classMagBoostPct || 0) / 100;
-  const classLuckyDreamDmgPct = (classBonuses.classLuckyDreamDmgPct || 0) / 100;
   const classLuckMult = classBonuses.classLuckMult || 0; // NOT A PERCENT SCALER, it's flat, do not divide by 100.
   const classLuckyFinalDmgPct = (classBonuses.classLuckyFinalDmgPct || 0) / 100;
+
+  const classFactorLuckyDreamDmgPct = (classFactorBonuses.classFactorLuckyDreamDmgPct || 0) / 100;
+  const classFactorMatkPct = (classFactorBonuses.classFactorMatkPct || 0) / 100;
+  const classFactorAtkPct = (classFactorBonuses.classFactorAtkPct || 0) / 100;
+
+  const genericFactorAllElement = genericNonSubstatFactors.genericFactorAllElement || 0;
+  const genericFactorMainStatPct = (genericNonSubstatFactors.mainStatPct || 0) / 100;
+  const genericFactorMainStat = genericNonSubstatFactors.mainStat || 0;
 
   const classMainStat = classBonuses.classMainStat || 0; // flat main stat bonus from class, not a percent
 
   let classMatkPct = 0;
   let classAtkPct = 0;
   if( damageType === 'physical') {
-    classAtkPct = (classBonuses.classAtkPct || 0) / 100;
+    classAtkPct = (classBonuses.classAtkPct || 0) / 100 + classFactorAtkPct;
   } else if (damageType === 'magical') {
-    classMatkPct = (classBonuses.classMatkPct || 0) / 100;
+    classMatkPct = (classBonuses.classMatkPct || 0) / 100 + classFactorMatkPct;
   }
 
   let classMatk = 0;
@@ -407,8 +433,23 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   document.getElementById('sub-mastery-pct').textContent = (finalMasteryPct * 100).toFixed(2) + '%';
   document.getElementById('sub-vers-pct').textContent    = (finalVersPct * 100).toFixed(2) + '%';
 
+  // Apply module stats if checked (based on class selected)
+  let moduleApplyMainStats = 0;
+  if(getChecked('module-apply-main-stats')) {
+    const type = classModule?.mainStatType?.() || 'none';
+    moduleApplyMainStats = moduleAllMainStatBonus;
+    if(type === 'int') {
+      moduleApplyMainStats += moduleIntellectBonus;
+    } else if(type === 'agi') {
+      moduleApplyMainStats += moduleAgilityBonus;
+    } else if(type === 'str') {
+      moduleApplyMainStats += moduleStrengthBonus;
+    }
+  }
+  console.log(`moduleApplyMainStats = ${moduleApplyMainStats}`);
+
   // INT/ATK calculations
-  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct + oblivionMainStatPct + endlessMindMainStatPct);
+  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + genericFactorMainStat + moduleApplyMainStats) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct + oblivionMainStatPct + endlessMindMainStatPct + genericFactorMainStatPct);
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
   const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
@@ -463,9 +504,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     ? `[${atkLabel}%: ${pctSegments.join(' + ')} = ${(totalMatkPct * 100).toFixed(2)}%]`
     : `[${atkLabel}%: ${(totalMatkPct * 100).toFixed(2)}%]`;
   document.getElementById('matk-breakdown').innerHTML =
-    `FLOOR(${intScaled.toFixed(2)}×0.1 + FLOOR(${intScaled.toFixed(2)}×0.5 + ${adaptiveMatk}(modules) + ${weaponMatk}(weapon)))` +
+    `FLOOR(${intScaled.toFixed(2)}x0.1 + FLOOR(${intScaled.toFixed(2)}x0.5 + ${adaptiveMatk}(modules) + ${weaponMatk}(weapon)))` +
     ` = ${matkBase}` +
-    `  →  FLOOR(${matkBase}×${(1 + totalMatkPct).toFixed(3)}) + ${foodAtkBonus}(food) = <span class="hl">${effectiveAtk}</span>` +
+    `  →  FLOOR(${matkBase}x${(1 + totalMatkPct).toFixed(3)}) + ${foodAtkBonus}(food) = <span class="hl">${effectiveAtk}</span>` +
     (psychoscopeMainStat > 0 ? `  <span style="color:#ff79c6">[Psychoscope: +${psychoscopeMainStat} INT]</span>` : '') +
     `  <span style="color:var(--accent-purple)">${matkPctSummary}</span>`;
 
@@ -473,8 +514,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const classElementalAtk = getVal('class-elemental-atk');
   const totalElementalAtk = elementalAtk + classElementalAtk;
   const moduleAllElementalDmgPct = moduleElementalDmgStatBonus * (1/ALL_ELEMENTAL_DMG_SCALER);
+  const genericFactorAllElementPct = genericFactorAllElement * (1/ALL_ELEMENTAL_DMG_SCALER);
 
-  let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + classElemPct + moduleAllElementalDmgPct + oblivionAllElementPct + imagineElemPct;
+  let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + classElemPct + moduleAllElementalDmgPct + oblivionAllElementPct + imagineElemPct + genericFactorAllElementPct;
 
   // === Defense ===
   const enemyArmour = getVal('enemy-armour', 2786);
@@ -523,7 +565,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const baseDreamDmgPct = psychoscopeDreamDmgPct +  oblivionPct + getVal('dream-dmg-pct') / 100;
   const dreamDmgPct = baseDreamDmgPct; // for standard hits
-  const dreamDmgPctLucky = baseDreamDmgPct + classLuckyDreamDmgPct; // for lucky strikes
+  const dreamDmgPctLucky = baseDreamDmgPct + classFactorLuckyDreamDmgPct; // for lucky strikes
 
   let luckyMult;
   if (isManual) {
@@ -613,6 +655,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     masteryPct: postWlMasteryPct, luckPct: postWlLuckPct, versPct: finalVersDmgPct,
     elemDmgPct, genDmgPct: totalGenDmgPct, versDmgPct: postWlVersDmgPct,
     luckyMult, luckyMultFinal, luckChancePct: finalLuckChance, luckEffectPct, luckyStrikeDmgBonus,
+    wlExpMagPct,
     lsNormal, lsCrit, lsAvg, resistance,
     _physRes: physRes, _magResEnabled: magResEnabled,
     // breakdown parts for formula display
@@ -637,6 +680,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _moduleSpecialAttackElem: moduleSpecialAttackElemBonus,
     _moduleAllElementalDmg: moduleAllElementalDmgPct,
     _moduleAllElementalDmgStat: moduleElementalDmgStatBonus,
+    thornsPct: classThornsPct,
     _moduleIntellect: moduleIntellectBonus,
     _moduleStrength: moduleStrengthBonus,
     _moduleAgility: moduleAgilityBonus,
@@ -734,7 +778,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
       const classFinalParts = getClassFormulaParts('final');
       if (classFinalParts) ps.push(classFinalParts);
       const total = finalDmgPct;
-      return ps.length ? '× <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
+      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
     }
     return '';
   }
@@ -777,7 +821,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
       const classLuckyFinal = getClassFormulaParts('luckyFinal');
       if (classLuckyFinal) ps.push(classLuckyFinal);
       const total = luckFinalDamagePct;
-      return ps.length ? '× <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
+      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
     }
     return '';
   }
@@ -801,24 +845,24 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   document.getElementById('formula-preview').innerHTML =
     `<span style="color:var(--text-muted)">Target: ${tgLabel} | ${damageType.charAt(0).toUpperCase()+damageType.slice(1)}</span>\n` +
     `<span class="fb">Standard hit:</span>\n` +
-    `(( <span class="fb">${atkLabel}(${effectiveAtk})</span>×(1-${c._resLabel}) + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">All Element ATK(${(elementalAtk)})</span> + <span class="felem">Class Element ATK(${(classElementalAtk)})</span>) × skill multiplier + skill flat damage` +
-    `\n× <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
-    `× <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
-    `× <span class="fg">(1 + Gen: ${buildGenStr(c, 0, '')})</span>\n` +
-    `× <span class="fdream">(1 + Seasonal: ${buildDreamStr(c)})</span>\n` +
-    `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
+    `(( <span class="fb">${atkLabel}(${effectiveAtk})</span>x(1-${c._resLabel}) + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">All Element ATK(${(elementalAtk)})</span> + <span class="felem">Class Element ATK(${(classElementalAtk)})</span>) x skill multiplier + skill flat damage` +
+    `\nx <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
+    `x <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
+    `x <span class="fg">(1 + Gen: ${buildGenStr(c, 0, '')})</span>\n` +
+    `x <span class="fdream">(1 + Seasonal: ${buildDreamStr(c)})</span>\n` +
+    `x <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
     buildFinalStr(c) +
-    `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n\n` +
+    `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n\n` +
     `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
     `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">All Element ATK(${(elementalAtk)})</span> + <span class="felem">Class Element ATK(${(classElementalAtk)})</span>)` +
-    `\n× <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(2)}%)</span>\n` +
-    `× <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
-    `× <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
-    `× <span class="fg">(1 + Gen: ${buildLuckyGenStr(c)})</span>\n` +
-    `× <span class="fdream">(1 + Seasonal: ${buildDreamStrLucky(c)})</span>\n` +
-    `× <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
+    `\nx <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(2)}%)</span>\n` +
+    `x <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(2)}%)</span>\n` +
+    `x <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
+    `x <span class="fg">(1 + Gen: ${buildLuckyGenStr(c)})</span>\n` +
+    `x <span class="fdream">(1 + Seasonal: ${buildDreamStrLucky(c)})</span>\n` +
+    `x <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
     buildLuckyFinalStr(c) +
-    `× <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
+    `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
 
   if (!optimizingSubstats && optimizerDone) {
     const output = document.getElementById('optimize-substats-output');
@@ -872,8 +916,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
         const armorPen = strengthBoostLevel === 5 ? 11.5 : 18.8;
         noteParts.push(`Armor Penetration: +${armorPen}% (Strength Boost Lv.${strengthBoostLevel}, not directly implemented yet)`);
       }
-      const disclaimer = `ATK/MATK and Effects from modules are applied.<br><span class="highlight-purple"> However, Main stat bonuses are expected to be in your Main Stat input (sheet value)</span>, 
-                          the values shown here are just for reference, if comparing modules add the difference between two setups to the Extra Main Stat/INT input.`;
+      const disclaimer = `ATK/MATK and bonuses from modules are applied. Main stats are assumed to be imported, so leave it unchecked.<br><span class="highlight-purple"> To test different module setups:</span>
+                          <br>1. Unequip Modules<br>2. Import/Input stats<br>3. Enable Apply main stats<br>Module changes will now adjust main stat from modules/Effects.`;
       modulesTotalNote.innerHTML = `Module Bonuses: ${noteParts.join(', ')}<br><span style="display:block; margin-top:4px;">${disclaimer}</span>`;
       modulesTotalNote.style.display = 'block';
     } else {
@@ -963,7 +1007,8 @@ function updateDamageSummary() {
 
     if (triggersLuckyEffective && !isDisabled) {
       const skillLuckyChance = Math.min(finalLuckyChance + psychoscopeTargetLuckPct, 1);
-      luckyHitCount += hitsPerParse * skillLuckyChance;
+      const luckUptimeBonus = skillResult.effectLuckUptime;
+      luckyHitCount += hitsPerParse * skillLuckyChance * luckUptimeBonus;
     }
 
     skillDamages.push({
