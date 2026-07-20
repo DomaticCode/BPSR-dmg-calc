@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL && DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? DOROTHY_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (TATTA_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      TATTA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (TATTA_PASSIVE_MAIN_STAT_PER_LEVEL && TATTA_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? TATTA_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

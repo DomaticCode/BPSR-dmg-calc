@@ -199,6 +199,21 @@ function getFactorSuggestionsForType(type) {
   return FACTOR_SUGGESTIONS;
 }
 
+function shouldShowFactorApplyCheckbox(type, inputValue = '', suggestions = getFactorSuggestionsForType(type)) {
+  const key = getFactorSelectionKey(inputValue, suggestions);
+  const suggestion = suggestions.find(option => option.key === key);
+
+  if (typeof suggestion?.showApplyCheckbox === 'boolean') {
+    return suggestion.showApplyCheckbox;
+  }
+
+  if (type === 'generic') {
+    return key === 'x234' || key === 'mainstat' || (/x[5-8]/.test(key));
+  }
+
+  return false;
+}
+
 function getFactorSuggestionDefaultValue(key, suggestions = FACTOR_SUGGESTIONS) {
   const suggestion = suggestions.find(option => option.key === key);
   return Number.isFinite(suggestion?.defaultValue) ? suggestion.defaultValue : 0;
@@ -390,7 +405,6 @@ function sanitizeDuplicateFactorSelections(type = null) {
 function renderFactorSlot(type, index, options = {}) {
   const isGeneric = type === 'generic';
   const isClassSlot = type === 'class';
-  const showApplyCheckbox = options.showApplyCheckbox ?? isGeneric;
   const slotId = `psychoscope-factor-${type}-${index}`;
   const nameId = `${slotId}-name`;
   const valueId = `${slotId}-value`;
@@ -398,6 +412,10 @@ function renderFactorSlot(type, index, options = {}) {
   const dropdownId = `${nameId}-dropdown`;
   const classSelectVal = getSelectedClassValue();
   const placeholder = getFactorSlotPlaceholder(type, classSelectVal);
+  const currentNameValue = String(options.initialNameValue ?? '').trim();
+  const showApplyCheckbox = typeof options.showApplyCheckbox === 'boolean'
+    ? options.showApplyCheckbox
+    : shouldShowFactorApplyCheckbox(type, currentNameValue, getFactorSuggestionsForType(type));
   const applyDisabled = showApplyCheckbox ? '' : ' disabled';
   const optionsHtml = getFactorSuggestionsForType(type).map(option => `<button type="button" class="module-option" data-value="${option.label}" data-key="${option.key}">${option.label}</button>`).join('');
   const inputHtml = `
@@ -409,12 +427,12 @@ function renderFactorSlot(type, index, options = {}) {
       </div>
     </div>`;
   const maxValue = isClassSlot && classSelectVal === 'smite' ? 50 : 10;
-  const applyCheckboxHtml = showApplyCheckbox ? `
+  const applyCheckboxHtml = `
       <div class="psychoscope-factor-checkbox-wrap" id="${applyId}-wrap" style="display:none;">
         <label class="psychoscope-factor-checkbox${isGeneric ? '' : ' psychoscope-factor-checkbox--disabled'}">
-          <input type="checkbox" id="${applyId}"${applyDisabled}> Apply
+          <input type="checkbox" id="${applyId}"${applyDisabled} onChange="calc()"> Apply
         </label>
-      </div>` : '';
+      </div>`;
   return `
     <div class="psychoscope-factor-slot" id="${slotId}-row">
       ${inputHtml}
@@ -449,11 +467,12 @@ function syncFactorSlotState(slotId, isGenericSlot, showApplyCheckbox = isGeneri
   const slotType = slotId.includes('-class-reality-') ? 'class-reality' : (slotId.includes('-class-') ? 'class' : 'generic');
   const classSelectVal = getSelectedClassValue();
   const isEnabled = isGenericSlot || getFactorSlotEnabledState(slotType, classSelectVal);
-  const key = getFactorSelectionKey(nameInput?.value || '', getFactorSuggestionsForType(isGenericSlot ? 'generic' : 'class'));
   const value = parseFloat(valueInput?.value);
   const hasSavedFactorData = Boolean(nameInput?.value?.trim() || (Number.isFinite(value) && value > 0) || checkbox?.checked);
-  const supportsApplyCheckbox = isGenericSlot && (key === 'x234' || key === 'mainstat' || (/x[5-8]/.test(key)));
-  const shouldShow = (showApplyCheckbox && isEnabled && supportsApplyCheckbox && Number.isFinite(value) && value > 0 && hasSavedFactorData);
+  const resolvedShowApplyCheckbox = typeof showApplyCheckbox === 'boolean'
+    ? showApplyCheckbox
+    : shouldShowFactorApplyCheckbox(slotType, nameInput?.value || '', getFactorSuggestionsForType(slotType));
+  const shouldShow = (resolvedShowApplyCheckbox && isEnabled && Number.isFinite(value) && value > 0 && hasSavedFactorData) || Boolean(forceShow && resolvedShowApplyCheckbox);
   if (checkboxWrap) checkboxWrap.style.display = shouldShow ? '' : 'none';
   if (!shouldShow && checkbox) checkbox.checked = false;
 }
@@ -469,7 +488,9 @@ function wireFactorSlot(type, index, options = {}) {
   const applyInput = document.getElementById(applyId);
   const dropdown = document.getElementById(dropdownId);
   const isGeneric = type === 'generic';
-  const showApplyCheckbox = options.showApplyCheckbox ?? isGeneric;
+  const showApplyCheckbox = typeof options.showApplyCheckbox === 'boolean'
+    ? options.showApplyCheckbox
+    : shouldShowFactorApplyCheckbox(type, nameInput?.value || '', getFactorSuggestionsForType(type));
 
   setFactorSlotEnabled(slotId, type, showApplyCheckbox);
 
@@ -479,7 +500,7 @@ function wireFactorSlot(type, index, options = {}) {
       applyFactorDefaultValue(nameInput, valueInput, getFactorSuggestionsForType(type), type);
     }
     sanitizeDuplicateFactorSelections(type);
-    syncFactorSlotState(slotId, isGeneric, showApplyCheckbox);
+    syncFactorSlotState(slotId, isGeneric, shouldShowFactorApplyCheckbox(type, nameInput?.value || '', getFactorSuggestionsForType(type)));
     if (typeof calc === 'function') calc();
   };
 
@@ -621,8 +642,13 @@ function refreshDefaultFactorSlots(type) {
       applyChecked: applyInput?.checked || false,
     };
 
-    row.outerHTML = renderFactorSlot(type, index, { showApplyCheckbox: type === 'generic' });
-    wireFactorSlot(type, index, { showApplyCheckbox: type === 'generic' });
+    row.outerHTML = renderFactorSlot(type, index, {
+      showApplyCheckbox: shouldShowFactorApplyCheckbox(type, savedState.name, getFactorSuggestionsForType(type)),
+      initialNameValue: savedState.name,
+    });
+    wireFactorSlot(type, index, {
+      showApplyCheckbox: shouldShowFactorApplyCheckbox(type, savedState.name, getFactorSuggestionsForType(type)),
+    });
 
     const rebuiltRow = document.getElementById(`${slotId}-row`);
     const rebuiltNameInput = rebuiltRow?.querySelector(`#${slotId}-name`);
@@ -637,7 +663,7 @@ function refreshDefaultFactorSlots(type) {
     if (rebuiltApplyInput) rebuiltApplyInput.checked = savedState.applyChecked;
 
     const hasSavedFactorData = Boolean(savedState.name || (savedState.value !== '' && savedState.value !== '0' && savedState.value !== null && savedState.value !== undefined) || savedState.applyChecked);
-    syncFactorSlotState(slotId, type === 'generic', type === 'generic', hasSavedFactorData);
+    syncFactorSlotState(slotId, type === 'generic', shouldShowFactorApplyCheckbox(type, rebuiltNameInput?.value || '', getFactorSuggestionsForType(type)), hasSavedFactorData);
   });
 }
 
@@ -1383,9 +1409,13 @@ function applyPsychoscopeSaveState(state) {
         valueEl.dataset.userEdited = slotData.name || slotData.value !== '' ? 'true' : 'false';
       }
       if (applyEl) applyEl.checked = Boolean(slotData.apply);
-      const isGeneric = type === 'generic';
-      const hasSavedFactorData = Boolean(slotData.name || (slotData.value !== '' && slotData.value !== null && slotData.value !== undefined) || slotData.apply);
-      syncFactorSlotState(slotId, isGeneric, isGeneric, hasSavedFactorData);
+
+      if (nameEl) {
+        sanitizeDuplicateFactorSelections(type);
+        const resolvedShowApplyCheckbox = shouldShowFactorApplyCheckbox(type, nameEl.value || '', getFactorSuggestionsForType(type));
+        const hasSavedFactorData = Boolean(slotData.name || (slotData.value !== '' && slotData.value !== null && slotData.value !== undefined) || slotData.apply);
+        syncFactorSlotState(slotId, type === 'generic', resolvedShowApplyCheckbox, hasSavedFactorData);
+}
     });
   });
 

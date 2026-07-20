@@ -9,7 +9,9 @@
 
   window.IMAGINES = window.IMAGINES || {};
   function provideBonuses(state) {
-    const mainStatPct = ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] || 0;
+    const mainStatPct = 
+    (ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL && ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] && state.applyPassiveStats
+      ? ROROLA_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] : 0) || 0;
 
     const activeDamage = state.mode === 'active'
         ? (ROROLA_ACTIVE_DAMAGE_BOOST[state.level] || 0)

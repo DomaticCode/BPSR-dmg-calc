@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (AIRONA_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      AIRONA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (AIRONA_PASSIVE_MAIN_STAT_PER_LEVEL && AIRONA_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? AIRONA_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

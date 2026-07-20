@@ -73,8 +73,7 @@
         false,
         procSkillName,
         [
-          ['damageType', 'physical'],
-          ['generic', ' luck-effect'],
+          ['damageType', 'physical luck-effect'],
         ],
         passiveHitsPerParse,
         0

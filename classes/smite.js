@@ -36,6 +36,7 @@ function provideSmiteClassBonuses(stats) {
 
     elemPct += masteryElemPct;
   }
+  // TODO factors should be able to be removed from here, but double check nothing breaks
 
   if (isSmiteClass && getChecked('tree-x4')) {
     const x4Value = parseFloat(document.getElementById('tree-x4-value').value) || 0;
@@ -268,9 +269,10 @@ function getFeralSeedEffects(){
   if(x5Value > 0){
     effects.push(['dreamDmg', `${x5Value}`]);
   }
-  if(s2set >= 2){
-    effects.push(['elemDmg', '12']);
-  }
+  // Season 2, 2 set is still bugged, does not give elemental dmg
+  //if(s2set >= 2){
+  //  effects.push(['elemDmg', '12']);
+  //}
   return effects;
 }
 
@@ -344,7 +346,7 @@ function provideSmiteSkills() {
     ],
     [
       "expertise",
-      143.466586,
+      144.5565834,
       614.84,
       true,
       "Feral Seed - Seed Meteor",
@@ -354,7 +356,7 @@ function provideSmiteSkills() {
     ],
     [
       "expertise",
-      54.26171,
+      53.7167083,
       232.58,
       true,
       "Feral Seed - Stage 1",
@@ -364,7 +366,7 @@ function provideSmiteSkills() {
     ],
     [
       "expertise",
-      54.26171,
+      53.7167083,
       232.58,
       true,
       "Feral Seed - Stage 2",

@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (OLVERA_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      OLVERA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (OLVERA_PASSIVE_MAIN_STAT_PER_LEVEL && OLVERA_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? OLVERA_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

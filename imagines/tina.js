@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (TINA_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      TINA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (TINA_PASSIVE_MAIN_STAT_PER_LEVEL && TINA_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? TINA_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

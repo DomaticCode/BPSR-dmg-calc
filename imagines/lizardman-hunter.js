@@ -74,8 +74,7 @@
         false,
         procSkillName,
         [
-          ['damageType', 'magical'],
-          ['generic', ' luck-effect'],
+          ['damageType', 'magical luck-effect'],
         ],
         passiveHitsPerParse,
         0

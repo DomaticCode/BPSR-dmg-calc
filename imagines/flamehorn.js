@@ -61,8 +61,7 @@
         false,
         procSkillName,
         [
-          ['damageType', 'magical'],
-          ['generic', ' luck-effect'],
+          ['damageType', 'magical luck-effect'],
         ],
         fhActiveProcHitsPerParse,
         0

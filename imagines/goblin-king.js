@@ -307,8 +307,7 @@
           false,
           'Goblin Warrior T5 passive (SGK proc), assuming 66 hits per SGK cast',
           [
-            ['damageType', 'physical'],
-            ['generic', ' luck-effect'],
+            ['damageType', 'physical luck-effect'],
           ],
           t5LuckPassiveHitsPerParse,
           0
@@ -320,8 +319,7 @@
           false,
           'Void Bzzar T5 passive (SGK proc), assuming 66 hits per SGK cast',
           [
-            ['damageType', 'physical'],
-            ['generic', ' luck-effect'],
+            ['damageType', 'physical luck-effect'],
           ],
           t5LuckPassiveHitsPerParse,
           0
@@ -333,8 +331,7 @@
           false,
           'LizardMan Hunter T5 passive (SGK proc), assuming 66 hits per SGK cast',
           [
-            ['damageType', 'magical'],
-            ['generic', ' luck-effect'],
+            ['damageType', 'magical luck-effect'],
           ],
           t5LuckPassiveHitsPerParse,
           0
@@ -346,8 +343,7 @@
           false,
           'Brigand Leader T0 passive (SGK proc), (extra hits added to simulate dots expiring damage) For other tiers: [29.1, 37.83, 46.56, 55.29, 64.02, 72.75]',
           [
-            ['damageType', 'physical'],
-            ['generic', ' luck-effect'],
+            ['damageType', 'physical luck-effect'],
           ],
           brigandPassiveHitsPerParse,
           0

@@ -32,8 +32,7 @@
 
   function getSkillEffects() {
     const effects = [
-      ['damageType', 'no-crit'],
-      ['generic', 'luck-effect']
+      ['damageType', 'no-crit luck-effect']
     ];
 
     const timeStep = !!document.getElementById('psychoscope-fantasia-time-step')?.checked;
@@ -48,6 +47,13 @@
     return effects;
   }
 
+  function getHitsPerParse(){
+    if (document.getElementById('class-select')?.value === 'dissonance') {
+      return 33;
+    }
+    return 16;
+  }
+
   function provideSkills(state) {
     return [
       [
@@ -57,7 +63,7 @@
         false,
         'Fantasia Impact',
         getSkillEffects(),
-        16,
+        getHitsPerParse(),
         0
       ]
     ];

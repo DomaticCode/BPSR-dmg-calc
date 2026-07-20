@@ -9,7 +9,9 @@
 
   window.IMAGINES = window.IMAGINES || {};
   function provideBonuses(state) {
-    const mainStatPct = BOYCE_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] || 0;
+    const mainStatPct = 
+    (BOYCE_PASSIVE_MAIN_STAT_PER_LEVEL && BOYCE_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] && state.applyPassiveStats
+      ? BOYCE_PASSIVE_MAIN_STAT_PER_LEVEL[state.level] : 0) || 0;
 
     const activeDamage = state.mode === 'active'
         ? (BOYCE_ACTIVE_ATK_BOOST[state.level] || 0)

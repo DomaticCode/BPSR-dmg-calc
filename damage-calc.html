@@ -21,7 +21,7 @@
       </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
       <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v1.0.0</span>
+      <span class="header-version">v1.0.1</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -200,7 +200,7 @@
           <div class="matk-breakdown-wrap"><div id="matk-breakdown" class="matk-breakdown">—</div></div>
           <div class="input-row triple" style="margin-top:8px;">
             <div class="field">
-              <label>Main Stat % bonus<span class="tip"><span class="tip-icon"style="color: yellow;">i</span><span class="tip-box">Auto Calculated when inputting Main Stat, or importing from zdps. <span class="hl-gold">Change with caution.</span></span></span></label>
+              <label>Main Stat % bonus<span class="tip"><span class="tip-icon gold">i</span><span class="tip-box">Auto Calculated when inputting Main Stat, or importing from zdps. <span class="hl-gold">Change with caution.</span></span></span></label>
               <input type="number" id="main-stat-pct" value="0" step="0.1" oninput="calc()">
             </div>
             <div class="field">
@@ -318,7 +318,7 @@
               <input type="number" id="matk-pct" value="0" step="0.1" oninput="calc()">
             </div>
             <div class="field">
-              <label><span class="dot dot-matk"></span><span id="int-pct-label">INT %</span><span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span id="int-pct-tip" class="tip-box">This is a relative field to your current setup.<br>Main stat % lines are already calculated and this should be 0%. <span class="hl-gold">Change this field only to test NEW main stat % lines NOT currently present in your gear.</span></span></span></label>
+              <label><span class="dot dot-matk"></span><span id="int-pct-label">INT %</span><span class="tip"><span class="tip-icon gold">i</span><span id="int-pct-tip" class="tip-box">This is a relative field to your current setup.<br>Main stat % lines are already calculated and this should be 0%. <span class="hl-gold">Change this field only to test NEW main stat % lines NOT currently present in your gear.</span></span></span></label>
               <input type="number" id="int-pct" value="0" step="0.1" oninput="calc()">
             </div>
           </div>
@@ -480,7 +480,7 @@
 
         <div class="sub-col">
           <div class="panel">
-            <div class="panel-header"><h2>Imagine Buffs <span class="tip"><span class="tip-icon" style="color: yellow; font-weight: bold;">i</span><span class="tip-box"><span class="hl-gold">Adding an imagine will add the skills for that Imagine.</span></span></span></h2> </div>
+            <div class="panel-header"><h2>Imagine Buffs <span class="tip"><span class="tip-icon gold">i</span><span class="tip-box"><span class="hl-gold">Adding an imagine will add the skills for that Imagine.</span></span></span></h2> </div>
               <div class="panel-body">
                 <div class="imagine-slots">
                   <div class="imagine-slot">
@@ -519,6 +519,7 @@
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="void-watcher">Void Watcher</div>
                         <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
                         <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
                       </div>
@@ -581,6 +582,7 @@
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="void-watcher">Void Watcher</div>
                         <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
                       </div>
                     </div>
@@ -754,6 +756,7 @@
 <script src="imagines/bloodthirsty-furball.js"></script>
 <script src="imagines/boyce.js"></script>
 <script src="imagines/void-bzzar.js"></script>
+<script src="imagines/void-watcher.js"></script>
 <script src="imagines/wandering-vagrant.js"></script>
 <!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
 <!-- Psychoscope Trees -->
@@ -774,23 +777,7 @@
   let moduleCount = 0;
   let modules = [];
   let weaponLineEffectCount = 0;
-  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v1.0.0';
-  const WEAPON_LINE_EFFECT_OPTIONS = {
-    'wl-crit-pct': 'CRIT %',
-    'wl-haste-pct': 'Haste %',
-    'wl-luck-pct': 'Luck %',
-    'wl-mastery-pct': 'Mastery %',
-    'wl-vers-pct': 'Versatility %',
-    'wl-elem-bonus': 'Element Bonus %',
-    'wl-crit-dmg': 'Crit DMG %',
-    'wl-atk-dmg': 'Attack DMG %',
-    'wl-magic-dmg': 'Magic DMG %',
-    'wl-atk-pct': 'ATK/MATK %',
-    'wl-ranged-dmg': 'Ranged DMG %',
-    'luck-effect-bonus': 'Luck Effect DMG %',
-    'lucky-strike-dmg-bonus': 'Lucky Strike DMG %',
-    'wl-exp-mag-pct': 'Expertise Skill PHY/MAG Boost',
-  };
+  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v1.0.1';
   let optimizerBackup = null;
   let optimizerDone = false;
   let optimizingSubstats = false;
@@ -839,14 +826,14 @@
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
     'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 
-    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-vagrant'];
+    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-vagrant', 'void-watcher'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce') ? '' : 'none';
     // Show passive stats checkbox for passive stats imagines
-    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-vagrant'];
+    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-vagrant', 'airona', 'boyce', 'dorothy', 'fafala', 'olvera', 'rorola', 'tina', 'tatta'];
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
     if (passiveField) passiveField.style.display = passiveFieldImagines.includes(val) ? '' : 'none';
 
@@ -2441,6 +2428,7 @@
           <option value="special">Special</option>
           <option value="basic">Basic Attack</option>
           <option value="ultimate">Ultimate</option>
+          <option value="class">Class</option>
           <option value="imagine">Imagine</option>
           <option value="imagine(passive)">Imagine (passive)</option>
           <option value="psychoscope">Psychoscope</option>
@@ -2752,6 +2740,16 @@
     });
   }
 
+  function getWeaponLineEffectOptionMarkup() {
+    return Object.entries(WEAPON_LINE_EFFECT_OPTIONS).map(([key, optionMeta]) => {
+      const meta = typeof optionMeta === 'string' ? { label: optionMeta, aliases: [] } : (optionMeta || {});
+      const label = meta.label || '';
+      const aliases = Array.isArray(meta.aliases) ? meta.aliases : [];
+      const searchText = [label, key, ...aliases].filter(Boolean).join(' ').toLowerCase();
+      return `<div class="module-option" data-value="${key}" data-search="${searchText}">${label}</div>`;
+    }).join('');
+  }
+
   function addWeaponLineEffectRow(effectKey = '', effectValue = '') {
     const list = document.getElementById('weapon-line-effects-list');
     if (!list) return;
@@ -2766,7 +2764,7 @@
         <div class="module-select-container">
           <input type="text" class="module-search-input weapon-line-search-input" id="weapon-line-search-${id}" placeholder="Select effect..." autocomplete="off">
           <div class="module-dropdown" id="weapon-line-dropdown-${id}" style="display:none;">
-            ${Object.entries(WEAPON_LINE_EFFECT_OPTIONS).map(([key, label]) => `<div class="module-option" data-value="${key}">${label}</div>`).join('')}
+            ${getWeaponLineEffectOptionMarkup()}
           </div>
         </div>
         <input type="number" class="module-level-input weapon-line-value" id="weapon-line-value-${id}" placeholder="%" value="${effectValue !== '' && effectValue !== null ? effectValue : ''}" step="0.1" min="0" oninput="clamp(this); calc()">
@@ -2829,17 +2827,18 @@
 
   function filterWeaponLineEffectOptions(input, dropdown) {
     if (!input || !dropdown) return;
-    const filter = input.value.toLowerCase();
+    const filter = input.value.toLowerCase().trim();
     const options = dropdown.querySelectorAll('.module-option');
     let hasVisible = false;
 
     options.forEach(option => {
       const text = option.textContent.toLowerCase();
       const effectKey = option.dataset.value;
+      const searchText = (option.dataset.search || `${text} ${effectKey}`).toLowerCase();
       const isSelectedElsewhere = Array.from(document.querySelectorAll('.weapon-line-effect-card'))
         .some(card => card.id !== dropdown.closest('.weapon-line-effect-card')?.id && card.dataset.selectedEffect === effectKey);
 
-      if (text.includes(filter) && !isSelectedElsewhere) {
+      if (searchText.includes(filter) && !isSelectedElsewhere) {
         option.style.display = 'block';
         hasVisible = true;
       } else {

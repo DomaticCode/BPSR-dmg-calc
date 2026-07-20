@@ -8,8 +8,8 @@
     const level = state.level;
 
     const mainStatPct = 
-    (FAFALA_PASSIVE_MAIN_STAT_PER_LEVEL && 
-      FAFALA_PASSIVE_MAIN_STAT_PER_LEVEL[level]) || 0;
+    (FAFALA_PASSIVE_MAIN_STAT_PER_LEVEL && FAFALA_PASSIVE_MAIN_STAT_PER_LEVEL[level] && state.applyPassiveStats
+      ? FAFALA_PASSIVE_MAIN_STAT_PER_LEVEL[level] : 0) || 0;
 
     return { mainStatPct };
   }

@@ -88,9 +88,10 @@ function calcSkill(id) {
   };
 
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
-  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, skillDamageType = null, luckEffectBonus = 0;
-  let effectNoElem = false, effectNoElemAtk = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false, effectNoWlAtk = false, effectNoWlMagic = false, effectNoIntellectBoost = false, effectNoAgilityBoost = false, 
+  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, luckEffectBonus = 0;
+  let effectNoElem = false, effectNoClassElem = false, effectNoElemAtk = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false, effectNoWlAtk = false, effectNoWlMagic = false, effectNoIntellectBoost = false, effectNoAgilityBoost = false, 
   effectNoWlRanged = false, effectNoThorns = false, effectNoCrit = false;
+  let skillDamageType = c.classDamageType; // for recognizing magic dmg % boosts applying to imagine magical based dmg and vice versa
   let luckEffectSkill = false;
   effectRows.forEach(row => {
     const kind = row.querySelector('select')?.value;
@@ -110,7 +111,7 @@ function calcSkill(id) {
         else if (['no-elem-atk', 'no-elemental-atk'].includes(token)) effectNoElemAtk = true;
         else if (['imagine'].includes(token)) {
           effectNoElemAtk = true;
-          effectNoElem = true;
+          effectNoClassElem = true;
           effectNoWlAtk = true;
           effectNoWlMagic = true;
           effectNoWlRanged = true;
@@ -159,13 +160,15 @@ function calcSkill(id) {
   });
 
   if (isImagineType) {
-    effectNoElem = true;
+    effectNoClassElem = true;
     effectNoElemAtk = true;
     effectNoWlAtk = true;
-    effectNoWlMagic = true;
     effectNoWlRanged = true;
     effectNoAgilityBoost = true;
-    effectNoIntellectBoost = true;
+    if(skillDamageType !== 'magical'){
+      effectNoWlMagic = true;
+      effectNoIntellectBoost = true;
+    }
   }
 
   if(skillType === 'psychoscope'){
@@ -207,12 +210,23 @@ function calcSkill(id) {
   const originalGen = preDeductionGen;
   const originalElem = c.elemDmgPct + effectElem + specialAttackElemBonus;
   const originalDream = c._dreamDmgPct + effectDream;
-  const originalMag = (c._magBoost || 0) + effectMagBoost + wlExpMagPct;
+  let originalMag = 0;
+  if(luckEffectSkill){
+    originalMag = (c._luckyMagBoostPct || 0) + effectMagBoost + wlExpMagPct;
+  } else{
+    originalMag = (c._magBoost || 0) + effectMagBoost + wlExpMagPct;
+  }
   const originalVers = c.versDmgPct;
   const totalGen = effectNoGen ? 0 : preDeductionGen - effectNoIntellectBoostDeduction - (effectNoWlAtk ? (c._wlAtk || 0) : 0) - (effectNoWlMagic ? (c._wlMagic || 0) : 0) - (effectNoWlRanged ? (c._wlRanged || 0) : 0);
   const ignoreThorns = effectNoThorns || skillType === 'psychoscope';
   const thornPct = ignoreThorns ? (c.thornsPct || 0) : 0;
-  const finalElemDmgPct = effectNoElem ? 0 : originalElem - thornPct;
+
+  let finalElemDmgPct = 0;
+  if(effectNoClassElem){
+    finalElemDmgPct = c._finalAllElementPct;
+  } else if(!effectNoElem){
+    finalElemDmgPct = originalElem - thornPct
+  }
   const finalDreamDmgPct = effectNoDream ? 0 : originalDream;
   const finalCritRatePct = effectNoCrit ? 0 : Math.min(1, c.critRatePct + effectCritChance);
   const finalCritMult = effectNoCrit ? 1 : c.critMultPct + effectCritDmg;
@@ -232,7 +246,7 @@ function calcSkill(id) {
   const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler) * (1 + finalDmgPct); // Assume final is after other
 
   let additionalDamage = 0;
-  if (imagineBonuses.additionalDamageProc !== undefined && skillType !== 'none') {
+  if (imagineBonuses.additionalDamageProc !== undefined && ( luckEffectSkill || skillType === "special" || skillType === "expertise" || skillType === "ultimate" || skillType === "class" || skillType === "basic")) {
     const additionalDamageProc = imagineBonuses.additionalDamageProc / 100 || 0;
     additionalDamage = effectiveAtk * additionalDamageProc * stdMult;
   }
@@ -311,6 +325,10 @@ function calcSkill(id) {
         return true; // Keep everything else
       });
 
+      if(luckEffectSkill && luckEffectBonus > 0){
+        activeComponents.push(`luck-effect ${(luckEffectBonus * 100).toFixed(2)}%`);
+      }
+
       if (effectGen !== 0) {
         activeComponents.push(`generic ${(effectGen * 100).toFixed(2)}%`);
       }
@@ -335,6 +353,9 @@ function calcSkill(id) {
     const finalElemStr = (() => {
       if (effectNoElem && isImagineType) {
         return '0%';
+      }
+      if(effectNoClassElem){
+        return `all element ${(c._finalAllElementPct*100).toFixed(3)}%`;
       }
       let result = baseElemStr;
       if (effectElem !== 0) {
@@ -379,7 +400,12 @@ function calcSkill(id) {
       ? `${(c.critMultPct*100).toFixed(2)}% + ${(effectCritDmg*100).toFixed(2)}% = ${(finalCritMult*100).toFixed(2)}%`
       : `${(c.critMultPct*100).toFixed(2)}%`;
     const magText = (() => {
-      const baseMag = (c._magBoost || 0) * 100;
+      let baseMag = 0;
+      if(luckEffectSkill){
+        baseMag = (c._luckyMagBoostPct || 0) * 100;
+      } else{
+        baseMag = (c._magBoost || 0) * 100;
+      }
       let parts = [`${baseMag.toFixed(2)}%`];
       if (effectMagBoost !== 0) {
         parts.push(`${(effectMagBoost * 100).toFixed(2)}% effect`);

@@ -104,22 +104,28 @@ function calc() {
   const classSelectVal = document.getElementById('class-select')?.value || 'none';
   const classModule = window.CLASS_MODULES?.[classSelectVal];
 
+  const class_stat = classModule?.mainStatType?.() || 'none';
+  let classDamageType = 'physical'
+  if(class_stat === 'int') {
+    classDamageType =  'magical';
+  }
+
   // === Inspiration ===
   const inspirationBonusStatsPct = parseFloat(document.getElementById('inspiration').value) / 100;
   let inspirationMainStats = 0;
   if(inspirationBonusStatsPct === 0.015){
-    inspirationMainStats = 100;
+    inspirationMainStats = 135;
   } else if (inspirationBonusStatsPct === 0.03){
-    inspirationMainStats = 400;
+    inspirationMainStats = 540;
   } else if (inspirationBonusStatsPct === 0.036){
-    inspirationMainStats = 480;
+    inspirationMainStats = 648;
   } else if (inspirationBonusStatsPct === 0.039){
-    inspirationMainStats = 520;
+    inspirationMainStats = 702;
   }
   // remove 100 main stat from smite class if they have any inspiration selected. (Assume smites import their main stat with inspiration buff already active).
   // Still works correctly for overriding and giving more main stat from an LB in party, just removes their passive +100 main stat from existing.
   if (classSelectVal === 'smite' && inspirationMainStats > 0) {
-    inspirationMainStats -= 100;
+    inspirationMainStats -= 135;
   }
 
 
@@ -255,7 +261,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   }
 
   // Weapon line substats: flat boosts added directly to final substat %s
-  let wlCritBonus  = 0, wlHasteBonus = 0, wlLuckBonus = 0, wlMasteryBonus = 0, wlVersBonus = 0, wlAtkPct = 0, luckEffectBonus = 0, luckyStrikeDmgBonus = 0, wlExpMagPct = 0;
+  let wlCritBonus  = 0, wlHasteBonus = 0, wlLuckBonus = 0, wlMasteryBonus = 0, wlVersBonus = 0, wlAtkPct = 0, luckEffectBonus = 0, luckyStrikeDmgBonus = 0, wlExpMagPct = 0, wlPhyMagBoost = 0, wlLuckEffectPhyMagBoost = 0, wlElemBonus = 0;
 
   const weaponLineEffects = typeof getWeaponLineEffects === 'function' ? getWeaponLineEffects() : [];
   if (weaponLineEffects.length > 0) {
@@ -268,9 +274,12 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
         case 'wl-mastery-pct': wlMasteryBonus += amount; break;
         case 'wl-vers-pct': wlVersBonus += amount; break;
         case 'wl-atk-pct': wlAtkPct += amount; break;
+        case 'wl-elem-bonus': wlElemBonus += amount; break;
         case 'luck-effect-bonus': luckEffectBonus += amount; break;
         case 'lucky-strike-dmg-bonus': luckyStrikeDmgBonus += amount; break;
         case 'wl-exp-mag-pct': wlExpMagPct += amount; break;
+        case 'wl-phy-mag-boost': wlPhyMagBoost += amount; break;
+        case 'wl-luck-effect-mag-boost': wlLuckEffectPhyMagBoost += amount; break;
       }
     });
   }
@@ -341,7 +350,6 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   // === DMG Bonuses ===
   const elemPower      = getVal('elem-power');
   const elemPowerBonus = elemPower / (elemPower + ALL_ELEMENTAL_DMG_SCALER);
-  const wlElemBonus    = getVal('wl-elem-bonus') / 100;
   const additionalElemDmg = getVal('elem-dmg-pct') / 100;
 
   console.log("haste % = " + postWlHastePct);
@@ -372,6 +380,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const classFactorLuckyDreamDmgPct = (classFactorBonuses.classFactorLuckyDreamDmgPct || 0) / 100;
   const classFactorMatkPct = (classFactorBonuses.classFactorMatkPct || 0) / 100;
   const classFactorAtkPct = (classFactorBonuses.classFactorAtkPct || 0) / 100;
+  const classFactorMainStat = classFactorBonuses.classFactorMainStat || 0;
+  const classFactorAllElementPct = (classFactorBonuses.classFactorAllElementPct || 0) / 100;
 
   const genericFactorAllElement = genericNonSubstatFactors.genericFactorAllElement || 0;
   const genericFactorMainStatPct = (genericNonSubstatFactors.mainStatPct || 0) / 100;
@@ -413,7 +423,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const typeDmgPct = damageType === 'physical' ? modulePhysicalDmgBonus / 100 : moduleMagicDmgBonus / 100;
   const genDmgPct   = genDmgBase + bossDmgPct + eliteDmgPct + moduleEliteDmgBonus / 100 + moduleAllDmgBonus / 100 + typeDmgPct + imagineGenDamagePct;
   let magBoostPct   = getVal('mag-boost-pct') / 100;
-  magBoostPct += classMagBoostPct;
+  magBoostPct += classMagBoostPct + wlPhyMagBoost;
   let finalDmgPct   = getVal('final-dmg-pct') / 100;
 
   const finalCritPct = postWlCritPct * (1 + classFinalCritPct); // not in use yet
@@ -449,7 +459,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   console.log(`moduleApplyMainStats = ${moduleApplyMainStats}`);
 
   // INT/ATK calculations
-  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + genericFactorMainStat + moduleApplyMainStats) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct + oblivionMainStatPct + endlessMindMainStatPct + genericFactorMainStatPct);
+  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + genericFactorMainStat + moduleApplyMainStats + classFactorMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct + oblivionMainStatPct + endlessMindMainStatPct + genericFactorMainStatPct);
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
   const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
@@ -513,10 +523,13 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus;
   const classElementalAtk = getVal('class-elemental-atk');
   const totalElementalAtk = elementalAtk + classElementalAtk;
-  const moduleAllElementalDmgPct = moduleElementalDmgStatBonus * (1/ALL_ELEMENTAL_DMG_SCALER);
-  const genericFactorAllElementPct = genericFactorAllElement * (1/ALL_ELEMENTAL_DMG_SCALER);
 
-  let elemDmgPct = additionalElemDmg + elemPowerBonus + wlElemBonus + classElemPct + moduleAllElementalDmgPct + oblivionAllElementPct + imagineElemPct + genericFactorAllElementPct;
+  // Sum all element raw stats together, get pct from that, then add with pct sources of all element for final all element pct.
+  const sumAllElement = elemPowerBonus + moduleElementalDmgStatBonus + genericFactorAllElement;
+  const sumAllElementPct = sumAllElement / (sumAllElement + ALL_ELEMENTAL_DMG_SCALER);
+  const finalAllElementPct = sumAllElementPct + classFactorAllElementPct;
+
+  let elemDmgPct = additionalElemDmg + wlElemBonus + classElemPct + oblivionAllElementPct + imagineElemPct + finalAllElementPct;
 
   // === Defense ===
   const enemyArmour = getVal('enemy-armour', 2786);
@@ -600,9 +613,11 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const atkDefReduced  = effectiveAtk * (1 - resistance);
   const defenseFreeAtk = refinedAtk + totalElementalAtk;
 
+  const luckyMagBoostPct = magBoostPct + wlLuckEffectPhyMagBoost;
+
   const luckyGenPct     = totalGenDmgPct + luckEffectPct + foodDmgBonusPct + luckyStrikeDmgBonus;
   const luckyBase       = (effectiveAtk + defenseFreeAtk) * luckyMultFinal;
-  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + magBoostPct) * (1 + luckFinalDamagePct);
+  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + luckyMagBoostPct) * (1 + luckFinalDamagePct);
 
   let additionalDamage = 0;
   if (imagineBonuses.additionalDamageProc !== undefined) {
@@ -655,7 +670,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     masteryPct: postWlMasteryPct, luckPct: postWlLuckPct, versPct: finalVersDmgPct,
     elemDmgPct, genDmgPct: totalGenDmgPct, versDmgPct: postWlVersDmgPct,
     luckyMult, luckyMultFinal, luckChancePct: finalLuckChance, luckEffectPct, luckyStrikeDmgBonus,
-    wlExpMagPct,
+    wlExpMagPct, classDamageType,
     lsNormal, lsCrit, lsAvg, resistance,
     _physRes: physRes, _magResEnabled: magResEnabled,
     // breakdown parts for formula display
@@ -664,7 +679,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _genBase: genDmgBase, _boss: bossDmgPct, _elite: eliteDmgPct, _dreamDmgPct: dreamDmgPct,
     _psychoscopeDreamDmgPct: psychoscopeDreamDmgPct, _dreamManual: getVal('dream-dmg-pct') / 100,
     _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg, _wlRanged: wlRangedDmgBonus,
-    _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _totalMatkPct: totalMatkPct, _matkBase: matkBase, _magBoost: magBoostPct, _luckyStrikeDmgBonus: luckyStrikeDmgBonus, 
+    _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _totalMatkPct: totalMatkPct, _matkBase: matkBase, _magBoost: magBoostPct, _luckyMagBoostPct: luckyMagBoostPct, _luckyStrikeDmgBonus: luckyStrikeDmgBonus,
     _finalDmgPct: finalDmgPct,
     _oblivionPct: oblivionPct, _oblivionMainStatPct: oblivionMainStatPct, _oblivionAllElementPct: oblivionAllElementPct,
     _serumOilEnabled: serumOilEnabled, _serumOilType: serumOilType, _serumOilValue: serumOilValue, _serumOilPct: serumOilPct,
@@ -678,7 +693,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _moduleAllDmg: moduleAllDmgBonus / 100,
     _moduleEliteDmg: moduleEliteDmgPct,
     _moduleSpecialAttackElem: moduleSpecialAttackElemBonus,
-    _moduleAllElementalDmg: moduleAllElementalDmgPct,
+    _finalAllElementPct: finalAllElementPct,
     _moduleAllElementalDmgStat: moduleElementalDmgStatBonus,
     thornsPct: classThornsPct,
     _moduleIntellect: moduleIntellectBonus,
@@ -725,103 +740,103 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   function buildElemStr(c, specialAttackBonus = 0, options = {}) {
     const ps = [];
     if (!options.skipSources) {
-      if (c._additionalElem) ps.push(`additional ${(c._additionalElem*100).toFixed(1)}%`);
-      if (c._elemPower)    ps.push(`power ${(c._elemPower*100).toFixed(2)}%`);
-      if (c._wlElem)       ps.push(`wl ${(c._wlElem*100).toFixed(2)}%`);
-      if (c._serumOilType === 'serum' && c._serumOilPct) ps.push(`serum ${(c._serumOilPct*100).toFixed(2)}%`);
-      if (c._moduleAllElementalDmg) ps.push(`modules ${(c._moduleAllElementalDmg*100).toFixed(2)}%`);
-      if (c._oblivionAllElementPct) ps.push(`oblivion ${(c._oblivionAllElementPct*100).toFixed(2)}%`);
+      if (c._additionalElem) ps.push(`additional ${(c._additionalElem*100).toFixed(3)}%`);
+      if (c._elemPower)    ps.push(`power ${(c._elemPower*100).toFixed(3)}%`);
+      if (c._wlElem)       ps.push(`wl ${(c._wlElem*100).toFixed(3)}%`);
+      if (c._serumOilType === 'serum' && c._serumOilPct) ps.push(`serum ${(c._serumOilPct*100).toFixed(3)}%`);
+      if (c._finalAllElementPct) ps.push(`all element ${(c._finalAllElementPct*100).toFixed(3)}%`);
+      if (c._oblivionAllElementPct) ps.push(`oblivion ${(c._oblivionAllElementPct*100).toFixed(3)}%`);
       const classElemParts = getClassFormulaParts('elem');
       if (classElemParts) ps.push(classElemParts);
       const imagineElemParts = getImagineFormulaParts('elem');
       if (imagineElemParts) ps.push(imagineElemParts);
     }
     const totalElem = options.skipSources ? 0 : c.elemDmgPct;
-    return ps.length ? ps.join(' + ') + ` = ${(totalElem*100).toFixed(2)}%` : `${(totalElem*100).toFixed(2)}%`;
+    return ps.length ? ps.join(' + ') + ` = ${(totalElem*100).toFixed(3)}%` : `${(totalElem*100).toFixed(3)}%`;
   }
   function buildGenStr(c, typePct, typeLabel, options = {}) {
     const ps = [];
-    if (c._genBase)   ps.push(`gen ${(c._genBase*100).toFixed(2)}%`);
-    if (c._boss)      ps.push(`boss ${(c._boss*100).toFixed(2)}%`);
-    if (c._elite)     ps.push(`elite ${(c._elite*100).toFixed(2)}%`);
-    if (c._moduleEliteDmg) ps.push(`elite-strike ${(c._moduleEliteDmg*100).toFixed(2)}%`);
-    if (c._wlAtk)     ps.push(`wl-atk ${(c._wlAtk*100).toFixed(2)}%`);
-    if (c._wlMagic)   ps.push(`wl-magic ${(c._wlMagic*100).toFixed(2)}%`);
-    if (c._wlRanged)  ps.push(`wl-ranged ${(c._wlRanged*100).toFixed(2)}%`);
-    if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(2)}%`);
-    if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(2)}%`);
-    if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(2)}%`);
-    if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(2)}%`);
-    if (typePct)      ps.push(`${typeLabel} ${(typePct*100).toFixed(2)}%`);
+    if (c._genBase)   ps.push(`gen ${(c._genBase*100).toFixed(3)}%`);
+    if (c._boss)      ps.push(`boss ${(c._boss*100).toFixed(3)}%`);
+    if (c._elite)     ps.push(`elite ${(c._elite*100).toFixed(3)}%`);
+    if (c._moduleEliteDmg) ps.push(`elite-strike ${(c._moduleEliteDmg*100).toFixed(3)}%`);
+    if (c._wlAtk)     ps.push(`wl-atk ${(c._wlAtk*100).toFixed(3)}%`);
+    if (c._wlMagic)   ps.push(`wl-magic ${(c._wlMagic*100).toFixed(3)}%`);
+    if (c._wlRanged)  ps.push(`wl-ranged ${(c._wlRanged*100).toFixed(3)}%`);
+    if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(3)}%`);
+    if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(3)}%`);
+    if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(3)}%`);
+    if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(3)}%`);
+    if (typePct)      ps.push(`${typeLabel} ${(typePct*100).toFixed(3)}%`);
     const classGenParts = getClassFormulaParts('gen');
     if (classGenParts) ps.push(classGenParts);
     const imagineGenParts = getImagineFormulaParts('gen');
     if (imagineGenParts) ps.push(imagineGenParts);
     const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (typePct||0);
-    return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
+    return ps.length ? ps.join(' + ') + ` = ${(total*100).toFixed(3)}%` : `${(total*100).toFixed(3)}%`;
   }
   function buildDreamStr(c) {
     const ps = [];
-    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(2)}%`);
-    if (c._oblivionPct) ps.push(`Oblivion ${(c._oblivionPct*100).toFixed(2)}%`);
-    if (c._dreamManual) ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
+    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(3)}%`);
+    if (c._oblivionPct) ps.push(`Oblivion ${(c._oblivionPct*100).toFixed(3)}%`);
+    if (c._dreamManual) ps.push(`manual ${(c._dreamManual*100).toFixed(3)}%`);
     const classDreamParts = getClassFormulaParts('dream');
     if (classDreamParts) ps.push(classDreamParts);
     const imagineDreamParts = getImagineFormulaParts('dream');
     if (imagineDreamParts) ps.push(imagineDreamParts);
-    return ps.length ? ps.join(' + ') + `=${(c._dreamDmgPct*100).toFixed(2)}%` : `${(c._dreamDmgPct*100).toFixed(2)}%`;
+    return ps.length ? ps.join(' + ') + `= ${(c._dreamDmgPct*100).toFixed(3)}%` : `${(c._dreamDmgPct*100).toFixed(3)}%`;
   }
   function buildFinalStr(c) {
     if (finalDmgPct > 0) {
       const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(2)}%`);
+      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(3)}%`);
       const classFinalParts = getClassFormulaParts('final');
       if (classFinalParts) ps.push(classFinalParts);
       const total = finalDmgPct;
-      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
+      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(3)}%</span>\n` : `${(total*100).toFixed(3)}%`;
     }
     return '';
   }
   function buildLuckyGenStr(c) {
     const ps = [];
-    if (c._genBase)     ps.push(`gen ${(c._genBase*100).toFixed(2)}%`);
-    if (c._boss)        ps.push(`boss ${(c._boss*100).toFixed(2)}%`);
-    if (c._elite)       ps.push(`elite ${(c._elite*100).toFixed(2)}%`);
-    if (c._wlAtk)       ps.push(`wl-atk ${(c._wlAtk*100).toFixed(2)}%`);
-    if (c._wlMagic)     ps.push(`wl-magic ${(c._wlMagic*100).toFixed(2)}%`);
-    if (c._wlRanged)    ps.push(`wl-ranged ${(c._wlRanged*100).toFixed(2)}%`);
-    if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(2)}%`);
-    if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(2)}%`);
-    if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(2)}%`);
-    if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(2)}%`);
-    if (c._luckyStrikeDmgBonus) ps.push(`lucky strike DMG ${(c._luckyStrikeDmgBonus*100).toFixed(2)}%`);
-    ps.push(`luck-eff ${(c.luckEffectPct*100).toFixed(2)}%`);
+    if (c._genBase)     ps.push(`gen ${(c._genBase*100).toFixed(3)}%`);
+    if (c._boss)        ps.push(`boss ${(c._boss*100).toFixed(3)}%`);
+    if (c._elite)       ps.push(`elite ${(c._elite*100).toFixed(3)}%`);
+    if (c._wlAtk)       ps.push(`wl-atk ${(c._wlAtk*100).toFixed(3)}%`);
+    if (c._wlMagic)     ps.push(`wl-magic ${(c._wlMagic*100).toFixed(3)}%`);
+    if (c._wlRanged)    ps.push(`wl-ranged ${(c._wlRanged*100).toFixed(3)}%`);
+    if (c._foodDmgBonusPct) ps.push(`food ${(c._foodDmgBonusPct*100).toFixed(3)}%`);
+    if (c._moduleAllDmg) ps.push(`modules-all ${(c._moduleAllDmg*100).toFixed(3)}%`);
+    if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(3)}%`);
+    if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(3)}%`);
+    if (c._luckyStrikeDmgBonus) ps.push(`lucky strike DMG ${(c._luckyStrikeDmgBonus*100).toFixed(3)}%`);
+    ps.push(`luck-eff ${(c.luckEffectPct*100).toFixed(3)}%`);
     const classLuckyGenParts = getClassFormulaParts('luckyGen');
     if (classLuckyGenParts) ps.push(classLuckyGenParts);
     const imagineLuckyGenParts = getImagineFormulaParts('luckyGen');
     if (imagineLuckyGenParts) ps.push(imagineLuckyGenParts);
-    return ps.length ? ps.join(' + ') + `=${(luckyGenPct*100).toFixed(2)}%` : `${(luckyGenPct*100).toFixed(2)}%`;
+    return ps.length ? ps.join(' + ') + ` = ${(luckyGenPct*100).toFixed(3)}%` : `${(luckyGenPct*100).toFixed(3)}%`;
   }
   function buildDreamStrLucky(c) {
     const ps = [];
-    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(2)}%`);
-    if (c._oblivionPct) ps.push(`Oblivion ${(c._oblivionPct*100).toFixed(2)}%`)
-    if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(2)}%`);
+    if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(3)}%`);
+    if (c._oblivionPct) ps.push(`Oblivion ${(c._oblivionPct*100).toFixed(3)}%`)
+    if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(3)}%`);
     const classDreamLuckyParts = getClassFormulaParts('dreamLucky');
     if (classDreamLuckyParts) ps.push(classDreamLuckyParts);
     const imagineDreamLuckyParts = getImagineFormulaParts('dreamLucky');
     if (imagineDreamLuckyParts) ps.push(imagineDreamLuckyParts);
     const total = dreamDmgPctLucky;
-    return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(2)}%` : `${(total*100).toFixed(2)}%`;
+    return ps.length ? ps.join(' + ') + `=${(total*100).toFixed(3)}%` : `${(total*100).toFixed(3)}%`;
   }
   function buildLuckyFinalStr(c) {
     if (luckFinalDamagePct > 0) {
       const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(2)}%`);
+      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(3)}%`);
       const classLuckyFinal = getClassFormulaParts('luckyFinal');
       if (classLuckyFinal) ps.push(classLuckyFinal);
       const total = luckFinalDamagePct;
-      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(2)}%</span>\n` : `${(total*100).toFixed(2)}%`;
+      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(3)}%</span>\n` : `${(total*100).toFixed(3)}%`;
     }
     return '';
   }
@@ -860,7 +875,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     `x <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
     `x <span class="fg">(1 + Gen: ${buildLuckyGenStr(c)})</span>\n` +
     `x <span class="fdream">(1 + Seasonal: ${buildDreamStrLucky(c)})</span>\n` +
-    `x <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(2) : '0.0'}%)</span>\n` +
+    `x <span class="fmag">(1 + MAG: ${(c._luckyMagBoostPct || 0)*100 >= 0 ? (c._luckyMagBoostPct*100).toFixed(2) : '0.0'}%)</span>\n` +
     buildLuckyFinalStr(c) +
     `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(2)}%) (if crit)</span>\n`;
 
@@ -1019,7 +1034,7 @@ function updateDamageSummary() {
     });
   });
 
-  if (luckyHitCount > 0 && lsAvg > 0) {
+  if (luckyHitCount >= 0 && lsAvg > 0) {
     luckyHitCount = Math.floor(luckyHitCount); // round down to nearest whole lucky hit
     const luckyTotalDamage = lsAvg * luckyHitCount;
     const luckyItemId = 'lucky-hit';

@@ -7,7 +7,7 @@ const CLASS_BASES = {
 
 const STAT_SCALER = 50015;
 const VERS_SCALER = 28000;
-const ALL_ELEMENTAL_DMG_SCALER = 11032;
+const ALL_ELEMENTAL_DMG_SCALER = 11000;
 
 // Module data
 const MODULE_DATA = {
@@ -42,20 +42,25 @@ const IMAGINE_DATA = {
   'rorola': { name: 'Rorola' },
 };
 
-// Legacy weapon line fields. These are currently saved as individual wl-* values.
-const WEAPON_LINE_EFFECT_FIELDS = [
-  'wl-crit-pct',
-  'wl-haste-pct',
-  'wl-luck-pct',
-  'wl-mastery-pct',
-  'wl-vers-pct',
-  'wl-elem-bonus',
-  'wl-crit-dmg',
-  'wl-atk-dmg',
-  'wl-magic-dmg',
-  'wl-atk-pct',
-  'wl-exp-mag-pct',
-];
+const WEAPON_LINE_EFFECT_OPTIONS = {
+  'wl-crit-pct': { label: 'CRIT %', aliases: ['crit', 'crit pct', 'crit rate'] },
+  'wl-haste-pct': { label: 'Haste %', aliases: ['haste'] },
+  'wl-luck-pct': { label: 'Luck %', aliases: ['luck'] },
+  'wl-mastery-pct': { label: 'Mastery %', aliases: ['mastery'] },
+  'wl-vers-pct': { label: 'Versatility %', aliases: ['vers', 'versatility', 'vers pct'] },
+  'wl-elem-bonus': { label: 'Element Bonus %', aliases: ['element bonus', 'elem bonus', 'elemental bonus', 'elem', 'fire bonus', 'ice bonus', 'forest bonus', 'rock bonus', 'light bonus', 'dark bonus', 'thunder bonus', 'wind bonus'] },
+  'wl-crit-dmg': { label: 'Crit DMG %', aliases: ['crit dmg', 'critical damage', 'crit damage'] },
+  'wl-atk-dmg': { label: 'Attack DMG %', aliases: ['attack dmg', 'atk dmg', 'physical dmg'] },
+  'wl-magic-dmg': { label: 'Magic DMG %', aliases: ['magic dmg', 'mag dmg', 'magic damage'] },
+  'wl-atk-pct': { label: 'ATK/MATK %', aliases: ['atk', 'matk', 'atk/matk'] },
+  'wl-ranged-dmg': { label: 'Ranged DMG %', aliases: ['ranged dmg', 'ranged damage', 'range dmg'] },
+  'luck-effect-bonus': { label: 'Luck Effect DMG %', aliases: ['luck effect', 'luck effect dmg', 'lucky effect'] },
+  'lucky-strike-dmg-bonus': { label: 'Lucky Strike DMG %', aliases: ['lucky strike', 'lucky strike dmg', 'lucky dmg'] },
+  'wl-phy-mag-boost': { label: 'PHY/MAG Boost%', aliases: ['phy mag boost', 'phy/mag boost', 'physical magical boost', 'mag boost', 'phy boost'] },
+  'wl-exp-mag-pct': { label: 'Expertise Skill PHY/MAG Boost', aliases: ['expertise', 'expertise skill', 'phy boost', 'mag boost'] },
+  'wl-luck-effect-mag-boost': { label: 'Luck Effect PHY/MAG Boost', aliases: ['luck effect phy boost', 'luck effect mag boost'] },
+};
+
 
 // Legacy field order kept for migration from old saves.
 const LEGACY_SAVE_FIELD_ORDER = [
@@ -230,12 +235,6 @@ const LEGACY_CLASS_FIELDS_ORDER = {
     'fire-day',
     'encore-chain',
     's2-2-set',
-    'tree-x4',
-    'tree-x4-value',
-    'tree-x8',
-    'tree-x8-value',
-    'tree-x10',
-    'tree-x10-value',
     'trio-rhapsody',
   ],
   stormblade: [
@@ -276,12 +275,12 @@ const CLASS_FIELDS_ORDER = {
   dissonance: [
     'in-rhapsody',
     'in-heroic-melody',
-    'center-stage',
+    'trio-rhapsody',
     'luck-multiplier',
     'fire-day',
-    'encore-chain',
-    's2-2-set',
-    'trio-rhapsody',
+    'center-stage',
+    's1-set-value',
+    's2-set-value',
   ],
   stormblade: [
     // no fields
