@@ -276,7 +276,7 @@ function getGenericNonSubstatFactorBonuses() {
     if (!key) return;
     if (['x5', 'x6', 'x7', 'x8'].includes(key)) return;
     
-    const value = parseFloat(valueInput?.value);
+    const value = valueInput ? getVal(valueInput.id, 0) : 0;
     if (!Number.isFinite(value) || value <= 0) return;
 
     if (key === 'x1') {
@@ -467,7 +467,7 @@ function syncFactorSlotState(slotId, isGenericSlot, showApplyCheckbox = isGeneri
   const slotType = slotId.includes('-class-reality-') ? 'class-reality' : (slotId.includes('-class-') ? 'class' : 'generic');
   const classSelectVal = getSelectedClassValue();
   const isEnabled = isGenericSlot || getFactorSlotEnabledState(slotType, classSelectVal);
-  const value = parseFloat(valueInput?.value);
+  const value = valueInput ? getVal(valueInput.id, 0) : 0;
   const hasSavedFactorData = Boolean(nameInput?.value?.trim() || (Number.isFinite(value) && value > 0) || checkbox?.checked);
   const resolvedShowApplyCheckbox = typeof showApplyCheckbox === 'boolean'
     ? showApplyCheckbox

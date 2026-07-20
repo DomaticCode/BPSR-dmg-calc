@@ -154,7 +154,7 @@ function getSubstatFactorValues(selectId, inputId) {
   const option = document.getElementById(selectId);
   const valueInput = document.getElementById(inputId);
   const type = normalizeSubstatFactorType(option?.value || 'none');
-  const rawValue = parseFloat(valueInput?.value);
+  const rawValue = valueInput ? getVal(inputId, 0) : 0;
   return buildSubstatFactorValueMap(type, rawValue);
 }
 

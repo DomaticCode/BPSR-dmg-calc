@@ -62,7 +62,7 @@ function openBaseMainStatModal() {
   const imaginesInput = document.getElementById('imagines-bonus-pct');
   const purpleInput = document.getElementById('purple-line-sum-pct');
 
-  const currentBase = parseFloat(document.getElementById('main-attr')?.value) || 0;
+  const currentBase = getVal('main-attr', 0);
   sheetInput.value = currentBase;
   factorInput.value = '';
   imaginesInput.value = '';
@@ -79,10 +79,10 @@ function closeBaseMainStatModal() {
 }
 
 function updateBaseMainStatPreview() {
-  const sheetValue = parseFloat(document.getElementById('sheet-main-stat')?.value);
-  const factorValue = parseFloat(document.getElementById('main-stat-factor-pct')?.value);
-  const imaginesValue = parseFloat(document.getElementById('imagines-bonus-pct')?.value);
-  const purpleValue = parseFloat(document.getElementById('purple-line-sum-pct')?.value);
+  const sheetValue = getVal('sheet-main-stat', 0);
+  const factorValue = getVal('main-stat-factor-pct', 0);
+  const imaginesValue = getVal('imagines-bonus-pct', 0);
+  const purpleValue = getVal('purple-line-sum-pct', 0);
 
   const sheetMainStat = Number.isFinite(sheetValue) ? sheetValue : 0;
   const totalPercent = (Number.isFinite(factorValue) ? factorValue : 0)
@@ -125,9 +125,9 @@ function applyBaseMainStatFromModal() {
     return;
   }
 
-  const factorValue = parseFloat(document.getElementById('main-stat-factor-pct')?.value);
-  const imaginesValue = parseFloat(document.getElementById('imagines-bonus-pct')?.value);
-  const purpleValue = parseFloat(document.getElementById('purple-line-sum-pct')?.value);
+  const factorValue = getVal('main-stat-factor-pct', 0);
+  const imaginesValue = getVal('imagines-bonus-pct', 0);
+  const purpleValue = getVal('purple-line-sum-pct', 0);
   const totalPercent = (Number.isFinite(factorValue) ? factorValue : 0)
     + (Number.isFinite(imaginesValue) ? imaginesValue : 0)
     + (Number.isFinite(purpleValue) ? purpleValue : 0);

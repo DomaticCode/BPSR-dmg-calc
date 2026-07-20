@@ -111,7 +111,7 @@ function calc() {
   }
 
   // === Inspiration ===
-  const inspirationBonusStatsPct = parseFloat(document.getElementById('inspiration').value) / 100;
+  const inspirationBonusStatsPct = getVal('inspiration', 0) / 100;
   let inspirationMainStats = 0;
   if(inspirationBonusStatsPct === 0.015){
     inspirationMainStats = 135;

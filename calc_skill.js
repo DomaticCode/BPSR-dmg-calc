@@ -24,8 +24,8 @@ function calcSkill(id) {
   const foodAtkBonus = c._foodAtkBonus || 0;
   const foodDmgBonusPct = c._foodDmgBonusPct || 0;
 
-  const mult        = parseFloat(document.getElementById(`sk-mult-${id}`).value) / 100 || 0;
-  const flat        = parseFloat(document.getElementById(`sk-flat-${id}`).value) || 0;
+  const mult        = getVal(`sk-mult-${id}`, 0) / 100;
+  const flat        = getVal(`sk-flat-${id}`, 0);
   const skillType   = document.getElementById(`sk-type-${id}`).value;
   const triggersLucky = document.getElementById(`sk-lucky-trigger-${id}`).checked;
 

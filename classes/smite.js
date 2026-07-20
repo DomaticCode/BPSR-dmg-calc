@@ -36,13 +36,6 @@ function provideSmiteClassBonuses(stats) {
 
     elemPct += masteryElemPct;
   }
-  // TODO factors should be able to be removed from here, but double check nothing breaks
-
-  if (isSmiteClass && getChecked('tree-x4')) {
-    const x4Value = parseFloat(document.getElementById('tree-x4-value').value) || 0;
-    matkPct += x4Value;
-  }
-
 
   if (isSmiteClass) {
     luckyFinalDmgPct += 50;
@@ -51,11 +44,6 @@ function provideSmiteClassBonuses(stats) {
   if (isSmiteClass && getChecked('luck-dmg-talent')) {
     const luckTalentMult = 1.5;
     luckMult += 5 + (stats.luck * 100 * luckTalentMult);
-  }
-
-  if (isSmiteClass && getChecked('tree-x7')) {
-    const x7Value = parseFloat(document.getElementById('tree-x7-value').value) || 0;
-    matkPct += x7Value;
   }
 
   if(isSmiteClass && getChecked('arcane-of-green')) {
@@ -94,7 +82,7 @@ function getSmiteFactorValue(keyword){
     const valueInput = document.getElementById(`psychoscope-factor-class-${index}-value`);
     
     const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = parseFloat(valueInput?.value) || 0;
+    const value = valueInput ? getVal(valueInput.id, 0) : 0;
 
     if (regex.test(name) && value > 0) {
       totalValue += value;
@@ -116,7 +104,7 @@ function getSmiteRealityFactorValue(keyword){
     const valueInput = document.getElementById(`psychoscope-factor-class-reality-${index}-value`);
     
     const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = parseFloat(valueInput?.value) || 0;
+    const value = valueInput ? getVal(valueInput.id, 0) : 0;
 
     if (regex.test(name) && value > 0) {
       totalValue += value;
@@ -203,7 +191,7 @@ function getInfusionEffects(){
   const effects = [];
   const x2Value = getSmiteFactorValue('x2');
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
-  const s1set = parseFloat(document.getElementById('s1-set-value').value) || 0;
+  const s1set = getVal('s1-set-value');
   if (thornbreaker) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
@@ -265,7 +253,7 @@ function getRegenBudEffects(){
 function getFeralSeedEffects(){
   const effects = [];
   const x5Value = getSmiteFactorValue('x5');
-  const s2set = parseFloat(document.getElementById('s2-set-value').value) || 0;
+  const s2set = getVal('s2-set-value');
   if(x5Value > 0){
     effects.push(['dreamDmg', `${x5Value}`]);
   }

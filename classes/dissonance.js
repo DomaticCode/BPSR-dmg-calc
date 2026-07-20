@@ -42,7 +42,7 @@ function provideDissonanceClassBonuses(stats) {
     matk += 80;
   }
 
-  if(isDissonanceClass && parseFloat(document.getElementById('s2-set-value').value) >= 2 && getChecked('in-heroic-melody')){
+  if(isDissonanceClass && getVal('s2-set-value', 0) >= 2 && getChecked('in-heroic-melody')){
     elemPct += 5;
   }
   console.log(`disso returning: ${elemPct}, ${finalLuckPct}, ${luckMult}, ${matkPct}, ${matk}`);
@@ -76,7 +76,7 @@ function getDissonanceFactorValue(keyword) {
     const applyCheckbox = document.getElementById(`psychoscope-factor-class-${index}-apply-imported`);
     
     const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = parseFloat(valueInput?.value) || 0;
+    const value = valueInput ? getVal(valueInput.id, 0) : 0;
 
     if (regex.test(name) && value > 0) {
       
@@ -106,7 +106,7 @@ function getDissonanceRealityFactorValue(keyword){
     const valueInput = document.getElementById(`psychoscope-factor-class-reality-${index}-value`);
     
     const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = parseFloat(valueInput?.value) || 0;
+    const value = valueInput ? getVal(valueInput.id, 0) : 0;
 
     if (regex.test(name) && value > 0) {
       totalValue += value;
@@ -198,7 +198,7 @@ function getAmplifiedBeatEffects(){
     ["generic","50"]
   ];
   const x1Value = getDissonanceFactorValue('x1');
-  const s1set = parseFloat(document.getElementById('s1-set-value').value) || 0;
+  const s1set = getVal('s1-set-value', 0);
   if (x1Value > 0) {
     effects.push(["dreamDmg", String(x1Value)]);
   }
@@ -213,7 +213,7 @@ function getHarmonicAnthemEffects(){
     ["generic","25"]
   ];
   const x2Value = getDissonanceFactorValue('x2');
-  const s1set = parseFloat(document.getElementById('s1-set-value').value) || 0;
+  const s1set = getVal('s1-set-value', 0);
   if (x2Value > 0) {
     effects.push(["dreamDmg", String(x2Value)]);
   }
@@ -355,7 +355,7 @@ function provideDissonanceFormulaParts(kind = 'elem') {
     if (getChecked('fire-day') && (document.getElementById('target-type')?.value === 'elite' || document.getElementById('target-type')?.value === 'boss')) parts.push(`Fire Day ${(0.08*100).toFixed(2)}%`);
     if (getChecked('s2-2-set') && getChecked('in-heroic-melody')) parts.push(`S2 2-piece ${(0.05*100).toFixed(2)}%`);
     if (getChecked('tree-x8') && getChecked('in-rhapsody')) {
-      const x8Value = parseFloat(document.getElementById('tree-x8-value').value) || 0;
+      const x8Value = getVal('tree-x8-value', 0);
       parts.push(`X8 Factor ${x8Value.toFixed(2)}%`);
     }
     // Mastery element bonus: prefer the input element if present, else leave out
