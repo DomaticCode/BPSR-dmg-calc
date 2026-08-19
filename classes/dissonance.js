@@ -313,7 +313,7 @@ function provideDissonanceSkills() {
       0
     ],
     [
-      "class",
+      "expertise",
       42,
       180,
       true,
@@ -323,7 +323,7 @@ function provideDissonanceSkills() {
       0
     ],
     [
-      "class",
+      "expertise",
       42,
       180,
       true,

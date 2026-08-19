@@ -208,7 +208,9 @@ function applyElementSelection() {
   if (parsedAttrs.AttrMastery !== undefined) document.getElementById('mastery-stat').value = parsedAttrs.AttrMastery;
   if (parsedAttrs.AttrVersatility !== undefined) document.getElementById('vers-dmg-pct').value = parsedAttrs.AttrVersatility;
 
-  const refinedAtk = parsedAttrs.AttrRefineMattack ?? parsedAttrs.AttrRefineAttackTotal;
+  const refinedAtkOrMatk = 0 + Math.max(parsedAttrs.AttrRefineMattack ?? -Infinity, parsedAttrs.AttrRefineAttack ?? -Infinity, 0);
+
+  const refinedAtk = refinedAtkOrMatk;
   if (refinedAtk !== undefined) document.getElementById('refined-atk').value = refinedAtk;
 
   let elementalAtk = 0;

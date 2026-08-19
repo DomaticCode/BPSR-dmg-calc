@@ -303,9 +303,9 @@ function calcSkill(id) {
   if (formulaEl && showFormula) {
     const typeName = skillType !== 'none' ? typeLabel[skillType] : 'Skill';
     const skipWl = effectNoWlAtk || effectNoWlMagic;
-    const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName, { skipWl }) : `${(totalGen*100).toFixed(2)}%`;
-    const baseElemStr = window._buildElemStr ? window._buildElemStr(c, specialAttackElemBonus, { skipSources: effectNoElem && isImagineType }) : `${((c.elemDmgPct + specialAttackElemBonus)*100).toFixed(2)}%`;
-    const baseDreamStr =  window._buildDreamStr ? window._buildDreamStr(c) : `${(c._dreamDmgPct*100).toFixed(2)}%`;
+    const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName, { skipWl }) : `${(totalGen*100).toFixed(3)}%`;
+    const baseElemStr = window._buildElemStr ? window._buildElemStr(c, specialAttackElemBonus, { skipSources: effectNoElem && isImagineType }) : `${((c.elemDmgPct + specialAttackElemBonus)*100).toFixed(3)}%`;
+    const baseDreamStr =  window._buildDreamStr ? window._buildDreamStr(c) : `${(c._dreamDmgPct*100).toFixed(3)}%`;
 
     const finalGenStr = (() => {
 
@@ -326,11 +326,11 @@ function calcSkill(id) {
       });
 
       if(luckEffectSkill && luckEffectBonus > 0){
-        activeComponents.push(`luck-effect ${(luckEffectBonus * 100).toFixed(2)}%`);
+        activeComponents.push(`luck-effect ${(luckEffectBonus * 100).toFixed(3)}%`);
       }
 
       if (effectGen !== 0) {
-        activeComponents.push(`generic ${(effectGen * 100).toFixed(2)}%`);
+        activeComponents.push(`generic ${(effectGen * 100).toFixed(3)}%`);
       }
 
       let resultStr = activeComponents.join(' + ');
@@ -342,7 +342,7 @@ function calcSkill(id) {
       if (effectNoWlRanged) currentTotal -= (c._wlRanged || 0);
       
       if (activeComponents.length > 1) {
-        resultStr += ` = ${(currentTotal * 100).toFixed(2)}%`;
+        resultStr += ` = ${(currentTotal * 100).toFixed(3)}%`;
       } else if (activeComponents.length === 0) {
         resultStr = `0.00%`;
       }
@@ -360,21 +360,21 @@ function calcSkill(id) {
       let result = baseElemStr;
       if (effectElem !== 0) {
         if (result.includes('=')) {
-          result = result.replace(/= \d+\.\d+%$/, '') + ` + elem ${(effectElem*100).toFixed(2)}% = ${(originalElem*100).toFixed(2)}%`;
+          result = result.replace(/= \d+\.\d+%$/, '') + ` + elem ${(effectElem*100).toFixed(3)}% = ${(originalElem*100).toFixed(3)}%`;
         } else {
-          result = `${result} + elem ${(effectElem*100).toFixed(2)}% = ${(originalElem*100).toFixed(2)}%`;
+          result = `${result} + elem ${(effectElem*100).toFixed(3)}% = ${(originalElem*100).toFixed(3)}%`;
         }
       }
       if (ignoreThorns && !effectNoElem && thornPct) {
         if (result.includes('=')) {
-          result = result.replace(/= \d+\.\d+%$/, '') + ` - thorn ${(thornPct*100).toFixed(2)}% = ${(finalElemDmgPct*100).toFixed(2)}%`;
+          result = result.replace(/= \d+\.\d+%$/, '') + ` - thorn ${(thornPct*100).toFixed(3)}% = ${(finalElemDmgPct*100).toFixed(3)}%`;
         } else {
-          result = `${result} - thorn ${(thornPct*100).toFixed(2)}% = ${(finalElemDmgPct*100).toFixed(2)}%`;
+          result = `${result} - thorn ${(thornPct*100).toFixed(3)}% = ${(finalElemDmgPct*100).toFixed(3)}%`;
         }
       }
       if (effectNoElem) {
-        if (!result.includes('=')) result += ` = ${(originalElem*100).toFixed(2)}%`;
-        result += ` - no-elem ${(originalElem*100).toFixed(2)}% = 0%`;
+        if (!result.includes('=')) result += ` = ${(originalElem*100).toFixed(3)}%`;
+        result += ` - no-elem ${(originalElem*100).toFixed(3)}% = 0%`;
       }
       return result;
     })();
@@ -382,23 +382,23 @@ function calcSkill(id) {
       let result = baseDreamStr;
       if (effectDream !== 0) {
         if (result.includes('=')) {
-          result = result.replace(/= \d+\.\d+%$/, '') + ` + seasonal ${(effectDream*100).toFixed(2)}% = ${(originalDream*100).toFixed(2)}%`;
+          result = result.replace(/= \d+\.\d+%$/, '') + ` + seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
         } else {
-          result = `${result} + seasonal ${(effectDream*100).toFixed(2)}% = ${(originalDream*100).toFixed(2)}%`;
+          result = `${result} + seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
         }
       }
       if (effectNoDream) {
-        if (!result.includes('=')) result += ` = ${(originalDream*100).toFixed(2)}%`;
-        result += ` - no-seasonal-dmg ${(originalDream*100).toFixed(2)}% = 0%`;
+        if (!result.includes('=')) result += ` = ${(originalDream*100).toFixed(3)}%`;
+        result += ` - no-seasonal-dmg ${(originalDream*100).toFixed(3)}% = 0%`;
       }
       return result;
     })();
     const critRateText = effectCritChance !== 0
-      ? `${(c.critRatePct*100).toFixed(2)}% + ${(effectCritChance*100).toFixed(2)}% = ${(finalCritRatePct*100).toFixed(2)}%`
-      : `${(c.critRatePct*100).toFixed(2)}%`;
+      ? `${(c.critRatePct*100).toFixed(3)}% + ${(effectCritChance*100).toFixed(3)}% = ${(finalCritRatePct*100).toFixed(3)}%`
+      : `${(c.critRatePct*100).toFixed(3)}%`;
     const critMultText = effectCritDmg !== 0
-      ? `${(c.critMultPct*100).toFixed(2)}% + ${(effectCritDmg*100).toFixed(2)}% = ${(finalCritMult*100).toFixed(2)}%`
-      : `${(c.critMultPct*100).toFixed(2)}%`;
+      ? `${(c.critMultPct*100).toFixed(3)}% + ${(effectCritDmg*100).toFixed(3)}% = ${(finalCritMult*100).toFixed(3)}%`
+      : `${(c.critMultPct*100).toFixed(3)}%`;
     const magText = (() => {
       let baseMag = 0;
       if(luckEffectSkill){
@@ -406,36 +406,36 @@ function calcSkill(id) {
       } else{
         baseMag = (c._magBoost || 0) * 100;
       }
-      let parts = [`${baseMag.toFixed(2)}%`];
+      let parts = [`${baseMag.toFixed(3)}%`];
       if (effectMagBoost !== 0) {
-        parts.push(`${(effectMagBoost * 100).toFixed(2)}% effect`);
+        parts.push(`${(effectMagBoost * 100).toFixed(3)}% effect`);
       }
       if (typeof wlExpMagPct !== 'undefined' && wlExpMagPct > 0) {
-        parts.push(`${(wlExpMagPct * 100).toFixed(2)}% WL`);
+        parts.push(`${(wlExpMagPct * 100).toFixed(3)}% WL`);
       }
       let result = parts.join(' + ');
       if (parts.length > 1) {
-        result += ` = ${(originalMag * 100).toFixed(2)}%`;
+        result += ` = ${(originalMag * 100).toFixed(3)}%`;
       }
       if (effectNoMagBoost) {
-        if (!result.includes('=')) result += ` = ${(originalMag * 100).toFixed(2)}%`;
-        result += ` - no-mag ${(originalMag * 100).toFixed(2)}% = 0%`;
+        if (!result.includes('=')) result += ` = ${(originalMag * 100).toFixed(3)}%`;
+        result += ` - no-mag ${(originalMag * 100).toFixed(3)}% = 0%`;
       }
 
       return result;
     })();
-    const otherText = `${(effectOtherScaler*100).toFixed(2)}%`;
+    const otherText = `${(effectOtherScaler*100).toFixed(3)}%`;
     const otherLine = effectOtherScaler !== 0
       ? `x <span class="forange">(1+Other: ${otherText})</span>\n`
       : '';
     const finalDmgLine = finalDmgPct !== 0
-      ? `x <span class="ffinal">(1+Final: ${(finalDmgPct*100).toFixed(2)}%)</span>\n`
+      ? `x <span class="ffinal">(1+Final: ${(finalDmgPct*100).toFixed(3)}%)</span>\n`
       : '';
     const skillResLabel = skillDamageType === 'physical' 
       ? `${(c._physRes*100).toFixed(1)}%` 
       : (skillDamageType === 'magical' ? (c._magResEnabled ? '8%' : '0%') : c._resLabel);
     const dmgTypeNote = skillDamageType ? ` (${skillDamageType.toUpperCase()})` : '';
-    const versPctText = effectNoVers ? `${(originalVers*100).toFixed(2)}% - no-vers ${(originalVers*100).toFixed(2)}% = 0%` : `${(originalVers*100).toFixed(2)}%`;
+    const versPctText = effectNoVers ? `${(originalVers*100).toFixed(3)}% - no-vers ${(originalVers*100).toFixed(3)}% = 0%` : `${(originalVers*100).toFixed(3)}%`;
 
     formulaEl.style.display = '';
     const refElemSegment = effectNoElemAtk
@@ -444,7 +444,7 @@ function calcSkill(id) {
 
     formulaEl.innerHTML =
       `<span class="fb">${typeName}${dmgTypeNote}:</span> ` +
-      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">x(1-${skillResLabel})</span> + ${refElemSegment} ) x <span class="fwhite">${(mult*100).toFixed(2)}%</span> + <span class="fwhite">${flat}</span>\n` +
+      `<span class="fwhite">(</span> <span class="fb">${atkLabel}</span><span class="fwhite">x(1-${skillResLabel})</span> + ${refElemSegment} ) x <span class="fwhite">${(mult*100).toFixed(3)}%</span> + <span class="fwhite">${flat}</span>\n` +
       `x <span class="fvers">(1+Vers: ${versPctText})</span>\n` +
       `${!(effectNoElem && isImagineType) ? `x <span class="felem">(1+Elem: ${finalElemStr})</span>\n` : ''}` +
       `x <span class="fg">(1+Gen: ${finalGenStr})</span>\n` +
