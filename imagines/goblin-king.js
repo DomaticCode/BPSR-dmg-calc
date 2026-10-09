@@ -1,7 +1,7 @@
 (function(){
 
   // Only passive versatility implemented.
-  const GOBLIN_KING_PASSIVE_VERSATILITY_STAT = [8960, 11648, 14336, 17024, 19712, 22400];
+  const GOBLIN_KING_PASSIVE_VERSATILITY_STAT = [35840, 46592, 57344, 68096, 78848, 89600];
   // Chance to succeed extra summons. Step 2 is SGK/JGW (since it rolls before step 3 SGW/JGW)
   const TIER_DATA = {
     0: { step2Chance: 0.40, step3Chance: 0.60 },

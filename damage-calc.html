@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
-<link rel="stylesheet" href="styles.css">
+<!-- Increment this asset revision when deploying updated static assets. -->
+<link rel="stylesheet" href="styles.css?v=20261008-1">
 <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
 <link rel="shortcut icon" href="favicon/favicon.ico" />
@@ -21,7 +22,7 @@
       </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
       <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v1.0.2</span>
+      <span class="header-version">v2.0.0</span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -132,25 +133,13 @@
       </select>
     </div>
     <div class="field">
-      <label>Oblivion
-        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Seasonal Damage for self and allies<br>2% main stat is a node for self and allies with ~50% uptime.<br>3% All Element is self buff.</span></span>
-      </label>
-      <select id="oblivion-buff" onchange="calc()">
+      <label>Inspiring Chant</label>
+      <select id="inspiring-chant" onchange="calc()">
         <option value="none">None</option>
-        <option value="ob">10% DMG</option>
-        <option value="ob-ms">10% DMG, +2% MS</option>
-        <option value="ob-ae" class="ob-self">10% DMG, +3% AE</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Endless Mind</label>
-      <select id="endless-mind" onchange="calc()">
-        <option value="none">None</option>
-        <option value="em">4% mastery, 2% main stat</option>
-        <option value="em-dbl">8% mastery, 4% main stat</option>
-        <option value="em-self" class="em-self">(basic) 6% mastery, 3% main stat </option>
-        <option value="em-self-1" class="em-self">(self) 8% mastery, 4% main stat </option>
-        <option value="em-self-1-dbl" class="em-self">(self) 16% mastery, 8% main stat </option>
+        <option value="3">3% seasonal</option>
+        <option value="8">8% seasonal</option>
+        <option value="9.05">9.05% seasonal</option>
+        <option value="9.5">9.5% seasonal</option>
       </select>
     </div>
   </div>
@@ -223,7 +212,7 @@
 
 
           <!-- Substats -->
-          <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+50000)+base%. Versatility uses Stat/(Stat+28000)+base%.</span></span></div>
+          <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span id="substats-tip" class="tip-box">All substats: Stat/(Stat+200000)+base%. Versatility uses Stat/(Stat+112000)+base%.</span></span></div>
           <div style="display:grid; grid-template-columns:1fr 56px 18px 72px; gap:6px; margin-bottom:4px; padding:0 0 2px 0;">
             <div style="font-size:10px;color:var(--text-muted);"></div>
             <div style="font-size:10px;color:var(--text-muted);text-align:right;">Base%</div>
@@ -345,7 +334,7 @@
           <div class="input-row">
             <div class="field"><label><span class="dot dot-cyan"></span>Elemental DMG % from Mastery</label><input type="number" id="mastery-elem-dmg-pct" value="0" readonly></div>
             <div class="field"><label><span class="dot dot-cyan"></span>Additional Elemental DMG % </label><input type="number" id="elem-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
-            <div class="field"><label><span class="dot dot-cyan"></span>All Element <span class="tip"><span class="tip-icon">i</span><span class="tip-box">All Element + XXX, Not to be confused with Elemental ATK.<br>This is obtained by generic factor X1, Element serums, and some modules.</span></span></label><input type="number" id="elem-power" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-cyan"></span>All Element <span class="tip"><span class="tip-icon">i</span><span class="tip-box">All Element + XXX, Not to be confused with Elemental ATK.<br>This is obtained by class factor X1, Element serums, and some modules.</span></span></label><input type="number" id="elem-power" value="0" oninput="calc()"></div>
           </div>
           <div class="input-row">
             <div class="field"><label><span class="dot dot-green"></span>Elite DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Applies vs Elite and Boss targets only. Stacks additively with Other Generic DMG%.</span></span></label><input type="number" id="elite-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
@@ -409,46 +398,7 @@
     <div class="center-col">
       <div class="two-col-layout">
         <div class="sub-col">
-          <!-- Stats Panel -->
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Stats Panel</h2>
-            </div>
-            <div class="panel-body">
-              <div class="lucky-panel-grid" style="margin-bottom:8px;">
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label" id="s-atk-matk-label">ATK/MATK</div>
-                  <div class="lucky-stat-value" id="s-atk-matk">—</div>
-                </div>
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Crit Chance</div>
-                  <div class="lucky-stat-value crit" id="s-crit-chance">—</div>
-                </div>
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Crit Damage</div>
-                  <div class="lucky-stat-value crit" id="s-crit-dmg">—</div>
-                </div>
-              </div>
-              <div class="lucky-panel-grid" style="margin-bottom:8px;">
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Lucky Chance</div>
-                  <div class="lucky-stat-value luck" id="s-lucky-chance">—</div>
-                </div>
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Lucky Strike Hit</div>
-                  <div class="lucky-stat-value luck" id="ls-normal">—</div>
-                </div>
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Lucky Strike Crit</div>
-                  <div class="lucky-stat-value crit" id="ls-crit">—</div>
-                </div>
-                <div class="lucky-stat-box">
-                  <div class="lucky-stat-label">Lucky Average (w/ crit)</div>
-                  <div class="lucky-stat-value avg" id="ls-avg">—</div>
-                </div>
-              </div>
-            </div>
-          </div>
+         
 
 
           <div class="panel">
@@ -457,19 +407,18 @@
               <div class="input-row single" style="margin-bottom:10px;">
                 <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
                   <option value="none">None</option>
-                  <option value="dreamforce">Dreamforce</option>
-                  <option value="fantasia-impact">Fantasia Impact</option>
-                  <option value="endless-mind">Endless Mind</option>
-                  <option value="oblivion">Oblivion</option>
+                  <option value="boilerplate">Boilerplate</option>
+                  <option value="stat-symphony">Stat Symphony</option>
+                  <option value="momentum-burst">Momentum Burst</option>
                 </select></div>
               </div>
 
               <div id="psychoscope-options" style="display:none;">
-                <div id="psychoscope-dreamforce-options" style="display:none;"></div>
-                <div id="psychoscope-fantasia-options" style="display:none;"></div>
-                <div id="psychoscope-endless-mind-options" style="display:none;"></div>
-                <div id="psychoscope-oblivion-options" style="display:none;"></div>
+                <div id="psychoscope-boilerplate-options" style="display:none;"></div>
+                <div id="psy-symphony-options" style="display:none;"></div>
+                <div id="psy-burst-options" style="display:none;"></div>
               </div>
+              <div id="psychoscope-optional-inputs"></div>
 
               <!-- Populated by initFactorsShell()/updateFactors() in psychoscope-tree.js.
                   Hidden whenever no tree is selected. -->
@@ -520,14 +469,14 @@
                         <div class="module-option" data-value="predator-spider">Predator Spider</div>
                         <div class="module-option" data-value="rorola">Rorola</div>
                         <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
-                        <div class="module-option" data-value="shell-picking-acolyte">Shell Picking Acolyte</div>
+                        <div class="module-option" data-value="shell-gathering-cultist">Shell-Gathering Cultist</div>
                         <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
                         <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
                         <div class="module-option" data-value="void-watcher">Void Watcher</div>
-                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                        <div class="module-option" data-value="wandering-traveler">Wandering Traveler</div>
                         <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
                       </div>
                     </div>
@@ -590,14 +539,14 @@
                         <div class="module-option" data-value="predator-spider">Predator Spider</div>
                         <div class="module-option" data-value="rorola">Rorola</div>
                         <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
-                        <div class="module-option" data-value="shell-picking-acolyte">Shell Picking Acolyte</div>
+                        <div class="module-option" data-value="shell-gathering-cultist">Shell-Gathering Cultist</div>
                         <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
                         <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
                         <div class="module-option" data-value="void-watcher">Void Watcher</div>
-                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                        <div class="module-option" data-value="wandering-traveler">Wandering Traveler</div>
                       </div>
                     </div>
                   </div>
@@ -641,9 +590,6 @@
                 <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
                 <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
                 <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
-                <div id="imagine-note-shell-picking-acolyte" style="display:none;"><span class="hl">Shell Picking Acolyte:</span> S4 imagine. Inferring stat values from other similar imagines. Do not read too far into this, mostly just setting it up for when I get access to S4 server.</div>
-                <div id="imagine-note-wandering-vagrant" style="display:none;"><span class="hl">Wandering Vagrant:</span> S4 imagine. Inferring stat values from other similar imagines. Do not read too far into this, mostly just setting it up for when I get access to S4 server.</div>
-                <div id="imagine-note-sunfire-moonstrike" style="display:none;"><span class="hl">Sunfire Moonstrike:</span> S4 imagine. Extremely experimental. Mostly placeholder till I get access to S4 server.</div>
               </div>
             </div>
           </div>
@@ -692,6 +638,47 @@
   </div>
   <!-- RIGHT SIDEBAR (skills / utilities) -->
     <div class="right-sidebar">
+                 <!-- Stats Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Stats Panel</h2>
+            </div>
+            <div class="panel-body">
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label" id="s-atk-matk-label">ATK/MATK</div>
+                  <div class="lucky-stat-value" id="s-atk-matk">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Chance</div>
+                  <div class="lucky-stat-value crit" id="s-crit-chance">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Damage</div>
+                  <div class="lucky-stat-value crit" id="s-crit-dmg">—</div>
+                </div>
+              </div>
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Chance</div>
+                  <div class="lucky-stat-value luck" id="s-lucky-chance">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Hit</div>
+                  <div class="lucky-stat-value luck" id="ls-normal">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Crit</div>
+                  <div class="lucky-stat-value crit" id="ls-crit">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Average (w/ crit)</div>
+                  <div class="lucky-stat-value avg" id="ls-avg">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
       <div class="panel">
         <div class="panel-header"><h2>Damage Summary</h2></div>
         <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
@@ -731,70 +718,69 @@
     </div>
 </div>
 
-<script src="constants.js"></script>
-<script src="import_modal.js"></script>
-<script src="base_main_stat_modal.js"></script>
-<script src="modules_calc.js"></script>
+<script src="constants.js?v=20261008-1"></script>
+<script src="import_modal.js?v=20261008-1"></script>
+<script src="base_main_stat_modal.js?v=20261008-1"></script>
+<script src="modules_calc.js?v=20261008-1"></script>
 <!-- Classes -->
-<script src="classes/smite.js"></script>
-<script src="classes/dissonance.js"></script>
-<script src="classes/stormblade.js"></script>
-<script src="classes/marksman.js"></script>
-<script src="classes/windknight.js"></script>
-<script src="classes/heavyguardian.js"></script>
-<script src="classes/shieldknight.js"></script>
-<script src="classes/frostmage.js"></script>
-<script src="classes/twinaxe.js"></script>
-<script src="util.js"></script>
+<script src="classes/smite.js?v=20261008-1"></script>
+<script src="classes/dissonance.js?v=20261008-1"></script>
+<script src="classes/stormblade.js?v=20261008-1"></script>
+<script src="classes/marksman.js?v=20261008-1"></script>
+<script src="classes/windknight.js?v=20261008-1"></script>
+<script src="classes/heavyguardian.js?v=20261008-1"></script>
+<script src="classes/shieldknight.js?v=20261008-1"></script>
+<script src="classes/frostmage.js?v=20261008-1"></script>
+<script src="classes/twinaxe.js?v=20261008-1"></script>
+<script src="util.js?v=20261008-1"></script>
 <!-- Imagines -->
-<script src="imagines/muku-scout.js"></script>
-<script src="imagines/muku-chief.js"></script>
-<script src="imagines/flamehorn.js"></script>
-<script src="imagines/rorola.js"></script>
-<script src="imagines/airona.js"></script>
-<script src="imagines/tina.js"></script>
-<script src="imagines/tatta.js"></script>
-<script src="imagines/dorothy.js"></script>
-<script src="imagines/celestial-flier.js"></script>
-<script src="imagines/phantom-arachnocrab.js"></script>
-<script src="imagines/blackfire-foxen.js"></script>
-<script src="imagines/emerald-caprahorn.js"></script>
-<script src="imagines/bluespine-lizard.js"></script>
-<script src="imagines/shadow-captain.js"></script>
-<script src="imagines/boarrier-tyrant.js"> </script>
-<script src="imagines/inferno-goblin-mage.js"></script>
-<script src="imagines/brigand-scout-leader.js"></script>
-<script src="imagines/jungle-goblin-warrior.js"></script>
-<script src="imagines/goblin-king.js"></script>
-<script src="imagines/lizardman-hunter.js"></script>
-<script src="imagines/goblin-warrior.js"></script>
-<script src="imagines/storm-goblin-king.js"></script>
-<script src="imagines/goblin-chief.js"></script>
-<script src="imagines/muku-warrior.js"></script>
-<script src="imagines/fafala.js"></script>
-<script src="imagines/olvera.js"></script>
-<script src="imagines/bloodthirsty-furball.js"></script>
-<script src="imagines/boyce.js"></script>
-<script src="imagines/void-bzzar.js"></script>
-<script src="imagines/void-watcher.js"></script>
-<script src="imagines/wandering-vagrant.js"></script>
-<script src="imagines/predator-spider.js"></script>
-<script src="imagines/igoreus.js"></script>
-<script src="imagines/shell-picking-acolyte.js"></script>
-<script src="imagines/kartgriff.js"></script>
-<script src="imagines/lucy.js"></script>
-<script src="imagines/sunfire-moonstrike.js"></script>
-<script src="imagines/natsu.js"></script>
-<!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
+<script src="imagines/muku-scout.js?v=20261008-1"></script>
+<script src="imagines/muku-chief.js?v=20261008-1"></script>
+<script src="imagines/flamehorn.js?v=20261008-1"></script>
+<script src="imagines/rorola.js?v=20261008-1"></script>
+<script src="imagines/airona.js?v=20261008-1"></script>
+<script src="imagines/tina.js?v=20261008-1"></script>
+<script src="imagines/tatta.js?v=20261008-1"></script>
+<script src="imagines/dorothy.js?v=20261008-1"></script>
+<script src="imagines/celestial-flier.js?v=20261008-1"></script>
+<script src="imagines/phantom-arachnocrab.js?v=20261008-1"></script>
+<script src="imagines/blackfire-foxen.js?v=20261008-1"></script>
+<script src="imagines/emerald-caprahorn.js?v=20261008-1"></script>
+<script src="imagines/bluespine-lizard.js?v=20261008-1"></script>
+<script src="imagines/shadow-captain.js?v=20261008-1"></script>
+<script src="imagines/boarrier-tyrant.js?v=20261008-1"> </script>
+<script src="imagines/inferno-goblin-mage.js?v=20261008-1"></script>
+<script src="imagines/brigand-scout-leader.js?v=20261008-1"></script>
+<script src="imagines/jungle-goblin-warrior.js?v=20261008-1"></script>
+<script src="imagines/goblin-king.js?v=20261008-1"></script>
+<script src="imagines/lizardman-hunter.js?v=20261008-1"></script>
+<script src="imagines/goblin-warrior.js?v=20261008-1"></script>
+<script src="imagines/storm-goblin-king.js?v=20261008-1"></script>
+<script src="imagines/goblin-chief.js?v=20261008-1"></script>
+<script src="imagines/muku-warrior.js?v=20261008-1"></script>
+<script src="imagines/fafala.js?v=20261008-1"></script>
+<script src="imagines/olvera.js?v=20261008-1"></script>
+<script src="imagines/bloodthirsty-furball.js?v=20261008-1"></script>
+<script src="imagines/boyce.js?v=20261008-1"></script>
+<script src="imagines/void-bzzar.js?v=20261008-1"></script>
+<script src="imagines/void-watcher.js?v=20261008-1"></script>
+<script src="imagines/wandering-traveler.js?v=20261008-1"></script>
+<script src="imagines/predator-spider.js?v=20261008-1"></script>
+<script src="imagines/igoreus.js?v=20261008-1"></script>
+<script src="imagines/shell-gathering-cultist.js?v=20261008-1"></script>
+<script src="imagines/kartgriff.js?v=20261008-1"></script>
+<script src="imagines/lucy.js?v=20261008-1"></script>
+<script src="imagines/sunfire-moonstrike.js?v=20261008-1"></script>
+<script src="imagines/natsu.js?v=20261008-1"></script>
+<!-- <script src="imagines/brigand-leader.js?v=20261008-1"></script> not ready yet, was here for testing -->
 <!-- Psychoscope Trees -->
-<script src="psychoscope/psychoscope-tree.js"></script>
-<script src="psychoscope/dreamforce.js"></script>
-<script src="psychoscope/fantasia-impact.js"></script>
-<script src="psychoscope/endless-mind.js"></script>
-<script src="psychoscope/oblivion.js"></script>
+<script src="psychoscope/psychoscope-tree.js?v=20261008-1"></script>
+<script src="psychoscope/boilerplate.js?v=20261008-1"></script>
+<script src="psychoscope/stat-symphony.js?v=20261008-1"></script>
+<script src="psychoscope/momentum-burst.js?v=20261008-1"></script>
 <!-- final stat values and damage calculation -->
-<script src="calc.js"></script>
-<script src="calc_skill.js"></script>
+<script src="calc.js?v=20261008-1"></script>
+<script src="calc_skill.js?v=20261008-1"></script>
 <script>
   let damageType = 'physical';
   let magResEnabled = true;
@@ -804,7 +790,7 @@
   let moduleCount = 0;
   let modules = [];
   let weaponLineEffectCount = 0;
-  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v1.0.2';
+  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v2.0.0';
   let optimizerBackup = null;
   let optimizerDone = false;
   let optimizingSubstats = false;
@@ -812,6 +798,8 @@
   let pendingPsychoscopeState = null;
 
   let atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
+
+  document.getElementById('substats-tip').textContent = `All substats: Stat/(Stat+${STAT_SCALER})+base%. Versatility uses Stat/(Stat+${VERS_SCALER})+base%.`
 
 
 
@@ -853,14 +841,14 @@
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
     'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 
-    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-vagrant', 'void-watcher', 'predator-spider', 'igoreus', 'shell-picking-acolyte', 'kartgriff', 'sunfire-moonstrike'];
+    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-traveler', 'void-watcher', 'predator-spider', 'igoreus', 'shell-gathering-cultist', 'kartgriff', 'sunfire-moonstrike'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stacks input only for Rorola
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
     if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce' || val === 'igoreus' || val === 'sunfire-moonstrike') ? '' : 'none';
     // Show passive stats checkbox for passive stats imagines
-    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'shell-picking-acolyte', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-vagrant', 'airona', 
+    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'shell-gathering-cultist', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-traveler', 'airona', 
     'boyce', 'dorothy', 'fafala', 'olvera', 'rorola', 'tina', 'tatta', 'kartgriff', 'lucy', 'natsu'];
     const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
     if (passiveField) passiveField.style.display = passiveFieldImagines.includes(val) ? '' : 'none';
@@ -870,7 +858,7 @@
     
     updateImagineNotes();
     if (!isApplyingSetupState) updateImagineSkills();
-    persistCurrentState();
+    if (!isApplyingSetupState) persistCurrentState();
   }
 
   function updateImagineNotes() {
@@ -893,12 +881,9 @@
       'jungle-goblin-warrior',
       'goblin-king',
       'storm-goblin-king',
-      'wandering-vagrant',
-      'shell-picking-acolyte',
       'kartgriff',
       'lucy',
       'natsu',
-      'sunfire-moonstrike'
     ];
 
     let hasAnyNote = false;
@@ -1175,45 +1160,21 @@
   function onPsychoscopeChange() {
     const select = document.getElementById('psychoscope-tree');
     const options = document.getElementById('psychoscope-options');
-    const df = document.getElementById('psychoscope-dreamforce-options');
-    const fi = document.getElementById('psychoscope-fantasia-options');
-    const em = document.getElementById('psychoscope-endless-mind-options');
-    const ob = document.getElementById('psychoscope-oblivion-options');
-    const endlessMind = document.getElementById('endless-mind');
-    const oblivion = document.getElementById('oblivion-buff');
-
-    if (!select || !options || !df || !fi || !em || !endlessMind || !ob) return;
+    if (!select || !options) return;
 
     const treeKey = TREE_SELECT_VALUE_MAP?.[select.value] || null;
     const config = treeKey ? PSYCHOSCOPE_TREES?.[treeKey] : null;
 
     options.style.display = select.value === 'none' ? 'none' : '';
-    df.style.display = select.value === 'dreamforce' ? '' : 'none';
-    fi.style.display = select.value === 'fantasia-impact' ? '' : 'none';
-    em.style.display = select.value === 'endless-mind' ? '' : 'none';
-    ob.style.display = select.value === 'oblivion' ? '' : 'none';
 
-    const isEndlessMind = select.value === 'endless-mind';
-    const emSelfOptions = endlessMind.querySelectorAll('.em-self');
-    const isOblivion = select.value === 'oblivion';
-    const obAeOptions = oblivion.querySelectorAll('.ob-self');
-
-    emSelfOptions.forEach(opt => {
-      opt.style.display = isEndlessMind ? '' : 'none';
+    // Every tree's compact-trigger box already exists in the DOM (rendered
+    // once by initPsychoscopeTrees()) — only the one matching the current
+    // dropdown value should be visible. Looping PSYCHOSCOPE_TREES here means
+    // adding a new tree never requires touching this function again.
+    Object.values(PSYCHOSCOPE_TREES).forEach(cfg => {
+      const el = document.getElementById(cfg.containerId);
+      if (el) el.style.display = (config && cfg.containerId === config.containerId) ? '' : 'none';
     });
-    obAeOptions.forEach(opt => {
-      opt.style.display = isOblivion ? '' : 'none';
-    });
-
-    // Reset invalid selection (swapping off Endless Mind/oblivion)
-    if (!isEndlessMind && endlessMind.value.includes('self')) {
-      endlessMind.value = 'none';
-    }
-    if (!isOblivion && oblivion.value.includes('ae')) {
-      oblivion.value = 'none';
-    } else if (lastTree === 'oblivion' && !isOblivion) { // reset oblivion when swapping off oblivion
-      oblivion.value = 'none';
-    }
 
     lastTree = select.value;
 
@@ -1396,10 +1357,10 @@
     copyTextToClipboard(text, statusMessage, x, y);
   }
 
-  function resetAll() {
+  function resetAll(message = 'All fields reset to defaults.') {
     localStorage.removeItem(LOCAL_STORAGE_STATE_KEY);
-    setStatus('All fields reset to defaults.', false);
-    // Keep profiles intact; reload to apply HTML default values.
+    setStatus(message, false);
+    // Reload to apply HTML default values; loadProfiles discards pre-v2 profiles.
     location.reload();
   }
 
@@ -1409,7 +1370,19 @@
     if (raw) {
       try { profiles = JSON.parse(raw) || {}; } catch (e) { console.warn('Failed to parse profiles', e); }
     }
-    return profiles;
+    if (!isSetupRecord(profiles)) return {};
+
+    const currentProfiles = Object.fromEntries(Object.entries(profiles).filter(([, profile]) => {
+      const state = profile?.data || profile;
+      return isSetupRecord(state) &&
+        typeof state.version === 'string' &&
+        /^v\d+\.\d+\.\d+$/.test(state.version) &&
+        compareVersion(state.version, SAVE_FORMAT_VERSION) >= 0;
+    }));
+    if (Object.keys(currentProfiles).length !== Object.keys(profiles).length) {
+      saveProfiles(currentProfiles);
+    }
+    return currentProfiles;
   }
 
   function saveProfiles(profiles) {
@@ -1452,7 +1425,7 @@
     const tryRestore = () => {
       if (!pendingPsychoscopeState) return;
       const treeSelect = document.getElementById('psychoscope-tree');
-      const factorNameInput = document.getElementById('psychoscope-factor-generic-1-name');
+      const factorNameInput = document.getElementById('psychoscope-factor-class-1-name');
       console.log('[psychoscope] trying queued restore', { hasTreeSelect: !!treeSelect, hasFactorNameInput: !!factorNameInput, pendingState: pendingPsychoscopeState });
       if (treeSelect && factorNameInput && typeof applyPsychoscopeSaveState === 'function') {
         applyPsychoscopeSaveState(pendingPsychoscopeState);
@@ -1479,6 +1452,7 @@
       }
     } catch (e) {
       console.warn('failed to load persisted state', e);
+      setStatus(`Failed to load saved settings: ${e.message}`, true);
     }
   }
 
@@ -1511,8 +1485,12 @@
     const profile = profiles[name];
     if (!profile) return setStatus(`Profile '${name}' not found`, true);
 
-    applySetupState(profile.data || profile); // Backward compatibility
-    setStatus(`Profile '${name}' loaded`, false);
+    try {
+      applySetupState(profile.data || profile);
+      setStatus(`Profile '${name}' loaded`, false);
+    } catch (e) {
+      setStatus(`Failed to load profile '${name}': ${e.message}`, true);
+    }
   }
 
   function deleteSelectedProfile() {
@@ -1530,56 +1508,38 @@
     setStatus(`Profile '${name}' deleted`, false);
   }
 
-  function getSetupState() {
-
-    const values = SAVE_FIELD_ORDER.map(id => {
-      if (id === 'damageType') return damageType;
-      if (id === 'PhysResEnabled') return physResEnabled ? 1 : 0;
-      if (id === 'magResEnabled') return magResEnabled ? 1 : 0;
+  function getSetupFieldValues(fieldIds) {
+    return Object.fromEntries(fieldIds.map(id => {
+      if (id === 'damageType') return [id, damageType];
+      if (id === 'PhysResEnabled') return [id, physResEnabled ? 1 : 0];
+      if (id === 'magResEnabled') return [id, magResEnabled ? 1 : 0];
       const el = document.getElementById(id);
-      if (!el) return '';
+      if (!el) return [id, ''];
       if (el.type === 'checkbox' || el.type === 'radio') {
-        return el.checked ? 1 : 0;
+        return [id, el.checked ? 1 : 0];
       }
       const val = el.value;
-      if (val === '' || val === null || val === undefined) return '';
+      if (val === '' || val === null || val === undefined) return [id, ''];
       const num = Number(val);
-      return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
-    });
+      return [id, !Number.isNaN(num) && String(val).trim() !== '' ? num : val];
+    }));
+  }
 
-    const skillsState = getSkillsState();
+  function getSetupState() {
+    const classSelect = document.getElementById('class-select');
+    const selectedClass = classSelect ? classSelect.value : 'none';
+    const classFieldIds = CLASS_FIELD_IDS[selectedClass] || [];
 
     const modulesState = [];
     document.querySelectorAll('#modules-list .module-card').forEach(card => {
       const id = card.id.replace('module-card-', '');
       const levelEl = document.getElementById(`module-level-${id}`);
-      const selectedModule = card.dataset.selectedModule || '';
-      
-      modulesState.push([
-        selectedModule,
-        levelEl ? Number(levelEl.value) || 0 : 0
-      ]);
+      modulesState.push({
+        module: card.dataset.selectedModule || '',
+        level: levelEl ? Number(levelEl.value) || 0 : 0
+      });
     });
 
-    const weaponLineEffectsState = getWeaponLineEffectState();
-
-    // Get class-specific fields
-    const classSelect = document.getElementById('class-select');
-    const selectedClass = classSelect ? classSelect.value : 'none';
-    const classFieldOrder = CLASS_FIELDS_ORDER[selectedClass] || [];
-    const classValues = classFieldOrder.map(id => {
-      const el = document.getElementById(id);
-      if (!el) return '';
-      if (el.type === 'checkbox' || el.type === 'radio') {
-        return el.checked ? 1 : 0;
-      }
-      const val = el.value;
-      if (val === '' || val === null || val === undefined) return '';
-      const num = Number(val);
-      return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
-    });
-
-    // Get imagine state
     const imagineState = [];
     for (let slot = 1; slot <= 2; slot++) {
       const imagine = document.getElementById(`imagine-${slot}`).value;
@@ -1590,47 +1550,33 @@
       const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
       const passiveStats = passiveStatsEl ? passiveStatsEl.checked : false;
       
-      imagineState.push([
-        imagine,
-        level,
-        mode,
-        stacks,
-        passiveStats
-      ]);
+      imagineState.push({ slot, imagine, level, mode, stacks, passiveStats });
     }
 
-    // We split class and psychoscope tree to decrease export length by just exporting relevant fields
     const psychoscopeState = typeof getPsychoscopeSaveState === 'function'
       ? getPsychoscopeSaveState()
-      : { tree: selectedTree, values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
-    const psychoscopeSection = {};
-    PSYCHOSCOPE_SAVE_FIELD_ORDER.forEach(key => {
-      if (key === 'tree') {
-        psychoscopeSection[key] = psychoscopeState.tree || 'none';
-      } else if (key === 'values') {
-        psychoscopeSection[key] = psychoscopeState.values || {};
-      } else if (key === 'factors') {
-        psychoscopeSection[key] = psychoscopeState.factors || { generic: [], class: [], 'class-reality': [] };
-      }
-    });
+      : { tree: selectedTree, values: {}, optionalInputs: {}, factors: { class: [], singularity: [], defensive: [] } };
 
     return {
-      vers: SAVE_FORMAT_VERSION,
-      v: values,
-      s: skillsState,
-      m: modulesState,
-      w: weaponLineEffectsState,
-      i: imagineState,
-      c: selectedClass,
-      cf: classValues,
-      p: psychoscopeSection
+      version: SAVE_FORMAT_VERSION,
+      character: {
+        fields: getSetupFieldValues(SAVE_FIELD_IDS),
+        class: {
+          id: selectedClass,
+          values: getSetupFieldValues(classFieldIds)
+        },
+        psychoscope: {
+          tree: psychoscopeState.tree || 'none',
+          values: psychoscopeState.values || {},
+          optionalInputs: psychoscopeState.optionalInputs || {},
+          factors: psychoscopeState.factors || { class: [], singularity: [], defensive: [] }
+        }
+      },
+      skills: getSkillsState(),
+      modules: modulesState,
+      weaponLines: getWeaponLineEffectState(),
+      imagines: imagineState
     };
-  }
-
-  function getCompactSetupState() {
-    // kept for compatibility, but main path uses getSetupState() now.
-    const state = getSetupState();
-    return { vers: state.vers, v: state.v, c: state.c, cf: state.cf, p: state.p, m: state.m, s: state.s, i: state.i, w: state.w };
   }
 
   function removeAllSkills() {
@@ -1914,21 +1860,54 @@
     calc();
   }
 
-  function applySetupState(state) {
-    console.log('loaded setup state.version', state.vers, 'calc current version', SAVE_FORMAT_VERSION);
-    if(compareVersion(state.vers, "v0.8.2") < 0) {
-      state = migrateSetupState(state);
+  function isSetupRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function normalizeSetupState(state) {
+    if (!isSetupRecord(state)) throw new Error('Invalid setup object: expected an object');
+    if (state.version === undefined) return null;
+    if (typeof state.version !== 'string' || !/^v\d+\.\d+\.\d+$/.test(state.version)) {
+      throw new Error('Invalid setup version; expected a version such as `v2.0.0`');
     }
-    if (!state || typeof state !== 'object') throw new Error('Invalid setup object');
+    const versionComparison = compareVersion(state.version, SAVE_FORMAT_VERSION);
+    if (versionComparison < 0) return null;
+    if (versionComparison > 0) {
+      throw new Error(`Setup version ${state.version} is newer than this calculator (${SAVE_FORMAT_VERSION})`);
+    }
 
-    const valueArray = Array.isArray(state.v) ? state.v : null;
-    if (!Array.isArray(valueArray)) throw new Error('Invalid setup object: expected `v` array of values');
+    const character = state.character;
+    if (!isSetupRecord(character) ||
+        !isSetupRecord(character.fields) ||
+        !isSetupRecord(character.class) ||
+        !isSetupRecord(character.class.values) ||
+        !isSetupRecord(character.psychoscope)) {
+      throw new Error('Invalid setup object: character fields, class, or psychoscope data is missing');
+    }
+    for (const key of ['skills', 'modules', 'weaponLines', 'imagines']) {
+      if (!Array.isArray(state[key])) throw new Error(`Invalid setup object: \`${key}\` must be an array`);
+    }
+    if (!state.skills.every(isSetupRecord) ||
+        !state.modules.every(isSetupRecord) ||
+        !state.weaponLines.every(isSetupRecord) ||
+        !state.imagines.every(isSetupRecord)) {
+      throw new Error('Invalid setup object: list entries must be objects');
+    }
+    return state;
+  }
 
+  function applySetupState(inputState) {
+    const state = normalizeSetupState(inputState);
+    if (!state) {
+      resetAll(`This setup predates ${SAVE_FORMAT_VERSION}; all settings reset to defaults.`);
+      return;
+    }
+    console.log('loaded setup version', state.version);
     isApplyingSetupState = true;
 
-    for (let i = 0; i < Math.min(SAVE_FIELD_ORDER.length, valueArray.length); i++) {
-      const fieldId = SAVE_FIELD_ORDER[i];
-      const fieldValue = valueArray[i];
+    const coreFieldIds = new Set(SAVE_FIELD_IDS);
+    for (const [fieldId, fieldValue] of Object.entries(state.character.fields)) {
+      if (!coreFieldIds.has(fieldId)) continue;
 
       if (fieldId === 'damageType') {
         if (typeof fieldValue === 'string') {
@@ -1972,186 +1951,97 @@
       }
     }
 
-    onSubstatFactorTypeChange(1);
-    onSubstatFactorTypeChange(2);
-    onSubstatFactorTypeChange(3);
+    removeAllSkills();
+    state.skills.forEach(data => {
+      addSkill();
+      const id = skillCount;
+      const typeEl = document.getElementById(`sk-type-${id}`);
+      const multEl = document.getElementById(`sk-mult-${id}`);
+      const flatEl = document.getElementById(`sk-flat-${id}`);
+      const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+      const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
+      if (typeEl && data.type !== undefined) typeEl.value = data.type || 'none';
+      if (multEl && data.multiplier !== undefined) multEl.value = data.multiplier;
+      if (flatEl && data.flatDamage !== undefined) flatEl.value = data.flatDamage;
+      if (luckyEl && data.lucky !== undefined) luckyEl.checked = Boolean(data.lucky);
+      if (nameEl && data.name !== undefined) nameEl.value = data.name;
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      if (hitsEl && data.hits !== undefined) hitsEl.value = data.hits;
 
-    const skillsArray = Array.isArray(state.skills) ? state.skills : (Array.isArray(state.s) ? state.s : null);
-    if (Array.isArray(skillsArray)) {
-      removeAllSkills();
-      skillsArray.forEach(data => {
-        addSkill();
-        const id = skillCount;
-        const typeEl = document.getElementById(`sk-type-${id}`);
-        const multEl = document.getElementById(`sk-mult-${id}`);
-        const flatEl = document.getElementById(`sk-flat-${id}`);
-        const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
-        const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
-        if (typeEl) {
-          if (typeof data === 'string' || Array.isArray(data)) {
-            typeEl.value = (Array.isArray(data) ? data[0] : data) || 'none';
-          } else if (data.type !== undefined) {
-            typeEl.value = data.type;
-          }
+      if (Array.isArray(data.effects)) {
+        const effectsContainer = document.getElementById(`skill-effects-${id}`);
+        if (effectsContainer) {
+          effectsContainer.innerHTML = '';
+          data.effects.forEach(effect => {
+            if (!isSetupRecord(effect) || effect.kind === undefined || effect.value === undefined) return;
+            addSkillEffect(id);
+            const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+            if (!row) return;
+            const select = row.querySelector('select');
+            const input = row.querySelector('input');
+            if (select) select.value = effect.kind || 'generic';
+            if (input) input.value = effect.value;
+          });
         }
-        if (multEl) {
-          const multValue = Array.isArray(data) ? data[1] : data.mult;
-          if (multValue !== undefined) multEl.value = multValue;
-        }
-        if (flatEl) {
-          const flatValue = Array.isArray(data) ? data[2] : data.flat;
-          if (flatValue !== undefined) flatEl.value = flatValue;
-        }
-        if (luckyEl) {
-          const luckyValue = Array.isArray(data) ? data[3] : data.lucky;
-          if (luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
-        }
-        if (nameEl) {
-          const nameValue = Array.isArray(data) ? data[4] : data.name;
-          if (nameValue !== undefined) nameEl.value = nameValue;
-        }
-        const hitsEl = document.getElementById(`sk-hits-${id}`);
-        if (hitsEl) {
-          const hitsValue = Array.isArray(data) ? data[6] : data.hits;
-          if (hitsValue !== undefined) hitsEl.value = hitsValue;
-        }
+      }
 
-        const effectList = Array.isArray(data) ? data[5] : data.effects;
-        if (Array.isArray(effectList)) {
-          const effectsContainer = document.getElementById(`skill-effects-${id}`);
-          if (effectsContainer) {
-            effectsContainer.innerHTML = '';
-            effectList.forEach(effect => {
-              if (!Array.isArray(effect) || effect.length < 2) return;
-              addSkillEffect(id);
-              const row = effectsContainer.querySelector('.skill-effect-row:last-child');
-              if (!row) return;
-              const select = row.querySelector('select');
-              const input = row.querySelector('input');
-              if (select) select.value = effect[0] || 'generic';
-              if (input) input.value = effect[1];
-            });
-          }
-        }
-
-        const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
-        if (collapsedValue !== undefined) {
-          setSkillCollapsed(id, Boolean(collapsedValue));
-        }
-      });
-    }
+      if (data.collapsed !== undefined) setSkillCollapsed(id, Boolean(data.collapsed));
+    });
 
     // Load modules
-    const modulesArray = Array.isArray(state.m) ? state.m : [];
-    if (Array.isArray(modulesArray)) {
-      removeAllModules();
-      modulesArray.forEach(data => {
-        addModule();
-        const id = moduleCount;
-        const searchInput = document.getElementById(`module-search-${id}`);
-        const levelEl = document.getElementById(`module-level-${id}`);
-        const card = document.getElementById(`module-card-${id}`);
-        
-        if (Array.isArray(data) && data[0]) {
-          // Set the selected module
-          card.dataset.selectedModule = data[0];
-          // Find the option text for the selected value
-          const dropdown = document.getElementById(`module-dropdown-${id}`);
-          const option = dropdown.querySelector(`[data-value="${data[0]}"]`);
-          if (searchInput && option) {
-            searchInput.value = option.textContent;
-          }
-        }
-        if (levelEl && Array.isArray(data) && data[1] !== undefined) {
-          levelEl.value = data[1];
-        }
-      });
-    }
+    removeAllModules();
+    state.modules.forEach(data => {
+      addModule();
+      const id = moduleCount;
+      const searchInput = document.getElementById(`module-search-${id}`);
+      const levelEl = document.getElementById(`module-level-${id}`);
+      const card = document.getElementById(`module-card-${id}`);
 
-    const weaponLineEffectsArray = Array.isArray(state.w) ? state.w : (Array.isArray(state.wl) ? state.wl : []);
-    populateWeaponLineEffectsFromState(weaponLineEffectsArray);
+      if (data.module) {
+        card.dataset.selectedModule = data.module;
+        const dropdown = document.getElementById(`module-dropdown-${id}`);
+        const option = dropdown.querySelector(`[data-value="${data.module}"]`);
+        if (searchInput && option) {
+          searchInput.value = option.textContent;
+        }
+      }
+      if (levelEl && data.level !== undefined) levelEl.value = data.level;
+    });
+
+    populateWeaponLineEffectsFromState(state.weaponLines);
 
     // Set class and psychoscope tree from state
-    if (state.c) {
-      const classSelect = document.getElementById('class-select');
-      if (classSelect) classSelect.value = state.c;
-    }
-    if (state.t) {
-      const psychoscopeTree = document.getElementById('psychoscope-tree');
-      if (psychoscopeTree) psychoscopeTree.value = state.t;
-    }
-
-    // Load class-specific fields
-    if (state.c && Array.isArray(state.cf)) {
-      const classFieldOrder = CLASS_FIELDS_ORDER[state.c] || [];
-      for (let i = 0; i < Math.min(classFieldOrder.length, state.cf.length); i++) {
-        const fieldId = classFieldOrder[i];
-        const fieldValue = state.cf[i];
-        const el = document.getElementById(fieldId);
-        if (!el) continue;
-        if (el.type === 'checkbox' || el.type === 'radio') {
-          el.checked = Boolean(fieldValue);
-        } else {
-          el.value = fieldValue;
-        }
-      }
-    }
-
-    // Load psychoscope-specific fields
-    if (state.t && Array.isArray(state.tf)) {
-      const psychoscopeFieldOrder = PSYCHOSCOPE_FIELDS_ORDER[state.t] || [];
-      for (let i = 0; i < Math.min(psychoscopeFieldOrder.length, state.tf.length); i++) {
-        const fieldId = psychoscopeFieldOrder[i];
-        const fieldValue = state.tf[i];
-        const el = document.getElementById(fieldId);
-        if (!el) continue;
-        if (el.type === 'checkbox' || el.type === 'radio') {
-          el.checked = Boolean(fieldValue);
-        } else {
-          el.value = fieldValue;
-        }
-      }
-    }
-
-    // Load imagine state (new format) or imagine modes (old format)
-    if (Array.isArray(state.i)) {
-      // New format: [imagineType, level, mode, stacks, passiveStats]
-      for (let slot = 1; slot <= 2; slot++) {
-        const imagineData = state.i[slot - 1];
-        if (Array.isArray(imagineData) && imagineData.length >= 3) {
-          const [imagineType, level, mode, stacks, passiveStats] = imagineData;
-          
-          // Set imagine type (hidden value) and update search text if present
-          const imagineEl = document.getElementById(`imagine-${slot}`);
-          const imagineSearch = document.getElementById(`imagine-${slot}-search`);
-          const imagineDropdown = document.getElementById(`imagine-dropdown-${slot}`);
-          if (imagineEl) imagineEl.value = imagineType || '';
-          if (imagineSearch && imagineDropdown) {
-            const option = imagineDropdown.querySelector(`[data-value="${imagineType}"]`);
-            imagineSearch.value = option ? option.textContent : (imagineType || '');
-          }
-          
-            // Set level
-            const levelEl = document.getElementById(`imagine-${slot}-level`);
-            if (levelEl) levelEl.value = level || 0;
-          
-            // Set mode
-            const modeRadio = document.getElementById(`imagine-${slot}-mode-${mode}`);
-            if (modeRadio) modeRadio.checked = true;
-            // Set stacks (new field)
-            const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
-            if (stacksEl && imagineData.length >= 4) stacksEl.value = stacks || 0;
-            // Set passive stats checkbox
-            const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
-            if (passiveStatsEl && imagineData.length >= 5) passiveStatsEl.checked = Boolean(passiveStats);
-          
-          // Update the imagine change to show/hide mode field
-          onImagineChange(slot);
-        }
-      }
-    }
-
     const classSelect = document.getElementById('class-select');
+    if (classSelect) classSelect.value = state.character.class.id || 'none';
+
+    state.imagines.forEach(imagineData => {
+      const slot = Number(imagineData.slot);
+      if (slot === 1 || slot === 2) {
+        const imagineType = imagineData.imagine || 'none';
+        const imagineEl = document.getElementById(`imagine-${slot}`);
+        const imagineSearch = document.getElementById(`imagine-${slot}-search`);
+        const imagineDropdown = document.getElementById(`imagine-dropdown-${slot}`);
+        if (imagineEl) imagineEl.value = imagineType;
+        if (imagineSearch && imagineDropdown) {
+          const option = imagineDropdown.querySelector(`[data-value="${imagineType}"]`);
+          imagineSearch.value = option ? option.textContent : imagineType;
+        }
+
+        const levelEl = document.getElementById(`imagine-${slot}-level`);
+        if (levelEl) levelEl.value = imagineData.level || 0;
+
+        const modeRadio = document.getElementById(`imagine-${slot}-mode-${imagineData.mode || 'passive'}`);
+        if (modeRadio) modeRadio.checked = true;
+
+        const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
+        if (stacksEl && imagineData.stacks !== undefined) stacksEl.value = imagineData.stacks || 0;
+
+        const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+        if (passiveStatsEl && imagineData.passiveStats !== undefined) passiveStatsEl.checked = Boolean(imagineData.passiveStats);
+
+        onImagineChange(slot);
+      }
+    });
 
     // Preserve manual substat base values (user input) when applying class defaults.
     const substatBaseIds = ['base-crit-pct', 'base-haste-pct', 'base-luck-pct', 'base-mastery-pct', 'base-vers-pct'];
@@ -2164,11 +2054,10 @@
     if (classSelect) onClassChange();
 
     // Re-apply class-specific fields after class module rendered its HTML
-    if (state.c && Array.isArray(state.cf)) {
-      const classFieldOrder = CLASS_FIELDS_ORDER[state.c] || [];
-      for (let i = 0; i < Math.min(classFieldOrder.length, state.cf.length); i++) {
-        const fieldId = classFieldOrder[i];
-        const fieldValue = state.cf[i];
+    if (state.character.class.id && state.character.class.values) {
+      const classFieldIds = new Set(CLASS_FIELD_IDS[state.character.class.id] || []);
+      for (const [fieldId, fieldValue] of Object.entries(state.character.class.values)) {
+        if (!classFieldIds.has(fieldId)) continue;
         const el = document.getElementById(fieldId);
         if (!el) continue;
         if (el.type === 'checkbox' || el.type === 'radio') {
@@ -2190,23 +2079,8 @@
       }
     });
 
-    const psychoscopeState = state.p && typeof state.p === 'object'
-      ? state.p
-      : { tree: state.t || 'none', values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
+    const psychoscopeState = state.character.psychoscope;
     console.log('[psychoscope] loadSetupState payload', { state, psychoscopeState });
-
-    if (state.t && Array.isArray(state.tf)) {
-      const legacyValues = {};
-      const fieldOrder = PSYCHOSCOPE_FIELDS_ORDER[state.t] || [];
-      fieldOrder.forEach((fieldId, index) => {
-        const fieldValue = state.tf[index];
-        if (fieldId && fieldValue !== undefined) {
-          legacyValues[fieldId] = fieldValue;
-        }
-      });
-      psychoscopeState.tree = psychoscopeState.tree || state.t || 'none';
-      psychoscopeState.values = { ...(psychoscopeState.values || {}), ...legacyValues };
-    }
 
     if (typeof applyPsychoscopeSaveState === 'function') {
       console.log('[psychoscope] calling applyPsychoscopeSaveState from setup load');
@@ -2225,14 +2099,16 @@
 
     onFoodToggle();
     onSerumOilToggle();
+    if (typeof syncSmiteInspiration === 'function') syncSmiteInspiration();
     isApplyingSetupState = false;
     updateImagineSkills();
     calc();
+    persistCurrentState();
   }
 
   function exportSetup(evt) {
     try {
-      const state = getCompactSetupState();
+      const state = getSetupState();
       const json = JSON.stringify(state);
       const area = document.getElementById('setup-json');
       if (area) area.value = json;
@@ -2257,7 +2133,7 @@
 
   function downloadSetup() {
     try {
-      const state = getCompactSetupState();
+      const state = getSetupState();
       const json = JSON.stringify(state);
       const blob = new Blob([json], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -2318,16 +2194,16 @@
       const hitsEl = document.getElementById(`sk-hits-${id}`);
       const hitValue = hitsEl ? hitsEl.value.trim() !== '' ? Number(hitsEl.value) : 1 : 1;
       const hitsPerParse = Number.isNaN(hitValue) ? 1 : hitValue;
-      skillsState.push([
-        typeEl ? typeEl.value : 'none',
-        multEl ? parseFloat(multEl.value) || 0 : 0,
-        flatEl ? parseFloat(flatEl.value) || 0 : 0,
-        luckyEl ? luckyEl.checked : false,
-        nameEl ? nameEl.value : '',
-        effects,
-        hitsPerParse,
-        card.classList.contains('collapsed') ? 1 : 0
-      ]);
+      skillsState.push({
+        type: typeEl ? typeEl.value : 'none',
+        multiplier: multEl ? parseFloat(multEl.value) || 0 : 0,
+        flatDamage: flatEl ? parseFloat(flatEl.value) || 0 : 0,
+        lucky: luckyEl ? luckyEl.checked : false,
+        name: nameEl ? nameEl.value : '',
+        effects: effects.map(([kind, value]) => ({ kind, value })),
+        hits: hitsPerParse,
+        collapsed: card.classList.contains('collapsed')
+      });
     });
     return skillsState;
   }
@@ -2366,7 +2242,7 @@
     try {
       const parsed = JSON.parse(raw);
       // Check if this is a full save (has 's' property for skills)
-      const skillsData = parsed.s !== undefined ? parsed.s : parsed;
+      const skillsData = parsed.skills !== undefined ? parsed.skills : (parsed.s !== undefined ? parsed.s : parsed);
       applySkillsState(skillsData);
       setStatus('Skills imported successfully.', false);
     } catch (err) {
@@ -2393,11 +2269,11 @@
         }
       }
       if (multEl) {
-        const multValue = Array.isArray(data) ? data[1] : data.mult;
+        const multValue = Array.isArray(data) ? data[1] : (data.multiplier ?? data.mult);
         if (multValue !== undefined) multEl.value = multValue;
       }
       if (flatEl) {
-        const flatValue = Array.isArray(data) ? data[2] : data.flat;
+        const flatValue = Array.isArray(data) ? data[2] : (data.flatDamage ?? data.flat);
         if (flatValue !== undefined) flatEl.value = flatValue;
       }
       if (luckyEl) {
@@ -2425,14 +2301,16 @@
         if (effectsContainer) {
           effectsContainer.innerHTML = '';
           effectList.forEach(effect => {
-            if (!Array.isArray(effect) || effect.length < 2) return;
+            const kind = Array.isArray(effect) ? effect[0] : effect.kind;
+            const value = Array.isArray(effect) ? effect[1] : effect.value;
+            if (kind === undefined || value === undefined) return;
             addSkillEffect(id);
             const row = effectsContainer.querySelector('.skill-effect-row:last-child');
             if (!row) return;
             const select = row.querySelector('select');
             const input = row.querySelector('input');
-            if (select) select.value = effect[0] || 'generic';
-            if (input) input.value = effect[1];
+            if (select) select.value = kind || 'generic';
+            if (input) input.value = value;
           });
         }
       }
@@ -2593,6 +2471,7 @@
         <option value="dreamDmg">Seasonal damage</option>
         <option value="critChance">Crit chance</option>
         <option value="critDamage">Crit damage</option>
+        <option value="staticCritDamage">Static crit damage</option>
         <option value="luckUptime">Luck uptime</option>
         <option value="elemDmg">Element damage</option>
         <option value="magBoost">MAG boost</option>
@@ -2934,7 +2813,7 @@
   }
 
   function getWeaponLineEffectState() {
-    return getWeaponLineEffects().map(effect => [effect.key, effect.value]);
+    return getWeaponLineEffects();
   }
 
   function removeAllWeaponLineEffects() {
@@ -3159,10 +3038,6 @@
     }
 
     const baseOriginal = { ...original };
-    unlockedKeys.forEach(k => {
-      const mul = factor[k] || 1;
-      baseOriginal[k] = mul !== 0 ? original[k] / mul : original[k];
-    });
 
     const pool = unlockedKeys.reduce((sum, key) => sum + baseOriginal[key], 0);
     if (pool <= 0) {
@@ -3173,15 +3048,6 @@
     }
 
     const pause = () => new Promise(resolve => setTimeout(resolve, 0));
-    const buildEffective = (baseStats) => {
-      const effective = { ...original };
-      unlockedKeys.forEach(k => {
-        const mul = factor[k] || 1;
-        effective[k] = baseStats[k] * mul;
-      });
-      return effective;
-    };
-
     const getSummaryTotalDamage = () => {
       const totalEl = document.getElementById('summary-total-damage');
       if (!totalEl || !totalEl.textContent) return NaN;
@@ -3194,15 +3060,13 @@
     };
 
     const evaluate = (baseStats) => {
-      const effective = buildEffective(baseStats);
-      setSubstats(effective);
+      setSubstats(baseStats);
       const totalDamage = getSummaryTotalDamage();
       return totalDamage === 0 || Number.isNaN(totalDamage) ? getFirstSkillValue() : totalDamage;
     };
 
     const asDisplay = (baseStats) => {
-      const e = buildEffective(baseStats);
-      return `Crit:${e.crit.toFixed(2)}, Luck:${e.luck.toFixed(2)}, Mastery:${e.mastery.toFixed(2)}, Vers:${e.vers.toFixed(2)}`;
+      return `Crit:${(baseStats.crit * factor.crit).toFixed(2)}, Luck:${(baseStats.luck * factor.luck).toFixed(2)}, Mastery:${(baseStats.mastery * factor.mastery).toFixed(2)}, Vers:${(baseStats.vers * factor.vers).toFixed(2)}`;
     };
 
     let bestBase = { ...baseOriginal };
@@ -3279,8 +3143,7 @@
       await pause();
     }
 
-    const bestEffective = buildEffective(bestBase);
-    setSubstats(bestEffective);
+    setSubstats(bestBase);
     optimizerDone = true;
     optimizingSubstats = false;
     output.textContent = `Optimized: ${bestBase.value.toFixed(2)} with ${asDisplay(bestBase)} (Pool ${pool.toFixed(2)}) — Optimization complete ✅`;
@@ -3335,11 +3198,8 @@
       <div id="zdps-import-top">
         <div class="modal-instructions">
           <ol>
-            <li>Open ZDPS and click on your character.</li>
-            <li>In game, swap loadout to another different class/heavily different loadout. (remember to save current loadout if needed)</li>
-            <li>Swap Back to your normal loadout.</li>
-            <li>Un-equip and re-equip weapon.</li>
-            <li>Wait 20-30 seconds to lose all temporary buffs like life wave.</li>
+            <li>Swap zones once after starting ZDPS.</li>
+            <li>Open ZDPS and click on your character in the dmg meter.</li>
             <li>Go to the attributes tab in the entity inspector, and right click copy all attributes.</li>
             <li>Paste attributes in the box below and load.</li>
           </ol>

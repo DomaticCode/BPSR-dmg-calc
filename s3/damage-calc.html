@@ -1,0 +1,3365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP:SR Damage Simulator</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+<link rel="shortcut icon" href="favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+<link rel="manifest" href="favicon/site.webmanifest" />
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>BP<span>:</span>SR Damage Calculator</h1>
+    <span class="header-version">Made by Doma (<span class="copy-trigger" role="button" title="Click to copy Discord ID" onclick="copyTextValue(event, '#36888','Discord ID copied: #36888');">#36888</span>),
+      Discord: <span class="copy-trigger" role="button" title="Click to copy Discord username" onclick="copyTextValue(event, 'doma__','Discord username copied: doma__');">doma__
+      </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
+      <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
+    <div class="header-meta">
+      <span class="header-version">v1.0.2</span>
+      <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
+    </div>
+  </header>
+  <div id="copy-float" style="display:none; position:absolute; pointer-events:none; z-index:9999;"></div>
+
+  <div class="panel" id="setup-panel">
+    <div class="panel-header" style="cursor:pointer;" onclick="toggleSetupPanel()"><h2>Profiles / Export / Import</h2><span id="setup-panel-chevron" style="font-size:14px;">▸</span></div>
+    <div class="panel-body" id="setup-panel-body" style="display:none;">
+      <div class="field">
+        <label>Setup</label>
+        <textarea id="setup-json" style="width:100%; min-height:88px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:5px; padding:8px; font-family:'Consolas','SF Mono',monospace; font-size:12px; resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        <button class="btn-import-skills" style="width:auto; padding:8px 10px;" onclick="importSetup()">Import Setup</button>
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="exportSetup(event)" title="When sharing on discord in public please use the file option instead and upload the file. This paste will spam the channel.">Export Setup</button>
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="downloadSetup()">Export Setup as file</button>
+        <button class="btn-import-skills" style="width:auto; padding:8px 10px; margin-left: auto;" onclick="importSkills()">Import Skills</button>
+        <button class="btn-export-skills" style="width:auto; padding:8px 10px;" onclick="exportSkills(event)">Export Skills</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center;">
+        <input id="profile-name" placeholder="Profile name" style="flex:1; min-width:160px; background:var(--bg-input); border:1px solid var(--border); border-radius:5px; color:var(--text); padding:6px;" />
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="saveCurrentProfile()">Save Profile</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center;">
+        <select id="profile-select" style="flex:1; min-width:160px; background:var(--bg-input); border:1px solid var(--border); border-radius:5px; color:var(--text); padding:6px;"><option value="">— Select profile —</option></select>
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="loadSelectedProfile()">Load</button>
+        <button class="btn-add-skill" style="width:auto; padding:8px 10px;" onclick="deleteSelectedProfile()">Delete</button>
+      </div>
+
+      <div id="setup-status" class="note" style="margin-top:8px; display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Config bar: Class + Inspiration + Target -->
+  <div class="config-bar">
+    <div class="field">
+      <label>Class</label>
+      <select id="class-select" onchange="onClassChange()">
+        <option value="none">— None —</option>
+        <option value="smite">Smite</option>
+        <option value="dissonance">Dissonance</option>
+        <optgroup label="Base classes">
+          <option value="frostmage">Frost Mage</option>
+          <option value="windknight">Wind Knight</option>
+          <option value="stormblade">Stormblade</option>
+          <option value="marksman">Marksman</option>
+          <option value="heavyguardian">Heavy Guardian</option>
+          <option value="shieldknight">Shield Knight</option>
+          <option value="twinaxe">Twin Axe</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="field">
+      <label>Inspiration Buff
+        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Adds a flat % to all substat totals (Luck, CRIT, Versatility, Mastery, Haste) after the normal formula. <span class="hl-gold">When smite is selected, it assumes +100 int is already applied to your INT when importing/setting it.</span></span></span>
+      </label>
+      <select id="inspiration" onchange="calc()">
+        <option value="0">None</option>
+        <option value="1.5">1.5% (smite)</option>
+        <option value="3">3% (LB)</option>
+        <option value="3.6">3.6% (LB ult)</option>
+        <option value="3.9">3.9% (LB ult ocean )</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Target
+        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Normal: no bonuses. Elite: Elite DMG% and Wide-area Thorns elemental apply. Boss: Boss DMG% applies (not available on Guild Hall dummy).</span></span>
+      </label>
+      <select id="target-type" onchange="calc()">
+        <option value="normal">Normal</option>
+        <option value="elite" selected>Elite (target dummy)</option>
+        <option value="boss">Boss</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="checkbox-label" for="food-enabled">
+        <input type="checkbox" id="food-enabled" onchange="onFoodToggle()">
+        Food Buff
+      </label>
+      <div id="food-config" class="sub-config">
+        <input type="number" id="food-atk" value="195" step="1" placeholder="ATK/MATK" oninput="calc()">
+        <input type="number" id="food-dmg-bonus" value="10" step="0.1" placeholder="Damage %" oninput="calc()">
+      </div>
+    </div>
+    <div class="field">
+      <label class="checkbox-label" for="serum-oil-enabled">
+        <input type="checkbox" id="serum-oil-enabled" onchange="onSerumOilToggle()">
+        Serum / Oil
+      </label>
+      <div id="serum-oil-config" class="sub-config">
+        <select id="serum-oil-type" onchange="onSerumOilTypeChange()">
+          <option value="serum">Serum</option>
+          <option value="oil">Oil</option>
+        </select>
+        <input type="number" id="serum-oil-value" value="2000" step="1" min="0" placeholder="Value" oninput="calc()">
+      </div>
+    </div>
+    <div class="field">
+      <label>Team Luck & Crit
+        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Not fully tested, Crit DMG is likely correct, but Lucky Damage values may need adjustment.</span></span>
+      </label>
+      <select id="team-luck-crit" onchange="calc()">
+        <option value="none">None</option>
+        <option value="tier1">3.1%/2% (other's lvl 5)</option>
+        <option value="tier2">5.2%/3.4% (other's lvl 6)</option>
+        <option value="tier3">6.1%/4% (self lvl 5)</option>
+        <option value="tier4">10.2%/6.8% (self lvl 6)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Oblivion
+        <span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Seasonal Damage for self and allies<br>2% main stat is a node for self and allies with ~50% uptime.<br>3% All Element is self buff.</span></span>
+      </label>
+      <select id="oblivion-buff" onchange="calc()">
+        <option value="none">None</option>
+        <option value="ob">10% DMG</option>
+        <option value="ob-ms">10% DMG, +2% MS</option>
+        <option value="ob-ae" class="ob-self">10% DMG, +3% AE</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Endless Mind</label>
+      <select id="endless-mind" onchange="calc()">
+        <option value="none">None</option>
+        <option value="em">4% mastery, 2% main stat</option>
+        <option value="em-dbl">8% mastery, 4% main stat</option>
+        <option value="em-self" class="em-self">(basic) 6% mastery, 3% main stat </option>
+        <option value="em-self-1" class="em-self">(self) 8% mastery, 4% main stat </option>
+        <option value="em-self-1-dbl" class="em-self">(self) 16% mastery, 8% main stat </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT: split into Character Stats + Weapon/Bonuses column -->
+    <div class="left-columns">
+      <div class="panel character-panel">
+        <div class="panel-header"><h2>Character Stats</h2></div>
+        <div class="panel-body">
+
+          <!-- Damage Type -->
+          <div class="section-label">Damage Type</div>
+          <div class="type-toggle">
+            <button id="btn-phys" class="active-phys" onclick="setType('physical')">Physical</button>
+            <button id="btn-mag"  onclick="setType('magical')">Magical</button>
+          </div>
+          <div class="res-tags">
+            <button class="res-tag phys active" id="res-phys-tag" onclick="togglePhysRes()">Phys Res: 30.00% ✓</button>
+            <button class="res-tag mag active" id="res-mag-tag" onclick="toggleMagRes()">Mag Res: 8.00% ✓</button>
+          </div>
+
+          <div id="class-options" style="display:none; margin-top:10px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--bg-card);"></div>
+
+          <!-- MATK/ATK -->
+          <div class="section-label" id="matk-section-label">MATK</div>
+          <button class="btn-add-skill" onclick="openZdpsImportModal()" style="margin-bottom: 8px;">Import Stats from ZDPS</button>
+          <div class="input-row">
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="main-attr-label">INT</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Base main stat. NOT sheet value. Click the field to open the reverse-bonus calculator.</span></span></label>
+              <input type="number" id="main-attr" value="500" readonly onclick="openBaseMainStatModal()" style="cursor:pointer; background:var(--bg-card); border:1px solid #7c3aed; border-radius:6px; color:var(--text); font-weight:700;" title="Click to calculate base main stat from sheet values">
+            </div>
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="extra-main-attr-label">Extra INT</span><span class="tip"><span class="tip-icon">i</span><span id="extra-main-attr-tip" class="tip-box">Additional INT (Any other source of raw INT).</span></span></label>
+              <input type="number" id="extra-main-attr" value="0" oninput="calc()">
+            </div>
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="module-atk-label">Module MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Sum of all ATK of your type (Atk/Matk) from module bonuses.</span></span></label>
+              <input type="number" id="adaptive-atk" value="0" readonly>
+            </div>
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="weapon-atk-label">Weapon MATK</span><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Flat ATK/MATK from your weapon.</span></span></label>
+              <input type="number" id="base-atk" value="0" oninput="calc()">
+            </div>
+          </div>
+          <div class="matk-breakdown-wrap"><div id="matk-breakdown" class="matk-breakdown">—</div></div>
+          <div class="input-row triple" style="margin-top:8px;">
+            <div class="field">
+              <label>Main Stat % bonus<span class="tip"><span class="tip-icon gold">i</span><span class="tip-box">Auto Calculated when inputting Main Stat, or importing from zdps. <span class="hl-gold">Change with caution.</span></span></span></label>
+              <input type="number" id="main-stat-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+            <div class="field">
+              <label id="attr-atk-before-label">MATK before %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">FLOOR(INTx0.1 + FLOOR(INTx0.5 + Adaptive + Weapon)).</span></span></label>
+              <input type="number" id="attr-atk" readonly>
+            </div>
+            <div class="field">
+              <label id="eff-matk-label">Effective MATK (after %)</label>
+              <input type="number" id="eff-matk-display" readonly>
+            </div>
+          </div>
+
+          <!-- Refined & Elemental -->
+          <div class="section-label" id="refined-elemental-label">Refined & Elemental ATK<span class="tip"><span class="tip-icon">i</span><span id="refined-elemental-tip" class="tip-box">Not in MATK stat. Bypasses defense entirely. Does not scale with MATK%.</span></span></div>
+          <div class="input-row">
+            <div class="field"><label><span class="dot dot-refined"></span><span id="refined-atk-label">Refined MATK</span></label><input type="number" id="refined-atk" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-elemental"></span>All Element ATK</label><input type="number" id="elemental-atk" value="0" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-elemental"></span>Class Element ATK</label><input type="number" id="class-elemental-atk" value="0" oninput="calc()"></div>
+          </div>
+
+
+          <!-- Substats -->
+          <div class="section-label">Substats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">All substats: Stat/(Stat+50000)+base%. Versatility uses Stat/(Stat+28000)+base%.</span></span></div>
+          <div style="display:grid; grid-template-columns:1fr 56px 18px 72px; gap:6px; margin-bottom:4px; padding:0 0 2px 0;">
+            <div style="font-size:10px;color:var(--text-muted);"></div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:right;">Base%</div>
+            <div></div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:right;">Total%</div>
+          </div>
+
+          <div class="substat-row">
+            <div class="field"><label>Crit Stat</label><input type="number" id="crit-rate-stat" value="0" oninput="calc()"></div>
+            <input type="number" class="substat-base" id="base-crit-pct" value="5" step="0.1" oninput="calc()">
+            <div class="substat-arrow">→</div>
+            <div class="field"><label style="font-size:10px;color:var(--text-muted);">CRIT %</label><div class="substat-pct" id="sub-crit-pct">5.00%</div></div>
+          </div>
+
+          <div class="substat-row">
+            <div class="field"><label>Haste Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Haste% = (Haste / (Haste + 50000)) + base% + Inspiration. Not used in any calculations, Tracked here for future use.</span></span></label><input type="number" id="haste-stat" value="0" oninput="calc()"></div>
+            <input type="number" class="substat-base" id="base-haste-pct" value="0" step="0.1" oninput="calc()">
+            <div class="substat-arrow">→</div>
+            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Haste %</label><div class="substat-pct" id="sub-haste-pct">0.00%</div></div>
+          </div>
+
+          <div class="substat-row">
+            <div class="field"><label>Luck Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Chance% = (Luck / (Luck + 50000)) + base% + Inspiration.</span></span></label><input type="number" id="luck-stat" value="0" oninput="calc()"></div>
+            <input type="number" class="substat-base" id="base-luck-pct" value="5" step="0.1" oninput="calc()">
+            <div class="substat-arrow">→</div>
+            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Luck %</label><div class="substat-pct" id="sub-luck-pct">5.00%</div></div>
+          </div>
+
+          <div class="substat-row">
+            <div class="field"><label>Mastery Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Mastery% = (Mastery / (Mastery + 50000)) + base% + Inspiration. Tracked for future use.</span></span></label><input type="number" id="mastery-stat" value="0" oninput="calc()"></div>
+            <input type="number" class="substat-base" id="base-mastery-pct" value="6" step="0.1" oninput="calc()">
+            <div class="substat-arrow">→</div>
+            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Mastery %</label><div class="substat-pct" id="sub-mastery-pct">6.00%</div></div>
+          </div>
+
+          <div class="substat-row">
+            <div class="field"><label><span class="dot dot-vers"></span>Versatility Stat<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Versatility uses Stat/(Stat+11206)+base%. DMG bonus = total Vers% x 0.35.</span></span></label><input type="number" id="vers-dmg-pct" value="0" oninput="calc()"></div>
+            <input type="number" class="substat-base" id="base-vers-pct" value="0" step="0.1" oninput="calc()">
+            <div class="substat-arrow">→</div>
+            <div class="field"><label style="font-size:10px;color:var(--text-muted);">Vers %</label><div class="substat-pct" id="sub-vers-pct">0.00%</div></div>
+          </div>
+
+          <div class="input-row" style="margin-top:4px;">
+            <div class="field"><label>CRIT Multiplier %</label><input type="number" id="crit-mult" value="150" step="1" oninput="calc()"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="panel weapon-panel">
+        <div class="panel-header"><h2>Other Buffs</h2></div>
+        <div class="panel-body">
+
+          <!-- Weapon Line Effects -->
+          <div class="section-label">Weapon Line Effects</div>
+          <div id="weapon-line-effects-container">
+            <div id="weapon-line-effects-list" class="weapon-line-effects-list"></div>
+            <button type="button" class="btn-add-skill" id="add-weapon-line-btn" onclick="addWeaponLineEffectRow()">+ Add weapon line effect</button>
+          </div>
+
+          <div id="legacy-wl-fields" style="display:none;">
+            <div class="input-row triple">
+              <div class="field"><label><span class="dot dot-red"></span>CRIT %</label><input type="number" id="wl-crit-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label>Haste %</label><input type="number" id="wl-haste-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-purple"></span>Luck %</label><input type="number" id="wl-luck-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row">
+              <div class="field"><label>Mastery %</label><input type="number" id="wl-mastery-pct" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-purple"></span>Versatility %</label><input type="number" id="wl-vers-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row double">
+              <div class="field"><label><span class="dot dot-ls"></span>Lucky Strike DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Generic damage added to lucky strikes</span></span></label><input type="number" id="lucky-strike-dmg-bonus" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-ls"></span>Luck Effect DMG % <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Luck Effect bonus</span></span></label><input type="number" id="luck-effect-bonus" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row double">
+              <div class="field"><label><span class="dot dot-cyan"></span>Element Bonus % *</label><input type="number" id="wl-elem-bonus" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-red"></span>Crit DMG % *</label><input type="number" id="wl-crit-dmg" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="input-row triple">
+              <div class="field"><label><span class="dot dot-green"></span>Attack DMG % *</label><input type="number" id="wl-atk-dmg" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label><span class="dot dot-green"></span>Magic DMG % *</label><input type="number" id="wl-magic-dmg" value="0" step="0.1" oninput="calc()"></div>
+              <div class="field"><label>ATK % *</label><input type="number" id="wl-atk-pct" value="0" step="0.1" oninput="calc()"></div>
+            </div>
+            <div class="note">* Untested</div>
+          </div>
+
+          <!-- Gear -->
+          <div class="section-label">Gear — Purple Lines</div>
+          <div class="input-row">
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="matk-pct-label">MATK %</span><span class="tip"></label>
+              <input type="number" id="matk-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+            <div class="field">
+              <label><span class="dot dot-matk"></span><span id="int-pct-label">INT %</span><span class="tip"><span class="tip-icon gold">i</span><span id="int-pct-tip" class="tip-box">This is a relative field to your current setup.<br>Main stat % lines are already calculated and this should be 0%. <span class="hl-gold">Change this field only to test NEW main stat % lines NOT currently present in your gear.</span></span></span></label>
+              <input type="number" id="int-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="field">
+              <label>Cast Speed %</label>
+              <input type="number" id="cast-speed-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Attack Speed %</label>
+              <input type="number" id="atk-speed-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+          </div>
+          <div class="input-row single">
+            <div class="field">
+              <label><span class="dot dot-green"></span>DMG Bonus vs Bosses %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Applies vs Boss target only. Does NOT apply to the Guild Hall Elite dummy.</span></span></label>
+              <input type="number" id="boss-dmg-pct" value="0" step="0.1" oninput="calc()">
+            </div>
+          </div>
+          <div class="note">Cast / Attack Speed tracked for reference not utilized in damage formula. Boss DMG% does not apply to the Guild Hall Elite dummy.</div>
+
+          <!-- Damage Bonuses -->
+          <div class="section-label">Damage Bonuses</div>
+          <div class="input-row">
+            <div class="field"><label><span class="dot dot-cyan"></span>Elemental DMG % from Mastery</label><input type="number" id="mastery-elem-dmg-pct" value="0" readonly></div>
+            <div class="field"><label><span class="dot dot-cyan"></span>Additional Elemental DMG % </label><input type="number" id="elem-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-cyan"></span>All Element <span class="tip"><span class="tip-icon">i</span><span class="tip-box">All Element + XXX, Not to be confused with Elemental ATK.<br>This is obtained by generic factor X1, Element serums, and some modules.</span></span></label><input type="number" id="elem-power" value="0" oninput="calc()"></div>
+          </div>
+          <div class="input-row">
+            <div class="field"><label><span class="dot dot-green"></span>Elite DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Applies vs Elite and Boss targets only. Stacks additively with Other Generic DMG%.</span></span></label><input type="number" id="elite-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-green"></span>Generic DMG %</label><input type="number" id="gen-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-dream"></span>Seasonal DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additional seasonal damage (Illusion-Breaking).</span></span></label><input type="number" id="dream-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-mag"></span>MAG Boost %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Rare damage scaler, appears on some ocean weapons, and factors.</span></span></label><input type="number" id="mag-boost-pct" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-final"></span>Final DMG %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Final Damage, unique scaler.</span></span></label><input type="number" id="final-dmg-pct" value="0" step="0.1" oninput="calc()"></div>
+          </div>
+          <!-- Skill Type Bonuses -->
+          <div class="section-label">Skill Type DMG Bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Additive generic DMG% that applies only to skills of that type. Must set the type of skill in order to see damage.</span></span></div>
+          <div class="input-row">
+            <div class="field"><label><span class="dot dot-green"></span>Expertise DMG %</label><input type="number" id="type-dmg-expertise" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-green"></span>Special DMG %</label><input type="number" id="type-dmg-special" value="0" step="0.1" oninput="calc()"></div>
+          </div>
+          <div class="input-row">
+            <div class="field"><label><span class="dot dot-green"></span>Basic Attack DMG %</label><input type="number" id="type-dmg-basic" value="0" step="0.1" oninput="calc()"></div>
+            <div class="field"><label><span class="dot dot-green"></span>Ultimate DMG %</label><input type="number" id="type-dmg-ultimate" value="0" step="0.1" oninput="calc()"></div>
+          </div>
+
+          <!-- Lucky Strike -->
+          <div class="section-label">Lucky Strike</div>
+          <div class="input-row">
+            <div class="field">
+              <label>Lucky Strike DMG Mult %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Base 40% + 0.25% per 1% Luck Chance. Modified by class talents and imagines.</span></span></label>
+              <input type="number" id="lucky-mult-display" readonly oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Lucky DMG Mult % bonus<span class="tip"><span class="tip-icon">i</span><span class="tip-box">+% flat bonus.</span></span></label>
+              <input type="number" id="lucky-mult-bonus" value="0" step="0.1" oninput="calc()">
+            </div>
+            <div class="field">
+              <label>Luck Bonus Crit Chance %<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Bonus crit chance for lucky strikes.</span></span></label>
+              <input type="number" id="luck-crit-chance" value="0" step="0.1" oninput="calc()">
+            </div>
+          </div>
+          <div class="checkbox-group">
+            <div class="cb-row">
+              <input type="checkbox" id="lucky-mult-manual" onchange="toggleLuckyManual()">
+              <label for="lucky-mult-manual">Manual DMG Mult override<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Disables auto-calculation. Type the Lucky Strike DMG Mult % directly.</span></span></label>
+            </div>
+          </div>
+
+          <!-- Enemy Defense -->
+          <div class="section-label">Enemy Defense</div>
+          <div class="input-row">
+            <div class="field">
+              <label><del>Enemy Armour *</del><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Untested, Phys resist = Armour / (Armour + 6500). Default ~2786 → ~30%.</span></span></label>
+              <input type="number" id="enemy-armour" value="2786" oninput="calc()">
+            </div>
+            <div class="field">
+              <label><del>Phys Resist Override % *</del><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Untested,Leave blank to auto-calculate. Use to test Talent/Imagine reductions.</span></span></label>
+              <input type="number" id="phys-resist-override" value="" placeholder="auto" step="0.1" oninput="calc()">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT (middle) COLUMN -->
+    <div class="center-col">
+      <div class="two-col-layout">
+        <div class="sub-col">
+          <!-- Stats Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Stats Panel</h2>
+            </div>
+            <div class="panel-body">
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label" id="s-atk-matk-label">ATK/MATK</div>
+                  <div class="lucky-stat-value" id="s-atk-matk">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Chance</div>
+                  <div class="lucky-stat-value crit" id="s-crit-chance">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Crit Damage</div>
+                  <div class="lucky-stat-value crit" id="s-crit-dmg">—</div>
+                </div>
+              </div>
+              <div class="lucky-panel-grid" style="margin-bottom:8px;">
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Chance</div>
+                  <div class="lucky-stat-value luck" id="s-lucky-chance">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Hit</div>
+                  <div class="lucky-stat-value luck" id="ls-normal">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Strike Crit</div>
+                  <div class="lucky-stat-value crit" id="ls-crit">—</div>
+                </div>
+                <div class="lucky-stat-box">
+                  <div class="lucky-stat-label">Lucky Average (w/ crit)</div>
+                  <div class="lucky-stat-value avg" id="ls-avg">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="panel">
+            <div class="panel-header"><h2>Psychoscope Tree</h2></div>
+            <div class="panel-body">
+              <div class="input-row single" style="margin-bottom:10px;">
+                <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
+                  <option value="none">None</option>
+                  <option value="dreamforce">Dreamforce</option>
+                  <option value="fantasia-impact">Fantasia Impact</option>
+                  <option value="endless-mind">Endless Mind</option>
+                  <option value="oblivion">Oblivion</option>
+                </select></div>
+              </div>
+
+              <div id="psychoscope-options" style="display:none;">
+                <div id="psychoscope-dreamforce-options" style="display:none;"></div>
+                <div id="psychoscope-fantasia-options" style="display:none;"></div>
+                <div id="psychoscope-endless-mind-options" style="display:none;"></div>
+                <div id="psychoscope-oblivion-options" style="display:none;"></div>
+              </div>
+
+              <!-- Populated by initFactorsShell()/updateFactors() in psychoscope-tree.js.
+                  Hidden whenever no tree is selected. -->
+              <div id="psychoscope-factors" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-col">
+          <div class="panel">
+            <div class="panel-header"><h2>Imagine Buffs <span class="tip"><span class="tip-icon gold">i</span><span class="tip-box"><span class="hl-gold">Adding an imagine will add the skills for that Imagine.</span></span></span></h2> </div>
+              <div class="panel-body">
+                <div class="imagine-slots">
+                  <div class="imagine-slot">
+                    <div class="field">
+                      <label>Imagine Slot 1</label>
+                    <div class="module-select-container">
+                      <input type="text" class="module-search-input" id="imagine-1-search" placeholder="Select imagine..." autocomplete="off">
+                      <input type="hidden" id="imagine-1" value="">
+                      <div class="module-dropdown" id="imagine-dropdown-1" style="display:none;">
+                        <div class="module-option" data-value="airona">Airona</div>
+                        <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
+                        <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
+                        <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
+                        <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                        <div class="module-option" data-value="boyce">Boyce</div>
+                        <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
+                        <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                        <div class="module-option" data-value="dorothy">Dorothy</div>
+                        <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="fafala">Fafala</div>
+                        <div class="module-option" data-value="flamehorn">Flamehorn</div>
+                        <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
+                        <div class="module-option" data-value="goblin-king">Goblin King</div>
+                        <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
+                        <div class="module-option" data-value="igoreus">Igoreus</div>
+                        <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
+                        <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
+                        <div class="module-option" data-value="kartgriff">Kartgriff</div>
+                        <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
+                        <div class="module-option" data-value="lucy">Lucy</div>
+                        <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                        <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                        <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
+                        <div class="module-option" data-value="natsu">Natsu</div>
+                        <div class="module-option" data-value="olvera">Olvera</div>
+                        <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
+                        <div class="module-option" data-value="predator-spider">Predator Spider</div>
+                        <div class="module-option" data-value="rorola">Rorola</div>
+                        <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
+                        <div class="module-option" data-value="shell-picking-acolyte">Shell Picking Acolyte</div>
+                        <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
+                        <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
+                        <div class="module-option" data-value="tatta">Tatta</div>
+                        <div class="module-option" data-value="tina">Tina</div>
+                        <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="void-watcher">Void Watcher</div>
+                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                        <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field" id="imagine-1-level-field">
+                    <label>Level</label>
+                    <select id="imagine-1-level" onchange="onImagineSlotSettingsChange(1)">
+                      <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                      <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                    </select>
+                  </div>
+                  <div class="field" id="imagine-1-passive-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-1-passive-stats" onchange="onImagineSlotSettingsChange(1)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                  </div>
+                  <div class="field" id="imagine-1-sgk-t5-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-1-sgk-t5" onchange="onImagineSlotSettingsChange(1)"> SGK t5</label>
+                  </div>
+                  <div class="field" id="imagine-1-mode-field" style="display:none;">
+                    <div class="radio-group">
+                      <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="onImagineSlotSettingsChange(1)"> Passive</label>
+                      <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="onImagineSlotSettingsChange(1)"> Active</label>
+                      <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="onImagineSlotSettingsChange(1)" style="width:54px;"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="imagine-slot">
+                  <div class="field">
+                    <label>Imagine Slot 2</label>
+                    <div class="module-select-container">
+                      <input type="text" class="module-search-input" id="imagine-2-search" placeholder="Select imagine..." autocomplete="off">
+                      <input type="hidden" id="imagine-2" value="">
+                      <div class="module-dropdown" id="imagine-dropdown-2" style="display:none;">
+                        <div class="module-option" data-value="airona">Airona</div>
+                        <div class="module-option" data-value="blackfire-foxen">Blackfire Foxen</div>
+                        <div class="module-option" data-value="bloodthirsty-furball">Bloodthirsty Furball</div>
+                        <div class="module-option" data-value="bluespine-lizard">Bluespine Lizard</div>
+                        <div class="module-option" data-value="boarrier-tyrant">Boarrier Tyrant</div>
+                        <div class="module-option" data-value="boyce">Boyce</div>
+                        <div class="module-option" data-value="brigand-scout-leader">Brigand Scout Leader</div>
+                        <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
+                        <div class="module-option" data-value="dorothy">Dorothy</div>
+                        <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="fafala">Fafala</div>
+                        <div class="module-option" data-value="flamehorn">Flamehorn</div>
+                        <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
+                        <div class="module-option" data-value="goblin-king">Goblin King</div>
+                        <div class="module-option" data-value="goblin-warrior">Goblin Warrior</div>
+                        <div class="module-option" data-value="igoreus">Igoreus</div>
+                        <div class="module-option" data-value="inferno-goblin-mage">Inferno Goblin Mage</div>
+                        <div class="module-option" data-value="jungle-goblin-warrior">Jungle Goblin Warrior</div>
+                        <div class="module-option" data-value="kartgriff">Kartgriff</div>
+                        <div class="module-option" data-value="lizardman-hunter">Lizardman Hunter</div>
+                        <div class="module-option" data-value="lucy">Lucy</div>
+                        <div class="module-option" data-value="muku-chief">Muku Chief</div>
+                        <div class="module-option" data-value="muku-scout">Muku Scout</div>
+                        <div class="module-option" data-value="muku-warrior">Muku Warrior</div>
+                        <div class="module-option" data-value="natsu">Natsu</div>
+                        <div class="module-option" data-value="olvera">Olvera</div>
+                        <div class="module-option" data-value="phantom-arachnocrab">Phantom Arachnocrab</div>
+                        <div class="module-option" data-value="predator-spider">Predator Spider</div>
+                        <div class="module-option" data-value="rorola">Rorola</div>
+                        <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
+                        <div class="module-option" data-value="shell-picking-acolyte">Shell Picking Acolyte</div>
+                        <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
+                        <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
+                        <div class="module-option" data-value="tatta">Tatta</div>
+                        <div class="module-option" data-value="tina">Tina</div>
+                        <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
+                        <div class="module-option" data-value="void-watcher">Void Watcher</div>
+                        <div class="module-option" data-value="wandering-vagrant">Wandering Vagrant</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field" id="imagine-2-level-field">
+                    <label>Level</label>
+                    <select id="imagine-2-level" onchange="onImagineSlotSettingsChange(2)">
+                      <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                      <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                    </select>
+                  </div>
+                  <div class="field" id="imagine-2-passive-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-2-passive-stats" onchange="onImagineSlotSettingsChange(2)"> Apply passive stats<span class="tip"><span class="tip-icon">i</span><span class="tip-box">If you input your stats with this imagine equipped<span class="highlight-purple"> do not check this box.</span></span></span></label>
+                  </div>
+                  <div class="field" id="imagine-2-sgk-t5-field" style="display:none;">
+                    <label><input type="checkbox" id="imagine-2-sgk-t5" onchange="onImagineSlotSettingsChange(2)"> SGK t5</label>
+                  </div>
+                  <div class="field" id="imagine-2-mode-field" style="display:none;">
+                    <div class="radio-group">
+                      <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="onImagineSlotSettingsChange(2)"> Passive</label>
+                      <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="onImagineSlotSettingsChange(2)"> Active</label>
+                      <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="note" id="imagine-notes" style="margin-top:10px;">
+                <div id="imagine-note-flamehorn" style="display:none;"><span class="hl">Flamehorn:</span> Assumes the buff is always active.</div>
+                <div id="imagine-note-rorola" style="display:none;"><span class="hl">Rorola:</span> If you imported stats with this imagine equipped,  <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-boyce" style="display:none;"><span class="hl">Boyce:</span> If you imported stats with this imagine equipped,  <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-tina" style="display:none;"><span class="hl">Tina:</span> <span class="highlight-purple">CD effects not calculated. </span>If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-airona" style="display:none;"><span class="hl">Airona:</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-olvera" style="display:none;"><span class="hl">Olvera:</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-fafala" style="display:none;"><span class="hl">Fafala:</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-tatta" style="display:none;"><span class="hl">Tatta:</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-lucy" style="display:none;"><span class="hl">Lucy:</span> <span class="highlight-gold">passive only, skills not calculated.</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-natsu" style="display:none;"><span class="hl">Natsu:</span> <span class="highlight-gold">passive only, skills not calculated.</span></div>
+                <div id="imagine-note-kartgriff" style="display:none;"><span class="hl">Kartgriff:</span> If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats, NOT fully tested."</span></div>
+                <div id="imagine-note-dorothy" style="display:none;"><span class="hl">Dorothy:</span> <span class="highlight-purple">Transformation not calculated. </span>If you imported stats with this imagine equipped,   <span class="highlight-purple">Do not check "Apply passive stats"</span></div>
+                <div id="imagine-note-inferno-goblin-mage" style="display:none;"><span class="hl">Inferno Goblin Mage:</span> <span class="highlight-purple">Assumes INT class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-brigand-scout-leader" style="display:none;"><span class="hl">Brigand Scout Leader:</span> <span class="highlight-purple">Assumes AGI class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
+                <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
+                <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
+                <div id="imagine-note-shell-picking-acolyte" style="display:none;"><span class="hl">Shell Picking Acolyte:</span> S4 imagine. Inferring stat values from other similar imagines. Do not read too far into this, mostly just setting it up for when I get access to S4 server.</div>
+                <div id="imagine-note-wandering-vagrant" style="display:none;"><span class="hl">Wandering Vagrant:</span> S4 imagine. Inferring stat values from other similar imagines. Do not read too far into this, mostly just setting it up for when I get access to S4 server.</div>
+                <div id="imagine-note-sunfire-moonstrike" style="display:none;"><span class="hl">Sunfire Moonstrike:</span> S4 imagine. Extremely experimental. Mostly placeholder till I get access to S4 server.</div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Modules -->
+          <div class="panel">
+            <div class="panel-header"><h2>Modules<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Input total points NOT LEVEL.<br> e.g. 20 points for power core lvl 6</span></span></h2> <label><input type="checkbox" id="module-apply-main-stats" onchange="calc()" style="margin-right:4px;"/>Apply main stats</label></div>
+            <div class="panel-body">
+              <div class="modules-list" id="modules-list"></div>
+              <button class="btn-add-skill" onclick="addModule()">+ Add Module</button>
+              <div class="note" id="modules-total-note" style="margin-top:8px; display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="panel">
+        <div class="panel-header"><h2>Live Formula</h2></div>
+        <div class="panel-body">
+          <div class="formula-box" id="formula-preview">—</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Substat Optimization</h2></div>
+        <div class="panel-body">
+          <div class="note" style="margin-bottom:10px;">
+            Optimizes substat allocation for maximum damage on the first skill in the skills list. <span class="highlight-purple">Does not currently support haste; Mastery only supported if class supports it.</span> Some stats like luck might be undervalued here if lucky hits help your rotation.
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+            <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-crit" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Crit</label>
+            <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-luck" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Luck</label>
+            <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-mastery" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Mastery</label>
+            <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center;"><input type="checkbox" id="lock-vers" onchange="onOptimizerInputsChange()" style="margin-right:4px;"/>Lock Vers</label>
+          </div>
+          <div class="input-row">
+            <div class="field" style="grid-column:1 / -1; display:flex; gap:8px; flex-direction:column;">
+              <button class="btn-progress" id="optimize-substats-button" onclick="optimizeSubstats()" style="--progress: 0%;"><span>Optimize substats</span></button>
+              <button class="btn-progress" id="undo-substats-button" onclick="undoOptimizeSubstats()" style="width:100%;">Undo optimization</button>
+            </div>
+          </div>
+          <div id="optimize-substats-output" class="note" style="margin-top:8px;">Click optimize to begin optimizing for the Total Damage summary.</div>
+        </div>
+      </div>
+  </div>
+  <!-- RIGHT SIDEBAR (skills / utilities) -->
+    <div class="right-sidebar">
+      <div class="panel">
+        <div class="panel-header"><h2>Damage Summary</h2></div>
+        <div class="panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; background: var(--bg-input); border-radius: 5px;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Damage</div>
+              <div id="summary-total-damage" style="font-size: 24px; font-weight: bold; color: var(--accent); line-height: 1;">—</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">DPS</div>
+              <div id="summary-total-dps" style="font-size: 24px; font-weight: bold; color: var(--accent-green); line-height: 1;">—</div>
+            </div>
+          </div>
+          
+          <div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Damage by Skill</div>
+            <div id="summary-skill-breakdown" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto;">
+              <div style="text-align: center; color: var(--text-muted); font-size: 12px;">Add skills to see breakdown</div>
+            </div>
+          </div>
+          
+          <div>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Parse Duration (seconds)</label>
+            <input type="number" id="parse-duration" value="180" min="1" step="1" style="width: auto; padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px;" oninput="calc()">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>Skills / Abilities</h2></div>
+        <div class="panel-body">
+          <div class="skills-list" id="skills-list"></div>
+          <button class="btn-add-skill" onclick="addSkill()">+ Add Skill</button>
+        </div>
+      </div>
+
+    </div>
+</div>
+
+<script src="constants.js"></script>
+<script src="import_modal.js"></script>
+<script src="base_main_stat_modal.js"></script>
+<script src="modules_calc.js"></script>
+<!-- Classes -->
+<script src="classes/smite.js"></script>
+<script src="classes/dissonance.js"></script>
+<script src="classes/stormblade.js"></script>
+<script src="classes/marksman.js"></script>
+<script src="classes/windknight.js"></script>
+<script src="classes/heavyguardian.js"></script>
+<script src="classes/shieldknight.js"></script>
+<script src="classes/frostmage.js"></script>
+<script src="classes/twinaxe.js"></script>
+<script src="util.js"></script>
+<!-- Imagines -->
+<script src="imagines/muku-scout.js"></script>
+<script src="imagines/muku-chief.js"></script>
+<script src="imagines/flamehorn.js"></script>
+<script src="imagines/rorola.js"></script>
+<script src="imagines/airona.js"></script>
+<script src="imagines/tina.js"></script>
+<script src="imagines/tatta.js"></script>
+<script src="imagines/dorothy.js"></script>
+<script src="imagines/celestial-flier.js"></script>
+<script src="imagines/phantom-arachnocrab.js"></script>
+<script src="imagines/blackfire-foxen.js"></script>
+<script src="imagines/emerald-caprahorn.js"></script>
+<script src="imagines/bluespine-lizard.js"></script>
+<script src="imagines/shadow-captain.js"></script>
+<script src="imagines/boarrier-tyrant.js"> </script>
+<script src="imagines/inferno-goblin-mage.js"></script>
+<script src="imagines/brigand-scout-leader.js"></script>
+<script src="imagines/jungle-goblin-warrior.js"></script>
+<script src="imagines/goblin-king.js"></script>
+<script src="imagines/lizardman-hunter.js"></script>
+<script src="imagines/goblin-warrior.js"></script>
+<script src="imagines/storm-goblin-king.js"></script>
+<script src="imagines/goblin-chief.js"></script>
+<script src="imagines/muku-warrior.js"></script>
+<script src="imagines/fafala.js"></script>
+<script src="imagines/olvera.js"></script>
+<script src="imagines/bloodthirsty-furball.js"></script>
+<script src="imagines/boyce.js"></script>
+<script src="imagines/void-bzzar.js"></script>
+<script src="imagines/void-watcher.js"></script>
+<script src="imagines/wandering-vagrant.js"></script>
+<script src="imagines/predator-spider.js"></script>
+<script src="imagines/igoreus.js"></script>
+<script src="imagines/shell-picking-acolyte.js"></script>
+<script src="imagines/kartgriff.js"></script>
+<script src="imagines/lucy.js"></script>
+<script src="imagines/sunfire-moonstrike.js"></script>
+<script src="imagines/natsu.js"></script>
+<!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
+<!-- Psychoscope Trees -->
+<script src="psychoscope/psychoscope-tree.js"></script>
+<script src="psychoscope/dreamforce.js"></script>
+<script src="psychoscope/fantasia-impact.js"></script>
+<script src="psychoscope/endless-mind.js"></script>
+<script src="psychoscope/oblivion.js"></script>
+<!-- final stat values and damage calculation -->
+<script src="calc.js"></script>
+<script src="calc_skill.js"></script>
+<script>
+  let damageType = 'physical';
+  let magResEnabled = true;
+  let physResEnabled = true;
+  let skillCount = 0;
+  let skills = [];
+  let moduleCount = 0;
+  let modules = [];
+  let weaponLineEffectCount = 0;
+  const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v1.0.2';
+  let optimizerBackup = null;
+  let optimizerDone = false;
+  let optimizingSubstats = false;
+  let lastTree = 'none';
+  let pendingPsychoscopeState = null;
+
+  let atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
+
+
+
+  function getClassBases() {
+    const cls = document.getElementById('class-select').value;
+    return CLASS_BASES[cls] || CLASS_BASES.none;
+  }
+
+  function onClassChange() {
+    const cls = document.getElementById('class-select').value;
+    const module = window.CLASS_MODULES && window.CLASS_MODULES[cls];
+    const container = document.getElementById('class-options');
+
+    // Let the class module handle rendering/options and class-specific state
+    if (module && typeof module.onSelected === 'function') {
+      module.onSelected();
+    } else {
+      const container = document.getElementById('class-options');
+      if (container) container.innerHTML = '';
+    }
+    // Load base % values into the editable inputs
+    const bases = getClassBases();
+    document.getElementById('base-crit-pct').value    = bases.crit;
+    document.getElementById('base-haste-pct').value   = bases.haste;
+    document.getElementById('base-luck-pct').value    = bases.luck;
+    document.getElementById('base-mastery-pct').value = bases.mastery;
+    document.getElementById('base-vers-pct').value    = bases.vers;
+    updateClassSkills();
+    calc();
+  }
+
+  function onImagineChange(slot) {
+    const val = document.getElementById(`imagine-${slot}`).value;
+    const levelField = document.getElementById(`imagine-${slot}-level-field`);
+    const modeField = document.getElementById(`imagine-${slot}-mode-field`);
+    
+    const hasImagine = !!val && val !== 'none';
+    levelField.style.display = hasImagine ? '' : 'none';
+
+    const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
+    'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 
+    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-vagrant', 'void-watcher', 'predator-spider', 'igoreus', 'shell-picking-acolyte', 'kartgriff', 'sunfire-moonstrike'];
+    // Show mode for imagines that have active/passive modes
+    modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
+    // Show stacks input only for Rorola
+    const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
+    if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce' || val === 'igoreus' || val === 'sunfire-moonstrike') ? '' : 'none';
+    // Show passive stats checkbox for passive stats imagines
+    const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'shell-picking-acolyte', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-vagrant', 'airona', 
+    'boyce', 'dorothy', 'fafala', 'olvera', 'rorola', 'tina', 'tatta', 'kartgriff', 'lucy', 'natsu'];
+    const passiveField = document.getElementById(`imagine-${slot}-passive-field`);
+    if (passiveField) passiveField.style.display = passiveFieldImagines.includes(val) ? '' : 'none';
+
+    const sgkT5Field = document.getElementById(`imagine-${slot}-sgk-t5-field`);
+    if (sgkT5Field) sgkT5Field.style.display = val === 'goblin-king' ? '' : 'none';
+    
+    updateImagineNotes();
+    if (!isApplyingSetupState) updateImagineSkills();
+    persistCurrentState();
+  }
+
+  function updateImagineNotes() {
+    const imagine1 = document.getElementById('imagine-1').value;
+    const imagine2 = document.getElementById('imagine-2').value;
+
+    const selected = new Set([imagine1, imagine2]);
+
+    const imaginesWithNotes = [
+      'flamehorn',
+      'rorola',
+      'airona',
+      'olvera',
+      'fafala',
+      'tina',
+      'tatta',
+      'dorothy',
+      'inferno-goblin-mage',
+      'brigand-scout-leader',
+      'jungle-goblin-warrior',
+      'goblin-king',
+      'storm-goblin-king',
+      'wandering-vagrant',
+      'shell-picking-acolyte',
+      'kartgriff',
+      'lucy',
+      'natsu',
+      'sunfire-moonstrike'
+    ];
+
+    let hasAnyNote = false;
+
+    for (const name of imaginesWithNotes) {
+      const el = document.getElementById(`imagine-note-${name}`);
+      if (!el) continue;
+
+      const show = selected.has(name);
+      el.style.display = show ? 'block' : 'none';
+
+      if (show) hasAnyNote = true;
+    }
+
+    const notesContainer = document.getElementById('imagine-notes');
+    if (notesContainer) {
+      notesContainer.style.display = hasAnyNote ? 'block' : 'none';
+    }
+  }
+  function getImagineState(slot) {
+    return {
+      imagine: document.getElementById(`imagine-${slot}`)?.value || 'none',
+
+      level: parseInt(document.getElementById(`imagine-${slot}-level`)?.value) || 0,
+
+      mode: document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive',
+
+      stacks: Math.min(parseInt(document.getElementById(`imagine-${slot}-stacks`)?.value) || 0, 5),
+
+      applyPassiveStats: document.getElementById(`imagine-${slot}-passive-stats`) ? document.getElementById(`imagine-${slot}-passive-stats`).checked : false,
+
+      sgkT5: document.getElementById(`imagine-${slot}-sgk-t5`) ? document.getElementById(`imagine-${slot}-sgk-t5`).checked : false
+    };
+  }
+
+  // Collect and combine bonuses from all imagines
+  function getImagineBonuses(stats = {}) {
+    const out = {};
+
+    for (let slot = 1; slot <= 2; slot++) {
+      const state = getImagineState(slot);
+
+      if (!state.imagine || state.imagine === 'none') {
+        continue;
+      }
+
+      // Attach stats to the state object
+      const extendedState = {
+        ...state,
+        stats
+      };
+
+      const module = window.IMAGINES?.[state.imagine];
+
+      try {
+        // Pass extendedState to provideBonuses
+        const bonuses = module?.provideBonuses?.(extendedState) || {};
+
+        for (const [key, value] of Object.entries(bonuses)) {
+          out[key] = (out[key] || 0) + (Number(value) || 0);
+        }
+      } catch (e) {
+        console.warn('imagine bonus error', e);
+      }
+    }
+    return out;
+  }
+
+  function getPsychoscopeBonuses() {
+    const tree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
+    if (window.PSYCHOSCOPE_MODULES && PSYCHOSCOPE_MODULES[tree] && typeof PSYCHOSCOPE_MODULES[tree].getBonuses === 'function') {
+      return PSYCHOSCOPE_MODULES[tree].getBonuses();
+    }
+    return {};
+  }
+
+  function getPsychoscopeSkillsForTree(tree) {
+    if (!tree || tree === 'none') return [];
+    const module = window.PSYCHOSCOPE_MODULES?.[tree];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills({ tree });
+    return Array.isArray(skillData) ? skillData : [];
+  }
+
+  function removePsychoscopeSkills() {
+    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
+      if (card.getAttribute('data-psychoscope-skill-origin') === 'psychoscope') {
+        const id = Number(card.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) removeSkill(id);
+      }
+    });
+  }
+
+  function addPsychoscopeSkill(skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData?.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      existingCard.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+      existingCard.setAttribute('data-psychoscope-skill', document.getElementById('psychoscope-tree')?.value || '');
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+      card.setAttribute('data-psychoscope-skill', document.getElementById('psychoscope-tree')?.value || '');
+    }
+    
+    populateSkillCardFromData(id, skillData);
+
+    // Tag the row so it recognizes it as a psychoscope managed row (prevent dupes and proper removal when changed).
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (effectsContainer) {
+      const dreamRow = Array.from(effectsContainer.querySelectorAll('.skill-effect-row')).find(row => {
+        const select = row.querySelector('select');
+        return select && select.value === 'dreamDmg';
+      });
+
+      if (dreamRow) {
+        dreamRow.setAttribute('data-psychoscope-dynamic-effect', 'dreamDmg');
+      }
+    }
+  }
+
+  function getClassSkillsForSelection() {
+    const classSelectVal = document.getElementById('class-select')?.value || 'none';
+    const module = window.CLASS_MODULES?.[classSelectVal];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills({ class: classSelectVal });
+    return Array.isArray(skillData) ? skillData : [];
+  }
+
+  function removeClassSkills() {
+    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
+      if (card.getAttribute('data-class-skill-origin') === 'class') {
+        const id = Number(card.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) removeSkill(id);
+      }
+    });
+  }
+
+  function addClassSkill(skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      existingCard.setAttribute('data-class-skill-origin', 'class');
+      existingCard.setAttribute('data-class-skill', document.getElementById('class-select')?.value || '');
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-class-skill-origin', 'class');
+      card.setAttribute('data-class-skill', document.getElementById('class-select')?.value || '');
+    }
+    populateSkillCardFromData(id, skillData);
+  }
+
+  function updateClassSkills() {
+    const classSelectVal = document.getElementById('class-select')?.value || 'none';
+    const existingCards = Array.from(document.querySelectorAll('#skills-list .skill-card'));
+
+    if (!classSelectVal || classSelectVal === 'none') {
+      existingCards.forEach(card => {
+        if (card.getAttribute('data-class-skill-origin') === 'class') {
+          const id = Number(card.id.replace('skill-card-', ''));
+          if (!Number.isNaN(id)) removeSkill(id);
+        }
+      });
+      return;
+    }
+
+    const expectedNames = new Set(
+      getClassSkillsForSelection()
+        .map(data => Array.isArray(data) ? data[4] : data.name)
+        .filter(Boolean)
+    );
+
+    existingCards.forEach(card => {
+      const origin = card.getAttribute('data-class-skill-origin');
+      const classKey = card.getAttribute('data-class-skill');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (origin !== 'class') return;
+
+      if (classKey !== classSelectVal || !expectedNames.has(name)) {
+        removeSkill(id);
+      }
+    });
+
+    const skillData = getClassSkillsForSelection();
+    skillData.forEach(data => {
+      const skillName = Array.isArray(data) ? data[4] : data.name;
+      if (!skillName) return;
+      const existingCard = findSkillCardByName(skillName);
+      if (existingCard) {
+        existingCard.setAttribute('data-class-skill-origin', 'class');
+        existingCard.setAttribute('data-class-skill', classSelectVal);
+        const id = Number(existingCard.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) {
+          populateSkillCardFromData(id, data, { preserveHits: true, preserveExistingEffects: true, markGeneratedEffects: true });
+        }
+        return;
+      }
+      addClassSkill(data);
+    });
+  }
+
+  function updatePsychoscopeSkills() {
+    const tree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
+    const existingCards = Array.from(document.querySelectorAll('#skills-list .skill-card'));
+
+    if (!tree || tree === 'none') {
+      existingCards.forEach(card => {
+        if (card.getAttribute('data-psychoscope-skill-origin') === 'psychoscope') {
+          const id = Number(card.id.replace('skill-card-', ''));
+          if (!Number.isNaN(id)) removeSkill(id);
+        }
+      });
+      return;
+    }
+
+    const expectedNames = new Set(
+      getPsychoscopeSkillsForTree(tree)
+        .map(data => Array.isArray(data) ? data[4] : data.name)
+        .filter(Boolean)
+    );
+
+    existingCards.forEach(card => {
+      const origin = card.getAttribute('data-psychoscope-skill-origin');
+      const skillTree = card.getAttribute('data-psychoscope-skill');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (origin !== 'psychoscope') return;
+
+      if (skillTree !== tree || !expectedNames.has(name)) {
+        removeSkill(id);
+      }
+    });
+
+    const skillData = getPsychoscopeSkillsForTree(tree);
+    skillData.forEach(data => {
+      const skillName = Array.isArray(data) ? data[4] : data.name;
+      if (!skillName) return;
+      const existingCard = findSkillCardByName(skillName);
+      if (existingCard) {
+        existingCard.setAttribute('data-psychoscope-skill-origin', 'psychoscope');
+        existingCard.setAttribute('data-psychoscope-skill', tree);
+        const id = Number(existingCard.id.replace('skill-card-', ''));
+        if (!Number.isNaN(id)) {
+          populateSkillCardFromData(id, data, { preserveHits: true, preserveExistingEffects: true, markGeneratedEffects: true });
+        }
+        return;
+      }
+      addPsychoscopeSkill(data);
+    });
+    syncPsychoscopeSkillEffects(tree);
+  }
+
+  function onPsychoscopeChange() {
+    const select = document.getElementById('psychoscope-tree');
+    const options = document.getElementById('psychoscope-options');
+    const df = document.getElementById('psychoscope-dreamforce-options');
+    const fi = document.getElementById('psychoscope-fantasia-options');
+    const em = document.getElementById('psychoscope-endless-mind-options');
+    const ob = document.getElementById('psychoscope-oblivion-options');
+    const endlessMind = document.getElementById('endless-mind');
+    const oblivion = document.getElementById('oblivion-buff');
+
+    if (!select || !options || !df || !fi || !em || !endlessMind || !ob) return;
+
+    const treeKey = TREE_SELECT_VALUE_MAP?.[select.value] || null;
+    const config = treeKey ? PSYCHOSCOPE_TREES?.[treeKey] : null;
+
+    options.style.display = select.value === 'none' ? 'none' : '';
+    df.style.display = select.value === 'dreamforce' ? '' : 'none';
+    fi.style.display = select.value === 'fantasia-impact' ? '' : 'none';
+    em.style.display = select.value === 'endless-mind' ? '' : 'none';
+    ob.style.display = select.value === 'oblivion' ? '' : 'none';
+
+    const isEndlessMind = select.value === 'endless-mind';
+    const emSelfOptions = endlessMind.querySelectorAll('.em-self');
+    const isOblivion = select.value === 'oblivion';
+    const obAeOptions = oblivion.querySelectorAll('.ob-self');
+
+    emSelfOptions.forEach(opt => {
+      opt.style.display = isEndlessMind ? '' : 'none';
+    });
+    obAeOptions.forEach(opt => {
+      opt.style.display = isOblivion ? '' : 'none';
+    });
+
+    // Reset invalid selection (swapping off Endless Mind/oblivion)
+    if (!isEndlessMind && endlessMind.value.includes('self')) {
+      endlessMind.value = 'none';
+    }
+    if (!isOblivion && oblivion.value.includes('ae')) {
+      oblivion.value = 'none';
+    } else if (lastTree === 'oblivion' && !isOblivion) { // reset oblivion when swapping off oblivion
+      oblivion.value = 'none';
+    }
+
+    lastTree = select.value;
+
+    if (config && typeof handleTreeChange === 'function') {
+      handleTreeChange(treeKey);
+    }
+    updatePsychoscopeSkills();
+    calc();
+  }
+
+  function togglePhysRes() {
+    console.log('toggling phys res', physResEnabled);
+    physResEnabled = !physResEnabled;
+    const btn = document.getElementById('res-phys-tag');
+    btn.textContent = `Phys Res: 30.00% ${physResEnabled ? '✓' : '✗'}`;
+    btn.classList.toggle('inactive', !physResEnabled);
+    calc();
+  }
+
+  function toggleMagRes() {
+    magResEnabled = !magResEnabled;
+    const btn = document.getElementById('res-mag-tag');
+    btn.textContent = `Mag Res: 8.00% ${magResEnabled ? '✓' : '✗'}`;
+    btn.classList.toggle('inactive', !magResEnabled);
+    calc();
+  }
+
+  function updateAtkLabels() {
+    const isPhysical = damageType === 'physical';
+    const atkName = isPhysical ? 'ATK' : 'MATK';
+    const mainStatName = isPhysical ? 'Main Stat' : 'INT';
+    atkLabel = damageType === 'physical' ? 'ATK' : 'MATK';
+
+    const atkMatkSwap = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+
+    atkMatkSwap('matk-section-label', atkName);
+    atkMatkSwap('main-attr-label', mainStatName);
+    atkMatkSwap('module-atk-label', `Module ${atkName}`);
+    atkMatkSwap('weapon-atk-label', `Weapon ${atkName}`);
+    atkMatkSwap('attr-atk-before-label', `${atkName} before %`);
+    atkMatkSwap('eff-matk-label', `Effective ${atkName} (after %)`);
+    atkMatkSwap('s-eff-atk-label', `Effective ${atkName}`);
+    atkMatkSwap('s-def-atk-label', `${atkName} after Defense`);
+    atkMatkSwap('matk-pct-label', `${atkName} %`);
+    atkMatkSwap('int-pct-label', `${mainStatName} %`);
+    atkMatkSwap('refined-atk-label', `Refined ${atkName}`);
+    atkMatkSwap('food-atk-label', atkName);
+    atkMatkSwap('matk-pct-tip', `Scales full base: FLOOR(base x (1+${atkName}%)).`);
+    atkMatkSwap('refined-elemental-tip', `Not in ${atkName} stat. Bypass defense entirely. Do not scale with ${atkName}%.`);
+    atkMatkSwap('extra-main-attr-label', 'Extra ' + mainStatName);
+    atkMatkSwap('extra-main-attr-tip', `Additional ${mainStatName} (Any other source of raw ${mainStatName}).`);
+  }
+
+  function onFoodToggle() {
+    const enabled = document.getElementById('food-enabled').checked;
+    const foodConfig = document.getElementById('food-config');
+    if (!foodConfig) return;
+    foodConfig.classList.toggle('active', enabled);
+
+    if (enabled) {
+      const foodAtk = document.getElementById('food-atk');
+      const foodDmgBonus = document.getElementById('food-dmg-bonus');
+      if (foodAtk && (foodAtk.value === '' || foodAtk.value === null)) foodAtk.value = 195;
+      if (foodDmgBonus && (foodDmgBonus.value === '' || foodDmgBonus.value === null)) foodDmgBonus.value = 10;
+    }
+
+    calc();
+  }
+
+  function onSerumOilTypeChange() {
+    const typeSelect = document.getElementById('serum-oil-type');
+    const valueEl = document.getElementById('serum-oil-value');
+    if (!typeSelect || !valueEl) return;
+
+    const type = typeSelect.value;
+    if (type === 'serum') {
+      valueEl.value = 2000;
+    } else {
+      valueEl.value = 1350;
+    }
+
+    calc();
+  }
+
+  function onSerumOilToggle() {
+    const enabled = document.getElementById('serum-oil-enabled').checked;
+    const serumOilConfig = document.getElementById('serum-oil-config');
+    if (!serumOilConfig) return;
+    serumOilConfig.classList.toggle('active', enabled);
+
+    if (enabled) {
+      const typeSelect = document.getElementById('serum-oil-type');
+      const valueEl = document.getElementById('serum-oil-value');
+      if (!typeSelect || !valueEl) return;
+      if (typeSelect.value === 'oil') {
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 1350;
+      } else {
+        if (valueEl.value === '' || valueEl.value === null || Number(valueEl.value) <= 0) valueEl.value = 2000;
+      }
+    }
+
+    calc();
+  }
+
+  function setType(type) {
+    damageType = type;
+    document.getElementById('btn-phys').className = type === 'physical' ? 'active-phys' : '';
+    document.getElementById('btn-mag').className  = type === 'magical'  ? 'active-mag'  : '';
+    updateAtkLabels();
+    calc();
+  }
+
+  function toggleLuckyManual() {
+    const isManual = document.getElementById('lucky-mult-manual').checked;
+    const el = document.getElementById('lucky-mult-display');
+    if (isManual) {
+      el.removeAttribute('readonly');
+      el.style.color = 'var(--text)';
+      el.style.background = 'var(--bg-input)';
+      el.style.opacity = '1';
+      el.style.cursor = 'text';
+    } else {
+      el.setAttribute('readonly', '');
+      el.style.color = 'var(--accent)';
+      el.style.background = 'var(--readonly-bg)';
+      el.style.opacity = '0.85';
+      el.style.cursor = 'default';
+    }
+    calc();
+  }
+
+  function toggleSetupPanel() {
+    const body = document.getElementById('setup-panel-body');
+    const chevron = document.getElementById('setup-panel-chevron');
+    if (!body || !chevron) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    chevron.textContent = open ? '▸' : '▾';
+  }
+
+
+  function showFloatingCopyStatus(message, x, y, isError = false) {
+    const el = document.getElementById('copy-float');
+    if (!el) return;
+    el.textContent = message;
+    el.style.display = 'block';
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.opacity = '1';
+    el.style.transform = 'translate(-50%, 0)';
+    el.style.color = isError ? 'var(--accent-red)' : 'var(--accent-green)';
+    el.classList.remove('float-animate');
+    void el.offsetWidth;
+    el.classList.add('float-animate');
+    window.clearTimeout(el._copyFloatTimeout);
+    el._copyFloatTimeout = window.setTimeout(() => {
+      el.style.display = 'none';
+      el.classList.remove('float-animate');
+    }, 1200);
+  }
+
+  function copyTextToClipboard(text, statusMessage, x = window.innerWidth / 2, y = 60) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showFloatingCopyStatus(statusMessage, x, y, false);
+      }).catch(() => {
+        showFloatingCopyStatus(`Failed to copy '${text}'. Copy manually.`, x, y, true);
+      });
+    } else {
+      showFloatingCopyStatus(`Clipboard not supported. Copy manually: ${text}`, x, y, true);
+    }
+  }
+
+  function copyTextValue(evt, text, statusMessage) {
+    const x = evt?.clientX || window.innerWidth / 2;
+    const y = (evt?.clientY || 0) + 20;
+    copyTextToClipboard(text, statusMessage, x, y);
+  }
+
+  function resetAll() {
+    localStorage.removeItem(LOCAL_STORAGE_STATE_KEY);
+    setStatus('All fields reset to defaults.', false);
+    // Keep profiles intact; reload to apply HTML default values.
+    location.reload();
+  }
+
+  function loadProfiles() {
+    const raw = localStorage.getItem(LOCAL_STORAGE_PROFILES_KEY);
+    let profiles = {};
+    if (raw) {
+      try { profiles = JSON.parse(raw) || {}; } catch (e) { console.warn('Failed to parse profiles', e); }
+    }
+    return profiles;
+  }
+
+  function saveProfiles(profiles) {
+    localStorage.setItem(LOCAL_STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+  }
+
+  function updateProfileDropdown() {
+    const select = document.getElementById('profile-select');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">— Select profile —</option>';
+    const profiles = loadProfiles();
+    Object.keys(profiles)
+      .sort((a, b) => {
+        const aSaved = profiles[a].savedAt || 0;
+        const bSaved = profiles[b].savedAt || 0;
+        return bSaved - aSaved; // Newest first
+      })
+      .forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+    if ([...select.options].some(o => o.value === current)) select.value = current;
+  }
+
+  function persistCurrentState() {
+    try {
+      const state = getSetupState();
+      localStorage.setItem(LOCAL_STORAGE_STATE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Failed to persist state', e);
+    }
+  }
+
+  function queuePsychoscopeRestore(state) {
+    pendingPsychoscopeState = state;
+    console.log('[psychoscope] queued restore', state);
+    const tryRestore = () => {
+      if (!pendingPsychoscopeState) return;
+      const treeSelect = document.getElementById('psychoscope-tree');
+      const factorNameInput = document.getElementById('psychoscope-factor-generic-1-name');
+      console.log('[psychoscope] trying queued restore', { hasTreeSelect: !!treeSelect, hasFactorNameInput: !!factorNameInput, pendingState: pendingPsychoscopeState });
+      if (treeSelect && factorNameInput && typeof applyPsychoscopeSaveState === 'function') {
+        applyPsychoscopeSaveState(pendingPsychoscopeState);
+        pendingPsychoscopeState = null;
+        return;
+      }
+      window.requestAnimationFrame(tryRestore);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', tryRestore, { once: true });
+    } else {
+      window.requestAnimationFrame(tryRestore);
+    }
+  }
+
+  function loadPersistedState() {
+    const raw = localStorage.getItem(LOCAL_STORAGE_STATE_KEY);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed) {
+        applySetupState(parsed);
+        setStatus('Loaded previous settings from localStorage.', false);
+      }
+    } catch (e) {
+      console.warn('failed to load persisted state', e);
+    }
+  }
+
+  function saveCurrentProfile() {
+    const nameEl = document.getElementById('profile-name');
+    if (!nameEl) return setStatus('Profile name input not found', true);
+    const name = String(nameEl.value).trim();
+    if (!name) return setStatus('Enter a profile name first', true);
+
+    try {
+      const profiles = loadProfiles();
+      profiles[name] = {
+        data: getSetupState(),
+        savedAt: Date.now()
+      };
+      saveProfiles(profiles);
+      updateProfileDropdown();
+      setStatus(`Profile '${name}' saved`, false);
+    } catch (e) {
+      setStatus(`Failed to save profile: ${e.message}`, true);
+    }
+  }
+
+  function loadSelectedProfile() {
+    const select = document.getElementById('profile-select');
+    if (!select) return setStatus('Profile selector missing', true);
+    const name = select.value;
+    if (!name) return setStatus('Select a profile to load', true);
+    const profiles = loadProfiles();
+    const profile = profiles[name];
+    if (!profile) return setStatus(`Profile '${name}' not found`, true);
+
+    applySetupState(profile.data || profile); // Backward compatibility
+    setStatus(`Profile '${name}' loaded`, false);
+  }
+
+  function deleteSelectedProfile() {
+    const select = document.getElementById('profile-select');
+    if (!select) return setStatus('Profile selector missing', true);
+    const name = select.value;
+    if (!name) return setStatus('Select a profile to delete', true);
+
+    const profiles = loadProfiles();
+    if (!profiles[name]) return setStatus(`Profile '${name}' not found`, true);
+
+    delete profiles[name];
+    saveProfiles(profiles);
+    updateProfileDropdown();
+    setStatus(`Profile '${name}' deleted`, false);
+  }
+
+  function getSetupState() {
+
+    const values = SAVE_FIELD_ORDER.map(id => {
+      if (id === 'damageType') return damageType;
+      if (id === 'PhysResEnabled') return physResEnabled ? 1 : 0;
+      if (id === 'magResEnabled') return magResEnabled ? 1 : 0;
+      const el = document.getElementById(id);
+      if (!el) return '';
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        return el.checked ? 1 : 0;
+      }
+      const val = el.value;
+      if (val === '' || val === null || val === undefined) return '';
+      const num = Number(val);
+      return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
+    });
+
+    const skillsState = getSkillsState();
+
+    const modulesState = [];
+    document.querySelectorAll('#modules-list .module-card').forEach(card => {
+      const id = card.id.replace('module-card-', '');
+      const levelEl = document.getElementById(`module-level-${id}`);
+      const selectedModule = card.dataset.selectedModule || '';
+      
+      modulesState.push([
+        selectedModule,
+        levelEl ? Number(levelEl.value) || 0 : 0
+      ]);
+    });
+
+    const weaponLineEffectsState = getWeaponLineEffectState();
+
+    // Get class-specific fields
+    const classSelect = document.getElementById('class-select');
+    const selectedClass = classSelect ? classSelect.value : 'none';
+    const classFieldOrder = CLASS_FIELDS_ORDER[selectedClass] || [];
+    const classValues = classFieldOrder.map(id => {
+      const el = document.getElementById(id);
+      if (!el) return '';
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        return el.checked ? 1 : 0;
+      }
+      const val = el.value;
+      if (val === '' || val === null || val === undefined) return '';
+      const num = Number(val);
+      return !Number.isNaN(num) && String(val).trim() !== '' ? num : val;
+    });
+
+    // Get imagine state
+    const imagineState = [];
+    for (let slot = 1; slot <= 2; slot++) {
+      const imagine = document.getElementById(`imagine-${slot}`).value;
+      const level = parseInt(document.getElementById(`imagine-${slot}-level`).value) || 0;
+      const mode = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive';
+      const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
+      const stacks = stacksEl ? parseInt(stacksEl.value) || 0 : 0;
+      const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+      const passiveStats = passiveStatsEl ? passiveStatsEl.checked : false;
+      
+      imagineState.push([
+        imagine,
+        level,
+        mode,
+        stacks,
+        passiveStats
+      ]);
+    }
+
+    // We split class and psychoscope tree to decrease export length by just exporting relevant fields
+    const psychoscopeState = typeof getPsychoscopeSaveState === 'function'
+      ? getPsychoscopeSaveState()
+      : { tree: selectedTree, values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
+    const psychoscopeSection = {};
+    PSYCHOSCOPE_SAVE_FIELD_ORDER.forEach(key => {
+      if (key === 'tree') {
+        psychoscopeSection[key] = psychoscopeState.tree || 'none';
+      } else if (key === 'values') {
+        psychoscopeSection[key] = psychoscopeState.values || {};
+      } else if (key === 'factors') {
+        psychoscopeSection[key] = psychoscopeState.factors || { generic: [], class: [], 'class-reality': [] };
+      }
+    });
+
+    return {
+      vers: SAVE_FORMAT_VERSION,
+      v: values,
+      s: skillsState,
+      m: modulesState,
+      w: weaponLineEffectsState,
+      i: imagineState,
+      c: selectedClass,
+      cf: classValues,
+      p: psychoscopeSection
+    };
+  }
+
+  function getCompactSetupState() {
+    // kept for compatibility, but main path uses getSetupState() now.
+    const state = getSetupState();
+    return { vers: state.vers, v: state.v, c: state.c, cf: state.cf, p: state.p, m: state.m, s: state.s, i: state.i, w: state.w };
+  }
+
+  function removeAllSkills() {
+    document.querySelectorAll('.skill-card').forEach(card => card.remove());
+    skills = [];
+    skillCount = 0;
+  }
+
+  function removeAllModules() {
+    document.querySelectorAll('.module-card').forEach(card => card.remove());
+    modules = [];
+    moduleCount = 0;
+  }
+
+  function getImagineDisplayName(imagineKey) {
+    const module = window.IMAGINES?.[imagineKey];
+    if (module?.displayName) return module.displayName;
+    return imagineKey
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  function getImagineSkillName(imagineKey, level) {
+    return `${getImagineDisplayName(imagineKey)} (${level})`;
+  }
+
+  function getImagineSkillNamePrefix(imagineKey) {
+    return `${getImagineDisplayName(imagineKey)} (`;
+  }
+
+  function getImagineSkillNamesForState(state) {
+    const module = window.IMAGINES?.[state.imagine];
+    if (!module?.provideSkills) return [];
+    const skillData = module.provideSkills(state);
+    if (!Array.isArray(skillData)) return [];
+    return skillData
+      .map(data => Array.isArray(data) ? data[4] : data.name)
+      .filter(Boolean);
+  }
+
+  function findSkillCardByName(skillName) {
+    return document.querySelector(`#skills-list .skill-card .skill-name-input[value="${CSS.escape(skillName)}"]`)
+      || Array.from(document.querySelectorAll('#skills-list .skill-card')).find(card => {
+        const nameInput = card.querySelector('.skill-name-input');
+        return nameInput && nameInput.value.trim() === skillName;
+      });
+  }
+
+  function collectSkillEffectRows(id) {
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return [];
+    return Array.from(effectsContainer.querySelectorAll('.skill-effect-row')).map(row => {
+      const select = row.querySelector('select');
+      const input = row.querySelector('input');
+      const kind = select ? select.value : '';
+      const value = input ? String(input.value).trim() : '';
+      const source = row.getAttribute('data-generated-effect') || row.getAttribute('data-psychoscope-dynamic-effect') || '';
+      return { kind, value, source };
+    }).filter(effect => effect.kind);
+  }
+
+  function appendSkillEffectRow(id, effect, markGenerated = false, markPsychoscopeDynamic = false) {
+    addSkillEffect(id);
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return;
+    const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+    if (!row) return;
+    const select = row.querySelector('select');
+    const input = row.querySelector('input');
+    if (select) select.value = effect.kind || 'generic';
+    if (input) input.value = effect.value != null ? effect.value : '';
+    if (markGenerated) row.setAttribute('data-generated-effect', 'true');
+    if (markPsychoscopeDynamic) row.setAttribute('data-psychoscope-dynamic-effect', String(effect.kind));
+    return row;
+  }
+
+  function removeImagineSkillsForSlot(slot) {
+    const state = getImagineState(slot);
+    const expectedNames = new Set(getImagineSkillNamesForState(state));
+    const imagineKey = document.getElementById(`imagine-${slot}`)?.value;
+    const prefix = imagineKey ? getImagineSkillNamePrefix(imagineKey) : null;
+
+    const cards = Array.from(document.querySelectorAll(`#skills-list .skill-card`));
+    cards.forEach(card => {
+      const origin = card.getAttribute('data-imagine-skill-origin');
+      const nameInput = card.querySelector('.skill-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const id = Number(card.id.replace('skill-card-', ''));
+      if (Number.isNaN(id)) return;
+
+      if (String(origin) === String(slot)) {
+        if (expectedNames.has(name)) {
+          card.setAttribute('data-imagine-skill', state.imagine || '');
+          console.log('keeping existing imagine skill card', { id, name, origin });
+          return;
+        }
+        removeSkill(id);
+        return;
+      }
+
+      if ((!origin || origin === '') && expectedNames.has(name)) {
+        card.setAttribute('data-imagine-skill-origin', String(slot));
+        card.setAttribute('data-imagine-skill', state.imagine || '');
+        return;
+      }
+
+      if (prefix && (!origin || origin === '') && name.startsWith(prefix) && name.endsWith(')')) {
+        if (!expectedNames.has(name)) {
+          removeSkill(id);
+        }
+      }
+    });
+  }
+
+  function populateSkillCardFromData(id, data, options = {}) {
+    const preserveHits = Boolean(options.preserveHits);
+    const preserveExistingEffects = Boolean(options.preserveExistingEffects);
+    const markGeneratedEffects = Boolean(options.markGeneratedEffects);
+
+    const typeEl = document.getElementById(`sk-type-${id}`);
+    const multEl = document.getElementById(`sk-mult-${id}`);
+    const flatEl = document.getElementById(`sk-flat-${id}`);
+    const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+    const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
+    const hitsEl = document.getElementById(`sk-hits-${id}`);
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+
+    const typeValue = Array.isArray(data) ? data[0] : data.type;
+    const multValue = Array.isArray(data) ? data[1] : data.mult;
+    const flatValue = Array.isArray(data) ? data[2] : data.flat;
+    const luckyValue = Array.isArray(data) ? data[3] : data.lucky;
+    const nameValue = Array.isArray(data) ? data[4] : data.name;
+    const effectsValue = Array.isArray(data) ? data[5] : data.effects;
+    const hitsValue = Array.isArray(data) ? data[6] : data.hits;
+    const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+
+    let preservedHits = null;
+    if (preserveHits && hitsEl) {
+      preservedHits = String(hitsEl.value || '').trim();
+    }
+
+    let manualEffects = [];
+    if (preserveExistingEffects && effectsContainer) {
+      manualEffects = collectSkillEffectRows(id).filter(effect => !effect.source);
+    }
+
+    if (typeEl && typeValue !== undefined) typeEl.value = typeValue || 'none';
+    if (multEl && multValue !== undefined) multEl.value = multValue;
+    if (flatEl && flatValue !== undefined) flatEl.value = flatValue;
+    if (luckyEl && luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
+    if (nameEl && nameValue !== undefined) nameEl.value = nameValue;
+    if (hitsEl && hitsValue !== undefined && !preserveHits) hitsEl.value = hitsValue;
+    if (hitsEl && preserveHits && preservedHits !== null && preservedHits !== '') {
+      hitsEl.value = preservedHits;
+    } else if (hitsEl && preserveHits && (preservedHits === '' || preservedHits === null) && hitsValue !== undefined) {
+      hitsEl.value = hitsValue;
+    }
+
+    if (effectsContainer && Array.isArray(effectsValue)) {
+      effectsContainer.innerHTML = '';
+      const desiredEffects = effectsValue
+        .filter(effect => Array.isArray(effect) && effect.length >= 2)
+        .map(effect => ({ kind: effect[0], value: String(effect[1]).trim() }));
+
+      desiredEffects.forEach(effect => {
+        const manualIndex = manualEffects.findIndex(old => old.kind === effect.kind && old.value === effect.value);
+        if (manualIndex >= 0) {
+          manualEffects.splice(manualIndex, 1);
+        }
+        const isPsychoscopeDynamic = effect.kind === 'dreamDmg' && markGeneratedEffects;
+        appendSkillEffectRow(id, effect, markGeneratedEffects, isPsychoscopeDynamic);
+      });
+
+      manualEffects.forEach(effect => {
+        appendSkillEffectRow(id, effect, false, false);
+      });
+    }
+
+    if (collapsedValue) setSkillCollapsed(id, true);
+  }
+
+  function syncPsychoscopeSkillEffects(tree) {
+    const module = window.PSYCHOSCOPE_MODULES?.[tree];
+    if (!module?.provideSkills) return;
+
+    const skillData = Array.isArray(module.provideSkills({ tree })) ? module.provideSkills({ tree }) : [];
+    const targetSkill = skillData.find(entry => Array.isArray(entry) || entry?.name);
+    const skillName = Array.isArray(targetSkill) ? targetSkill[4] : targetSkill?.name;
+    if (!skillName) return;
+
+    const card = Array.from(document.querySelectorAll('#skills-list .skill-card')).find(candidate => {
+      const origin = candidate.getAttribute('data-psychoscope-skill-origin');
+      const skillTree = candidate.getAttribute('data-psychoscope-skill');
+      const nameInput = candidate.querySelector('.skill-name-input');
+      return origin === 'psychoscope' && skillTree === tree && nameInput && nameInput.value.trim() === skillName;
+    });
+    if (!card) return;
+
+    const id = Number(card.id.replace('skill-card-', ''));
+    if (Number.isNaN(id)) return;
+
+    const effectsContainer = document.getElementById(`skill-effects-${id}`);
+    if (!effectsContainer) return;
+
+    const effectsValue = Array.isArray(targetSkill) ? targetSkill[5] : targetSkill?.effects;
+    const dreamEffect = Array.isArray(effectsValue) 
+      ? effectsValue.find(eff => Array.isArray(eff) && eff[0] === 'dreamDmg') 
+      : null;
+
+    // Find the exact dream dmg row managed by Psychoscope provided skill
+    let psychoscopeRow = effectsContainer.querySelector('.skill-effect-row[data-psychoscope-dynamic-effect="dreamDmg"]');
+
+    if (dreamEffect) {
+      const newValue = dreamEffect[1];
+
+      if (psychoscopeRow) {
+        // 1. Update existing row in place
+        const input = psychoscopeRow.querySelector('input');
+        if (input) input.value = newValue;
+      } else {
+        // 2. Row doesn't exist yet: Create and tag it
+        addSkillEffect(id);
+        psychoscopeRow = effectsContainer.querySelector('.skill-effect-row:last-child');
+        if (psychoscopeRow) {
+          psychoscopeRow.setAttribute('data-psychoscope-dynamic-effect', 'dreamDmg');
+          const select = psychoscopeRow.querySelector('select');
+          const input = psychoscopeRow.querySelector('input');
+          if (select) select.value = 'dreamDmg';
+          if (input) input.value = newValue;
+        }
+      }
+    } else if (psychoscopeRow) {
+      // 3. If dreamDmg is 0/disabled, remove only the Psychoscope-managed row
+      psychoscopeRow.remove();
+    }
+
+    calc();
+  }
+
+  function addImagineSkill(slot, state, skillData) {
+    const skillName = Array.isArray(skillData) ? skillData[4] : skillData.name;
+    if (!skillName) return;
+
+    const existingCard = findSkillCardByName(skillName);
+    if (existingCard) {
+      console.log('found existing imagine skill card, not adding new one', { slot, skillName, imagine: state.imagine });
+      existingCard.setAttribute('data-imagine-skill-origin', String(slot));
+      existingCard.setAttribute('data-imagine-skill', String(state.imagine || ''));
+      return;
+    }
+
+    addSkill();
+    const id = skillCount;
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) {
+      card.setAttribute('data-imagine-skill-origin', String(slot));
+      card.setAttribute('data-imagine-skill', String(state.imagine || ''));
+    }
+    populateSkillCardFromData(id, skillData, { markGeneratedEffects: true });
+  }
+
+  function onImagineSlotSettingsChange(slot) {
+    updateImagineSkills();
+    persistCurrentState();
+  }
+
+  function updateImagineSkills() {
+    for (let slot = 1; slot <= 2; slot++) {
+      const state = getImagineState(slot);
+      removeImagineSkillsForSlot(slot);
+      if (!state.imagine || state.imagine === 'none') continue;
+      const module = window.IMAGINES?.[state.imagine];
+      if (module?.provideSkills) {
+        const skillData = module.provideSkills(state);
+        if (Array.isArray(skillData)) {
+          skillData.forEach(data => addImagineSkill(slot, state, data));
+        }
+      }
+    }
+    calc();
+  }
+
+  function applySetupState(state) {
+    console.log('loaded setup state.version', state.vers, 'calc current version', SAVE_FORMAT_VERSION);
+    if(compareVersion(state.vers, "v0.8.2") < 0) {
+      state = migrateSetupState(state);
+    }
+    if (!state || typeof state !== 'object') throw new Error('Invalid setup object');
+
+    const valueArray = Array.isArray(state.v) ? state.v : null;
+    if (!Array.isArray(valueArray)) throw new Error('Invalid setup object: expected `v` array of values');
+
+    isApplyingSetupState = true;
+
+    for (let i = 0; i < Math.min(SAVE_FIELD_ORDER.length, valueArray.length); i++) {
+      const fieldId = SAVE_FIELD_ORDER[i];
+      const fieldValue = valueArray[i];
+
+      if (fieldId === 'damageType') {
+        if (typeof fieldValue === 'string') {
+          setType(fieldValue);
+        } else if (fieldValue === 1) {
+          setType('magical');
+        } else {
+          setType('physical');
+        }
+        continue;
+      }
+
+      if (fieldId === 'PhysResEnabled') {
+        physResEnabled = Boolean(fieldValue);
+        const btn = document.getElementById('res-phys-tag');
+        if (btn) {
+          const armourValue = Number(document.getElementById('enemy-armour')?.value || 2786);
+          const physResAuto = armourValue / (armourValue + 6500);
+          btn.textContent = `Phys Res: ${(physResAuto * 100).toFixed(2)}% ${physResEnabled ? '✓' : '✗'}`;
+          btn.classList.toggle('inactive', !physResEnabled);
+        }
+        continue;
+      }
+
+      if (fieldId === 'magResEnabled') {
+        magResEnabled = Boolean(fieldValue);
+        const btn = document.getElementById('res-mag-tag');
+        if (btn) {
+          btn.textContent = `Mag Res: 8.00% ${magResEnabled ? '✓' : '✗'}`;
+          btn.classList.toggle('inactive', !magResEnabled);
+        }
+        continue;
+      }
+
+      const el = document.getElementById(fieldId);
+      if (!el) continue;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        el.checked = Boolean(fieldValue);
+      } else {
+        el.value = fieldValue;
+      }
+    }
+
+    onSubstatFactorTypeChange(1);
+    onSubstatFactorTypeChange(2);
+    onSubstatFactorTypeChange(3);
+
+    const skillsArray = Array.isArray(state.skills) ? state.skills : (Array.isArray(state.s) ? state.s : null);
+    if (Array.isArray(skillsArray)) {
+      removeAllSkills();
+      skillsArray.forEach(data => {
+        addSkill();
+        const id = skillCount;
+        const typeEl = document.getElementById(`sk-type-${id}`);
+        const multEl = document.getElementById(`sk-mult-${id}`);
+        const flatEl = document.getElementById(`sk-flat-${id}`);
+        const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+        const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
+        if (typeEl) {
+          if (typeof data === 'string' || Array.isArray(data)) {
+            typeEl.value = (Array.isArray(data) ? data[0] : data) || 'none';
+          } else if (data.type !== undefined) {
+            typeEl.value = data.type;
+          }
+        }
+        if (multEl) {
+          const multValue = Array.isArray(data) ? data[1] : data.mult;
+          if (multValue !== undefined) multEl.value = multValue;
+        }
+        if (flatEl) {
+          const flatValue = Array.isArray(data) ? data[2] : data.flat;
+          if (flatValue !== undefined) flatEl.value = flatValue;
+        }
+        if (luckyEl) {
+          const luckyValue = Array.isArray(data) ? data[3] : data.lucky;
+          if (luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
+        }
+        if (nameEl) {
+          const nameValue = Array.isArray(data) ? data[4] : data.name;
+          if (nameValue !== undefined) nameEl.value = nameValue;
+        }
+        const hitsEl = document.getElementById(`sk-hits-${id}`);
+        if (hitsEl) {
+          const hitsValue = Array.isArray(data) ? data[6] : data.hits;
+          if (hitsValue !== undefined) hitsEl.value = hitsValue;
+        }
+
+        const effectList = Array.isArray(data) ? data[5] : data.effects;
+        if (Array.isArray(effectList)) {
+          const effectsContainer = document.getElementById(`skill-effects-${id}`);
+          if (effectsContainer) {
+            effectsContainer.innerHTML = '';
+            effectList.forEach(effect => {
+              if (!Array.isArray(effect) || effect.length < 2) return;
+              addSkillEffect(id);
+              const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+              if (!row) return;
+              const select = row.querySelector('select');
+              const input = row.querySelector('input');
+              if (select) select.value = effect[0] || 'generic';
+              if (input) input.value = effect[1];
+            });
+          }
+        }
+
+        const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+        if (collapsedValue !== undefined) {
+          setSkillCollapsed(id, Boolean(collapsedValue));
+        }
+      });
+    }
+
+    // Load modules
+    const modulesArray = Array.isArray(state.m) ? state.m : [];
+    if (Array.isArray(modulesArray)) {
+      removeAllModules();
+      modulesArray.forEach(data => {
+        addModule();
+        const id = moduleCount;
+        const searchInput = document.getElementById(`module-search-${id}`);
+        const levelEl = document.getElementById(`module-level-${id}`);
+        const card = document.getElementById(`module-card-${id}`);
+        
+        if (Array.isArray(data) && data[0]) {
+          // Set the selected module
+          card.dataset.selectedModule = data[0];
+          // Find the option text for the selected value
+          const dropdown = document.getElementById(`module-dropdown-${id}`);
+          const option = dropdown.querySelector(`[data-value="${data[0]}"]`);
+          if (searchInput && option) {
+            searchInput.value = option.textContent;
+          }
+        }
+        if (levelEl && Array.isArray(data) && data[1] !== undefined) {
+          levelEl.value = data[1];
+        }
+      });
+    }
+
+    const weaponLineEffectsArray = Array.isArray(state.w) ? state.w : (Array.isArray(state.wl) ? state.wl : []);
+    populateWeaponLineEffectsFromState(weaponLineEffectsArray);
+
+    // Set class and psychoscope tree from state
+    if (state.c) {
+      const classSelect = document.getElementById('class-select');
+      if (classSelect) classSelect.value = state.c;
+    }
+    if (state.t) {
+      const psychoscopeTree = document.getElementById('psychoscope-tree');
+      if (psychoscopeTree) psychoscopeTree.value = state.t;
+    }
+
+    // Load class-specific fields
+    if (state.c && Array.isArray(state.cf)) {
+      const classFieldOrder = CLASS_FIELDS_ORDER[state.c] || [];
+      for (let i = 0; i < Math.min(classFieldOrder.length, state.cf.length); i++) {
+        const fieldId = classFieldOrder[i];
+        const fieldValue = state.cf[i];
+        const el = document.getElementById(fieldId);
+        if (!el) continue;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = Boolean(fieldValue);
+        } else {
+          el.value = fieldValue;
+        }
+      }
+    }
+
+    // Load psychoscope-specific fields
+    if (state.t && Array.isArray(state.tf)) {
+      const psychoscopeFieldOrder = PSYCHOSCOPE_FIELDS_ORDER[state.t] || [];
+      for (let i = 0; i < Math.min(psychoscopeFieldOrder.length, state.tf.length); i++) {
+        const fieldId = psychoscopeFieldOrder[i];
+        const fieldValue = state.tf[i];
+        const el = document.getElementById(fieldId);
+        if (!el) continue;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = Boolean(fieldValue);
+        } else {
+          el.value = fieldValue;
+        }
+      }
+    }
+
+    // Load imagine state (new format) or imagine modes (old format)
+    if (Array.isArray(state.i)) {
+      // New format: [imagineType, level, mode, stacks, passiveStats]
+      for (let slot = 1; slot <= 2; slot++) {
+        const imagineData = state.i[slot - 1];
+        if (Array.isArray(imagineData) && imagineData.length >= 3) {
+          const [imagineType, level, mode, stacks, passiveStats] = imagineData;
+          
+          // Set imagine type (hidden value) and update search text if present
+          const imagineEl = document.getElementById(`imagine-${slot}`);
+          const imagineSearch = document.getElementById(`imagine-${slot}-search`);
+          const imagineDropdown = document.getElementById(`imagine-dropdown-${slot}`);
+          if (imagineEl) imagineEl.value = imagineType || '';
+          if (imagineSearch && imagineDropdown) {
+            const option = imagineDropdown.querySelector(`[data-value="${imagineType}"]`);
+            imagineSearch.value = option ? option.textContent : (imagineType || '');
+          }
+          
+            // Set level
+            const levelEl = document.getElementById(`imagine-${slot}-level`);
+            if (levelEl) levelEl.value = level || 0;
+          
+            // Set mode
+            const modeRadio = document.getElementById(`imagine-${slot}-mode-${mode}`);
+            if (modeRadio) modeRadio.checked = true;
+            // Set stacks (new field)
+            const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
+            if (stacksEl && imagineData.length >= 4) stacksEl.value = stacks || 0;
+            // Set passive stats checkbox
+            const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
+            if (passiveStatsEl && imagineData.length >= 5) passiveStatsEl.checked = Boolean(passiveStats);
+          
+          // Update the imagine change to show/hide mode field
+          onImagineChange(slot);
+        }
+      }
+    }
+
+    const classSelect = document.getElementById('class-select');
+
+    // Preserve manual substat base values (user input) when applying class defaults.
+    const substatBaseIds = ['base-crit-pct', 'base-haste-pct', 'base-luck-pct', 'base-mastery-pct', 'base-vers-pct'];
+    const savedSubstatBase = {};
+    substatBaseIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) savedSubstatBase[id] = el.value;
+    });
+
+    if (classSelect) onClassChange();
+
+    // Re-apply class-specific fields after class module rendered its HTML
+    if (state.c && Array.isArray(state.cf)) {
+      const classFieldOrder = CLASS_FIELDS_ORDER[state.c] || [];
+      for (let i = 0; i < Math.min(classFieldOrder.length, state.cf.length); i++) {
+        const fieldId = classFieldOrder[i];
+        const fieldValue = state.cf[i];
+        const el = document.getElementById(fieldId);
+        if (!el) continue;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = Boolean(fieldValue);
+        } else {
+          el.value = fieldValue;
+        }
+      }
+    }
+
+    if (typeof updateClassSkills === 'function') {
+      updateClassSkills();
+    }
+
+    substatBaseIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && savedSubstatBase[id] !== undefined) {
+        el.value = savedSubstatBase[id];
+      }
+    });
+
+    const psychoscopeState = state.p && typeof state.p === 'object'
+      ? state.p
+      : { tree: state.t || 'none', values: {}, factors: { generic: [], class: [], 'class-reality': [] } };
+    console.log('[psychoscope] loadSetupState payload', { state, psychoscopeState });
+
+    if (state.t && Array.isArray(state.tf)) {
+      const legacyValues = {};
+      const fieldOrder = PSYCHOSCOPE_FIELDS_ORDER[state.t] || [];
+      fieldOrder.forEach((fieldId, index) => {
+        const fieldValue = state.tf[index];
+        if (fieldId && fieldValue !== undefined) {
+          legacyValues[fieldId] = fieldValue;
+        }
+      });
+      psychoscopeState.tree = psychoscopeState.tree || state.t || 'none';
+      psychoscopeState.values = { ...(psychoscopeState.values || {}), ...legacyValues };
+    }
+
+    if (typeof applyPsychoscopeSaveState === 'function') {
+      console.log('[psychoscope] calling applyPsychoscopeSaveState from setup load');
+      if (document.readyState === 'loading') {
+        queuePsychoscopeRestore(psychoscopeState);
+      } else {
+        applyPsychoscopeSaveState(psychoscopeState);
+      }
+    } else {
+      const psychoscopeTree = document.getElementById('psychoscope-tree');
+      if (psychoscopeTree) {
+        psychoscopeTree.value = psychoscopeState.tree || 'none';
+      }
+      onPsychoscopeChange();
+    }
+
+    onFoodToggle();
+    onSerumOilToggle();
+    isApplyingSetupState = false;
+    updateImagineSkills();
+    calc();
+  }
+
+  function exportSetup(evt) {
+    try {
+      const state = getCompactSetupState();
+      const json = JSON.stringify(state);
+      const area = document.getElementById('setup-json');
+      if (area) area.value = json;
+      const x = evt?.clientX || window.innerWidth / 2;
+      const y = (evt?.clientY || 0) + 20;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(() => {
+          setStatus('Setup copied to clipboard and displayed in textbox.', false);
+          showFloatingCopyStatus('Setup copied to clipboard', x, y, false);
+        }).catch(() => {
+          setStatus('Setup output is ready in textbox. Copy manually.', false);
+          showFloatingCopyStatus('Copy setup manually', x, y, true);
+        });
+      } else {
+        setStatus('Setup output is ready in textbox. Copy manually.', false);
+        showFloatingCopyStatus('Clipboard not supported', x, y, true);
+      }
+    } catch (err) {
+      setStatus(`Export failed: ${err.message}`, true);
+    }
+  }
+
+  function downloadSetup() {
+    try {
+      const state = getCompactSetupState();
+      const json = JSON.stringify(state);
+      const blob = new Blob([json], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      let filename = 'bpsr-dmg-setup.txt';
+      const profileName = (document.getElementById('profile-name')?.value || '').trim();
+      if (profileName) {
+        const safeName = profileName.replace(/[^a-zA-Z0-9_\- ]+/g, '').trim() || 'bpsr-dmg-setup';
+        filename = `${safeName}.txt`;
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus('Setup downloaded as file.', false);
+    } catch (err) {
+      setStatus(`Download failed: ${err.message}`, true);
+    }
+  }
+
+  function importSetup() {
+    const area = document.getElementById('setup-json');
+    if (!area) return setStatus('Setup JSON area missing', true);
+    const raw = area.value.trim();
+    if (!raw) return setStatus('No JSON input found for import.', true);
+
+    try {
+      const parsed = JSON.parse(raw);
+      applySetupState(parsed);
+      setStatus('Setup imported successfully.', false);
+    } catch (err) {
+      setStatus(`Import failed: ${err.message}`, true);
+    }
+  }
+
+  function getSkillsState() {
+    const skillsState = [];
+    document.querySelectorAll('#skills-list .skill-card').forEach(card => {
+      const id = card.id.replace('skill-card-', '');
+      const typeEl = document.getElementById(`sk-type-${id}`);
+      const multEl = document.getElementById(`sk-mult-${id}`);
+      const flatEl = document.getElementById(`sk-flat-${id}`);
+      const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+      const nameEl = card.querySelector('.skill-name-input');
+      const effects = [];
+      const effectsContainer = document.getElementById(`skill-effects-${id}`);
+      if (effectsContainer) {
+        effectsContainer.querySelectorAll('.skill-effect-row').forEach(row => {
+          const select = row.querySelector('select');
+          const input = row.querySelector('input');
+          if (select && input) {
+            effects.push([select.value, String(input.value).trim()]);
+          }
+        });
+      }
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      const hitValue = hitsEl ? hitsEl.value.trim() !== '' ? Number(hitsEl.value) : 1 : 1;
+      const hitsPerParse = Number.isNaN(hitValue) ? 1 : hitValue;
+      skillsState.push([
+        typeEl ? typeEl.value : 'none',
+        multEl ? parseFloat(multEl.value) || 0 : 0,
+        flatEl ? parseFloat(flatEl.value) || 0 : 0,
+        luckyEl ? luckyEl.checked : false,
+        nameEl ? nameEl.value : '',
+        effects,
+        hitsPerParse,
+        card.classList.contains('collapsed') ? 1 : 0
+      ]);
+    });
+    return skillsState;
+  }
+
+  function exportSkills(evt) {
+    try {
+      const skillsState = getSkillsState();
+      const json = JSON.stringify(skillsState);
+      const area = document.getElementById('setup-json');
+      if (area) area.value = json;
+      const x = evt?.clientX || window.innerWidth / 2;
+      const y = (evt?.clientY || 0) + 20;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(() => {
+          setStatus('Skills copied to clipboard and displayed in textbox.', false);
+          showFloatingCopyStatus('Skills copied to clipboard', x, y, false);
+        }).catch(() => {
+          setStatus('Skills output is ready in textbox. Copy manually.', false);
+          showFloatingCopyStatus('Copy skills manually', x, y, true);
+        });
+      } else {
+        setStatus('Skills output is ready in textbox. Copy manually.', false);
+        showFloatingCopyStatus('Clipboard not supported', x, y, true);
+      }
+    } catch (err) {
+      setStatus(`Export failed: ${err.message}`, true);
+    }
+  }
+
+  function importSkills() {
+    const area = document.getElementById('setup-json');
+    if (!area) return setStatus('Setup JSON area missing', true);
+    const raw = area.value.trim();
+    if (!raw) return setStatus('No JSON input found for import.', true);
+
+    try {
+      const parsed = JSON.parse(raw);
+      // Check if this is a full save (has 's' property for skills)
+      const skillsData = parsed.s !== undefined ? parsed.s : parsed;
+      applySkillsState(skillsData);
+      setStatus('Skills imported successfully.', false);
+    } catch (err) {
+      setStatus(`Import failed: ${err.message}`, true);
+    }
+  }
+
+  function applySkillsState(skillsArray) {
+    if (!Array.isArray(skillsArray)) throw new Error('Invalid skills data');
+    removeAllSkills();
+    skillsArray.forEach(data => {
+      addSkill();
+      const id = skillCount;
+      const typeEl = document.getElementById(`sk-type-${id}`);
+      const multEl = document.getElementById(`sk-mult-${id}`);
+      const flatEl = document.getElementById(`sk-flat-${id}`);
+      const luckyEl = document.getElementById(`sk-lucky-trigger-${id}`);
+      const nameEl = document.querySelector(`#skill-card-${id} .skill-name-input`);
+      if (typeEl) {
+        if (typeof data === 'string' || Array.isArray(data)) {
+          typeEl.value = (Array.isArray(data) ? data[0] : data) || 'none';
+        } else if (data.type !== undefined) {
+          typeEl.value = data.type;
+        }
+      }
+      if (multEl) {
+        const multValue = Array.isArray(data) ? data[1] : data.mult;
+        if (multValue !== undefined) multEl.value = multValue;
+      }
+      if (flatEl) {
+        const flatValue = Array.isArray(data) ? data[2] : data.flat;
+        if (flatValue !== undefined) flatEl.value = flatValue;
+      }
+      if (luckyEl) {
+        const luckyValue = Array.isArray(data) ? data[3] : data.lucky;
+        if (luckyValue !== undefined) luckyEl.checked = Boolean(luckyValue);
+      }
+      if (nameEl) {
+        const nameValue = Array.isArray(data) ? data[4] : data.name;
+        if (nameValue !== undefined) nameEl.value = nameValue;
+      }
+      const hitsEl = document.getElementById(`sk-hits-${id}`);
+      if (hitsEl) {
+        let hitsValue;
+        if (Array.isArray(data)) {
+          hitsValue = data.length >= 8 ? data[6] : undefined;
+        } else {
+          hitsValue = data.hits;
+        }
+        if (hitsValue !== undefined) hitsEl.value = hitsValue;
+      }
+
+      const effectList = Array.isArray(data) ? data[5] : data.effects;
+      if (Array.isArray(effectList)) {
+        const effectsContainer = document.getElementById(`skill-effects-${id}`);
+        if (effectsContainer) {
+          effectsContainer.innerHTML = '';
+          effectList.forEach(effect => {
+            if (!Array.isArray(effect) || effect.length < 2) return;
+            addSkillEffect(id);
+            const row = effectsContainer.querySelector('.skill-effect-row:last-child');
+            if (!row) return;
+            const select = row.querySelector('select');
+            const input = row.querySelector('input');
+            if (select) select.value = effect[0] || 'generic';
+            if (input) input.value = effect[1];
+          });
+        }
+      }
+
+      const collapsedValue = Array.isArray(data) ? data[7] : data.collapsed;
+      if (collapsedValue !== undefined) {
+        setSkillCollapsed(id, Boolean(collapsedValue));
+      }
+    });
+    skills.forEach(s => calcSkill(s.id));
+    calc();
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString();
+  }
+
+
+  function addSkill() {
+    const id = ++skillCount;
+    skills.push({ id });
+    const card = document.createElement('div');
+    card.className = 'skill-card';
+    card.id = `skill-card-${id}`;
+    card.innerHTML = `
+      <div class="skill-card-header">
+        <button class="btn-move" type="button" onclick="moveSkill(${id}, 'up')" title="Move skill up">▲</button>
+        <button class="btn-move" type="button" onclick="moveSkill(${id}, 'down')" title="Move skill down">▼</button>
+        <input type="text" class="skill-name-input" placeholder="Skill name..." value="Skill ${id}" oninput="calc()">
+        <select id="sk-type-${id}" onchange="calc()" style="flex:0 0 120px; font-size:12px; padding:4px 6px; background:var(--bg-input); border:1px solid var(--border); border-radius:4px; color:var(--text-secondary);">
+          <option value="none">— Type —</option>
+          <option value="expertise">Expertise</option>
+          <option value="special">Special</option>
+          <option value="basic">Basic Attack</option>
+          <option value="ultimate">Ultimate</option>
+          <option value="class">Class</option>
+          <option value="imagine">Imagine</option>
+          <option value="imagine(passive)">Imagine (passive)</option>
+          <option value="psychoscope">Psychoscope</option>
+        </select>
+        <button class="btn-remove" onclick="removeSkill(${id})" title="Remove">✕</button>
+      </div>
+      <div class="skill-inputs">
+        <div class="field">
+          <label><span class="fwhite">DMG Multiplier %</span></label>
+          <input type="number" id="sk-mult-${id}" value="100" step="1" oninput="calc()">
+        </div>
+        <div class="field">
+          <label><span class="fwhite">Flat Damage</span></label>
+          <input type="number" id="sk-flat-${id}" value="0" oninput="calc()">
+        </div>
+        <div class="field">
+          <label><span class="fwhite">Hits per parse</span> <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hits per X minute damage parse, used for calculating a sum total of what a parse would look like.</span></span></label>
+          <input type="number" id="sk-hits-${id}" value="0" min="0" step="1" oninput="calc()">
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <input type="checkbox" id="sk-lucky-trigger-${id}" checked style="width:14px;height:14px;accent-color:var(--accent-purple);cursor:pointer;" onchange="calc()">
+        <label for="sk-lucky-trigger-${id}" style="font-size:12px;color:var(--accent-purple);cursor:pointer;">Triggers lucky hit</label>
+        <button type="button" class="btn-add-skill" onclick="addSkillEffect(${id})" style="padding: 4px 10px; font-size: 12px;">+ Add effect</button>
+      </div>
+      <div id="skill-effects-${id}" class="skill-effects"></div>
+      <div class="skill-result" style="grid-template-columns:repeat(4,1fr); margin-top:8px;">
+        <div class="result-item">
+          <div class="result-label">Normal</div>
+          <div class="result-value" id="sk-res-normal-${id}">—</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Critical</div>
+          <div class="result-value crit" id="sk-res-crit-${id}">—</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Avg (w/ crit)</div>
+          <div class="result-value avg" id="sk-res-avg-${id}">—</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Avg(w/crit) + Lucky(w/crit)</div>
+          <div class="result-value lucky" id="sk-res-lucky-${id}">—</div>
+        </div>
+      </div>
+      <div class="skill-compact-row" id="sk-compact-row-${id}">
+        <div class="skill-compact-name" id="sk-compact-name-${id}">Skill ${id}</div>
+        <div class="skill-compact-values">
+          <span class="skill-compact-value">Normal:<span class="result-value" id="sk-res-normal-compact-${id}">—</span></span>
+          <span class="skill-compact-value">Critical:<span class="result-value crit" id="sk-res-crit-compact-${id}">—</span></span>
+          <span class="skill-compact-value">Avg(w/crit):<span class="result-value avg" id="sk-res-avg-compact-${id}">—</span></span>
+          <span class="skill-compact-value">Avg(w/crit+lucky):<span class="result-value lucky" id="sk-res-lucky-compact-${id}">—</span></span>
+        </div>
+      </div>
+      <div class="skill-formula" id="sk-formula-${id}" style="display:none;"></div>
+      <div class="skill-toggle-row">
+        <button type="button" class="skill-toggle-btn" id="sk-toggle-btn-${id}" onclick="toggleSkillCompact(${id})" aria-expanded="true" aria-label="Collapse or expand skill">
+          <svg class="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+            <path d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+          </svg>
+        </button>
+      </div>
+    `;
+    document.getElementById('skills-list').appendChild(card);
+    calc();
+  }
+
+  function setSkillCollapsed(id, collapsed) {
+    const card = document.getElementById(`skill-card-${id}`);
+    if (!card) return;
+    const btn = document.getElementById(`sk-toggle-btn-${id}`);
+    if (collapsed) {
+      card.classList.add('collapsed');
+    } else {
+      card.classList.remove('collapsed');
+    }
+    if (btn) {
+      btn.setAttribute('aria-expanded', String(!collapsed));
+      btn.setAttribute('aria-expanded', String(!collapsed));
+    }
+    updateSkillCompact(id);
+    persistCurrentState();
+  }
+
+  function toggleSkillCompact(id) {
+    const card = document.getElementById(`skill-card-${id}`);
+    if (!card) return;
+    setSkillCollapsed(id, !card.classList.contains('collapsed'));
+  }
+
+  function updateSkillCompact(id) {
+    const card = document.getElementById(`skill-card-${id}`);
+    if (!card) return;
+    const nameInput = card.querySelector('.skill-name-input');
+    const compactName = document.getElementById(`sk-compact-name-${id}`);
+    if (compactName) {
+      compactName.textContent = nameInput ? (nameInput.value.trim() || `Skill ${id}`) : `Skill ${id}`;
+    }
+    const normalValue = document.getElementById(`sk-res-normal-${id}`)?.textContent || '—';
+    const critValue = document.getElementById(`sk-res-crit-${id}`)?.textContent || '—';
+    const avgValue = document.getElementById(`sk-res-avg-${id}`)?.textContent || '—';
+    const luckyValue = document.getElementById(`sk-res-lucky-${id}`)?.textContent || '—';
+    const normalCompact = document.getElementById(`sk-res-normal-compact-${id}`);
+    const critCompact = document.getElementById(`sk-res-crit-compact-${id}`);
+    const avgCompact = document.getElementById(`sk-res-avg-compact-${id}`);
+    const luckyCompact = document.getElementById(`sk-res-lucky-compact-${id}`);
+    if (normalCompact) normalCompact.textContent = normalValue;
+    if (critCompact) critCompact.textContent = critValue;
+    if (avgCompact) avgCompact.textContent = avgValue;
+    if (luckyCompact) luckyCompact.textContent = luckyValue;
+  }
+
+  function addSkillEffect(skillId) {
+    const effectsContainer = document.getElementById(`skill-effects-${skillId}`);
+    if (!effectsContainer) return;
+
+    const index = effectsContainer.querySelectorAll('.skill-effect-row').length;
+    const row = document.createElement('div');
+    row.className = 'skill-effect-row';
+    row.innerHTML = `
+      <select onchange="calc()" style="min-width:150px;">
+        <option value="generic">Generic damage</option>
+        <option value="dreamDmg">Seasonal damage</option>
+        <option value="critChance">Crit chance</option>
+        <option value="critDamage">Crit damage</option>
+        <option value="luckUptime">Luck uptime</option>
+        <option value="elemDmg">Element damage</option>
+        <option value="magBoost">MAG boost</option>
+        <option value="otherScaler">Other scaler</option>
+        <option value="finalDamage">Final Damage</option>
+        <option value="damageType">Damage type</option>
+      </select>
+      <input type="text" value="0" placeholder="physical, magical, no-intellect-boost, no-elem, no-seasonal-dmg, no-mag, no-vers, no-gen," oninput="calc()" />
+      <span style="font-size:11px;color:var(--text-muted);">%</span>
+      <button type="button" class="skill-effect-remove" onclick="this.closest('.skill-effect-row').remove(); calc();">✕</button>
+    `;
+
+    effectsContainer.appendChild(row);
+  }
+
+  function removeSkill(id) {
+    skills = skills.filter(s => s.id !== id);
+    const card = document.getElementById(`skill-card-${id}`);
+    if (card) card.remove();
+    calc();
+  }
+
+  function moveSkill(id, direction) {
+    const card = document.getElementById(`skill-card-${id}`);
+    if (!card) return;
+    const parent = document.getElementById('skills-list');
+    if (!parent) return;
+
+    if (direction === 'up') {
+      const previous = card.previousElementSibling;
+      if (previous) parent.insertBefore(card, previous);
+    } else if (direction === 'down') {
+      const next = card.nextElementSibling;
+      if (next) parent.insertBefore(next, card);
+    }
+
+    reorderSkills();
+    calc();
+  }
+
+  function reorderSkills() {
+    const orderedIds = Array.from(document.querySelectorAll('#skills-list .skill-card')).map(card => Number(card.id.replace('skill-card-', '')));
+    skills = orderedIds.map(id => ({ id }));
+  }
+
+  function addModule() {
+    const id = ++moduleCount;
+    modules.push({ id });
+    const card = document.createElement('div');
+    card.className = 'module-card';
+    card.id = `module-card-${id}`;
+    card.innerHTML = `
+      <div class="module-card-header">
+        <div class="module-select-container">
+          <input type="text" class="module-search-input" id="module-search-${id}" placeholder="Select module..." autocomplete="off">
+          <div class="module-dropdown" id="module-dropdown-${id}" style="display:none;">
+            ${Object.keys(MODULE_DATA).map(module => `<div class="module-option" data-value="${module}">${MODULE_DATA[module].name}</div>`).join('')}
+          </div>
+        </div>
+        <input type="number" style="width: 45%;" class="module-level-input" id="module-level-${id}" value="0" min="0" max="30" onchange="calc()" oninput="clamp(this); calc()">
+        <button class="btn-remove" onclick="removeModule(${id})" title="Remove">✕</button>
+      </div>
+    `;
+    document.getElementById('modules-list').appendChild(card);
+
+    // Set up event listeners
+    const searchInput = document.getElementById(`module-search-${id}`);
+    const dropdown = document.getElementById(`module-dropdown-${id}`);
+
+    searchInput.addEventListener('click', () => {
+      showModuleDropdown(dropdown);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      showModuleDropdown(dropdown);
+    });
+
+    searchInput.addEventListener('input', () => {
+      filterModuleOptions(searchInput, dropdown);
+    });
+
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!dropdown.matches(':hover')) {
+          hideModuleDropdown(dropdown);
+        }
+      }, 150);
+    });
+
+    dropdown.addEventListener('click', (e) => {
+      if (e.target.classList.contains('module-option')) {
+        selectModuleOption(e.target, searchInput, dropdown, id);
+      }
+    });
+
+    calc();
+    updateModuleDropdownVisibility();
+  }
+
+  function showModuleDropdown(dropdown) {
+    dropdown.style.display = 'block';
+    // Update visibility to hide already selected modules
+    updateModuleDropdownVisibility();
+  }
+
+  function hideModuleDropdown(dropdown) {
+    dropdown.style.display = 'none';
+  }
+
+  function filterModuleOptions(input, dropdown) {
+    const filter = input.value.toLowerCase();
+    const options = dropdown.querySelectorAll('.module-option');
+    let hasVisible = false;
+
+    options.forEach(option => {
+      const text = option.textContent.toLowerCase();
+      const moduleValue = option.dataset.value;
+      const isSelectedElsewhere = Array.from(document.querySelectorAll('.module-card'))
+        .some(card => card !== dropdown.closest('.module-card') && card.dataset.selectedModule === moduleValue);
+      
+      if (text.includes(filter) && !isSelectedElsewhere) {
+        option.style.display = 'block';
+        hasVisible = true;
+      } else {
+        option.style.display = 'none';
+      }
+    });
+
+    dropdown.style.display = hasVisible ? 'block' : 'none';
+  }
+
+  function selectModuleOption(option, input, dropdown, moduleId) {
+    input.value = option.textContent;
+    const moduleName = option.dataset.value;
+    // Store the selected module name for saving/loading
+    const card = input.closest('.module-card');
+    const previousModule = card.dataset.selectedModule || '';
+    card.dataset.selectedModule = moduleName;
+    if (previousModule === 'team-lucky-crit' && moduleName !== 'team-lucky-crit') {
+      const teamLuckCritSelect = document.getElementById('team-luck-crit');
+      if (teamLuckCritSelect) teamLuckCritSelect.value = 'none';
+    }
+    hideModuleDropdown(dropdown);
+    calc();
+    updateModuleDropdownVisibility();
+  }
+
+  function removeModule(id) {
+    const card = document.getElementById(`module-card-${id}`);
+    const removedModuleType = card?.dataset.selectedModule || '';
+    modules = modules.filter(m => m.id !== id);
+    if (card) card.remove();
+    if (removedModuleType === 'team-lucky-crit') {
+      const teamLuckCritSelect = document.getElementById('team-luck-crit');
+      if (teamLuckCritSelect) teamLuckCritSelect.value = 'none';
+    }
+    calc();
+    updateModuleDropdownVisibility();
+  }
+
+  function updateModuleDropdownVisibility() {
+    // Collect all currently selected module types
+    const selectedModules = new Set();
+    document.querySelectorAll('.module-card').forEach(card => {
+      const selected = card.dataset.selectedModule;
+      if (selected && selected !== '') {
+        selectedModules.add(selected);
+      }
+    });
+
+    // Update all dropdowns to hide selected modules
+    document.querySelectorAll('.module-dropdown').forEach(dropdown => {
+      dropdown.querySelectorAll('.module-option').forEach(option => {
+        const moduleValue = option.dataset.value;
+        // Hide if this module is already selected in another card
+        const isSelected = selectedModules.has(moduleValue);
+        const currentCardSelected = dropdown.closest('.module-card')?.dataset.selectedModule === moduleValue;
+        
+        if (isSelected && !currentCardSelected) {
+          option.style.display = 'none';
+        } else {
+          option.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  function getWeaponLineEffectOptionMarkup() {
+    return Object.entries(WEAPON_LINE_EFFECT_OPTIONS).map(([key, optionMeta]) => {
+      const meta = typeof optionMeta === 'string' ? { label: optionMeta, aliases: [] } : (optionMeta || {});
+      const label = meta.label || '';
+      const aliases = Array.isArray(meta.aliases) ? meta.aliases : [];
+      const searchText = [label, key, ...aliases].filter(Boolean).join(' ').toLowerCase();
+      return `<div class="module-option" data-value="${key}" data-search="${searchText}">${label}</div>`;
+    }).join('');
+  }
+
+  function addWeaponLineEffectRow(effectKey = '', effectValue = '') {
+    const list = document.getElementById('weapon-line-effects-list');
+    if (!list) return;
+
+    const id = ++weaponLineEffectCount;
+    const card = document.createElement('div');
+    card.className = 'weapon-line-effect-card';
+    card.id = `weapon-line-effect-${id}`;
+    card.dataset.selectedEffect = effectKey || '';
+    card.innerHTML = `
+      <div class="module-card-header">
+        <div class="module-select-container">
+          <input type="text" class="module-search-input weapon-line-search-input" id="weapon-line-search-${id}" placeholder="Select effect..." autocomplete="off">
+          <div class="module-dropdown" id="weapon-line-dropdown-${id}" style="display:none;">
+            ${getWeaponLineEffectOptionMarkup()}
+          </div>
+        </div>
+        <input type="number" class="module-level-input weapon-line-value" id="weapon-line-value-${id}" placeholder="%" value="${effectValue !== '' && effectValue !== null ? effectValue : ''}" step="0.1" min="0" oninput="clamp(this); calc()">
+        <button type="button" class="btn-remove" onclick="removeWeaponLineEffectRow(${id})" title="Remove">✕</button>
+      </div>
+    `;
+    list.appendChild(card);
+
+    const searchInput = document.getElementById(`weapon-line-search-${id}`);
+    const dropdown = document.getElementById(`weapon-line-dropdown-${id}`);
+
+    if (searchInput) {
+      if (effectKey) {
+        const option = dropdown.querySelector(`[data-value="${effectKey}"]`);
+        if (option) searchInput.value = option.textContent;
+      }
+
+      searchInput.addEventListener('click', () => showWeaponLineDropdown(dropdown));
+      searchInput.addEventListener('focus', () => showWeaponLineDropdown(dropdown));
+      searchInput.addEventListener('input', () => filterWeaponLineEffectOptions(searchInput, dropdown));
+      searchInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (!dropdown.matches(':hover')) {
+            hideWeaponLineDropdown(dropdown);
+          }
+        }, 150);
+      });
+    }
+
+    if (dropdown) {
+      dropdown.addEventListener('click', (e) => {
+        if (e.target.classList.contains('module-option')) {
+          selectWeaponLineEffectOption(e.target, searchInput, dropdown, id);
+        }
+      });
+    }
+
+    updateWeaponLineEffectDropdownVisibility();
+    return id;
+  }
+
+  function removeWeaponLineEffectRow(id) {
+    const card = document.getElementById(`weapon-line-effect-${id}`);
+    if (!card) return;
+    card.remove();
+    calc();
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function showWeaponLineDropdown(dropdown) {
+    if (!dropdown) return;
+    dropdown.style.display = 'block';
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function hideWeaponLineDropdown(dropdown) {
+    if (!dropdown) return;
+    dropdown.style.display = 'none';
+  }
+
+  function filterWeaponLineEffectOptions(input, dropdown) {
+    if (!input || !dropdown) return;
+    const filter = input.value.toLowerCase().trim();
+    const options = dropdown.querySelectorAll('.module-option');
+    let hasVisible = false;
+
+    options.forEach(option => {
+      const text = option.textContent.toLowerCase();
+      const effectKey = option.dataset.value;
+      const searchText = (option.dataset.search || `${text} ${effectKey}`).toLowerCase();
+      const isSelectedElsewhere = Array.from(document.querySelectorAll('.weapon-line-effect-card'))
+        .some(card => card.id !== dropdown.closest('.weapon-line-effect-card')?.id && card.dataset.selectedEffect === effectKey);
+
+      if (searchText.includes(filter) && !isSelectedElsewhere) {
+        option.style.display = 'block';
+        hasVisible = true;
+      } else {
+        option.style.display = 'none';
+      }
+    });
+
+    dropdown.style.display = hasVisible ? 'block' : 'none';
+  }
+
+  function selectWeaponLineEffectOption(option, input, dropdown, id) {
+    if (!option || !input) return;
+    input.value = option.textContent;
+    const card = document.getElementById(`weapon-line-effect-${id}`);
+    if (card) card.dataset.selectedEffect = option.dataset.value || '';
+    hideWeaponLineDropdown(dropdown);
+    calc();
+    updateWeaponLineEffectDropdownVisibility();
+  }
+
+  function updateWeaponLineEffectDropdownVisibility() {
+    const selectedEffects = new Set();
+    document.querySelectorAll('.weapon-line-effect-card').forEach(card => {
+      const selected = card.dataset.selectedEffect;
+      if (selected) selectedEffects.add(selected);
+    });
+
+    document.querySelectorAll('.weapon-line-effect-card .module-dropdown').forEach(dropdown => {
+      const card = dropdown.closest('.weapon-line-effect-card');
+      dropdown.querySelectorAll('.module-option').forEach(option => {
+        const effectValue = option.dataset.value;
+        const currentCardSelected = card?.dataset.selectedEffect === effectValue;
+        if (selectedEffects.has(effectValue) && !currentCardSelected) {
+          option.style.display = 'none';
+        } else {
+          option.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  function getWeaponLineEffects() {
+    const effects = [];
+    document.querySelectorAll('#weapon-line-effects-list .weapon-line-effect-card').forEach(card => {
+      const effectKey = card.dataset.selectedEffect;
+      const valueEl = card.querySelector('.weapon-line-value');
+      if (!effectKey || !valueEl) return;
+      const value = parseFloat(valueEl.value);
+      if (!Number.isFinite(value) || value === 0) return;
+      effects.push({ key: effectKey, value });
+    });
+    return effects;
+  }
+
+  function getWeaponLineEffectState() {
+    return getWeaponLineEffects().map(effect => [effect.key, effect.value]);
+  }
+
+  function removeAllWeaponLineEffects() {
+    document.querySelectorAll('.weapon-line-effect-card').forEach(card => card.remove());
+  }
+
+  function populateWeaponLineEffectsFromState(savedEffects) {
+    removeAllWeaponLineEffects();
+    if (Array.isArray(savedEffects)) {
+      savedEffects.forEach(data => {
+        const key = Array.isArray(data) ? data[0] : data.key;
+        const value = Array.isArray(data) ? data[1] : data.value;
+        if (key) {
+          addWeaponLineEffectRow(key, value);
+        }
+      });
+    }
+    if (document.querySelectorAll('#weapon-line-effects-list .weapon-line-effect-card').length === 0) {
+      addWeaponLineEffectRow();
+    }
+  }
+
+  // Imagine search/dropdown handlers (behave like module search inputs)
+  function attachImagineHandlers(slot) {
+    const search = document.getElementById(`imagine-${slot}-search`);
+    const hidden = document.getElementById(`imagine-${slot}`);
+    const dropdown = document.getElementById(`imagine-dropdown-${slot}`);
+    if (!search || !hidden || !dropdown) return;
+
+    const show = () => { dropdown.style.display = 'block'; };
+    const hide = () => { dropdown.style.display = 'none'; };
+
+    search.addEventListener('click', show);
+    search.addEventListener('focus', show);
+
+    search.addEventListener('input', () => {
+      const filter = (search.value || '').toLowerCase();
+      let hasVisible = false;
+      dropdown.querySelectorAll('.module-option').forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        if (!filter || text.includes(filter)) { opt.style.display = 'block'; hasVisible = true; } else { opt.style.display = 'none'; }
+      });
+      dropdown.style.display = hasVisible ? 'block' : 'none';
+    });
+
+    // Abbreviation matching for filter (sgk -> "Storm Goblin King")
+    const getAbbreviation = (text) => {
+      return text
+        .split(/\s+/)
+        .map(word => word[0])
+        .join('')
+        .toLowerCase();
+    };
+
+    search.addEventListener('input', () => {
+      const filter = (search.value || '').toLowerCase();
+      let hasVisible = false;
+
+      dropdown.querySelectorAll('.module-option').forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        const abbr = getAbbreviation(text);
+
+        const matches =
+          !filter ||
+          text.includes(filter) ||
+          abbr.includes(filter); 
+
+        if (matches) {
+          opt.style.display = 'block';
+          hasVisible = true;
+        } else {
+          opt.style.display = 'none';
+        }
+      });
+
+      dropdown.style.display = hasVisible ? 'block' : 'none';
+    });
+
+    search.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!dropdown.matches(':hover')) {
+          // if user cleared input, clear selected value
+          if ((!search.value || search.value.trim() === '')) {
+            hidden.value = '';
+            onImagineChange(slot);
+          }
+          hide();
+        }
+      }, 150);
+    });
+
+    dropdown.addEventListener('click', (e) => {
+      if (e.target.classList.contains('module-option')) {
+        const val = e.target.dataset.value;
+        const text = e.target.textContent;
+        hidden.value = val || '';
+        search.value = text || '';
+        hide();
+        onImagineChange(slot);
+      }
+    });
+  }
+
+  // Attach handlers to both imagine slots on load
+  attachImagineHandlers(1);
+  attachImagineHandlers(2);
+
+  function filterModules(id) {
+    const searchInput = document.getElementById(`module-search-${id}`);
+    const dropdown = document.getElementById(`module-type-${id}`);
+    const searchTerm = searchInput.value.toLowerCase();
+    const hasSelection = dropdown.value && dropdown.value !== 'none';
+    
+    // Show dropdown when typing or when there's a selection
+    dropdown.style.display = (searchTerm || hasSelection) ? 'block' : 'none';
+    
+    // Filter options
+    const options = dropdown.querySelectorAll('option');
+    let hasVisible = false;
+    options.forEach(option => {
+      if (option.value === 'none') return; // Always show the placeholder
+      const text = option.textContent.toLowerCase();
+      const visible = text.includes(searchTerm);
+      option.style.display = visible ? 'block' : 'none';
+      if (visible) hasVisible = true;
+    });
+    
+    // Hide dropdown if no matches
+    if (!hasVisible && searchTerm) {
+      dropdown.style.display = 'none';
+    }
+  }
+
+  function onModuleChange(id) {
+    const dropdown = document.getElementById(`module-type-${id}`);
+    const searchInput = document.getElementById(`module-search-${id}`);
+    
+    if (dropdown.value !== 'none') {
+      const selectedOption = dropdown.querySelector(`option[value="${dropdown.value}"]`);
+      searchInput.value = selectedOption ? selectedOption.textContent : '';
+      dropdown.style.display = 'none';
+    }
+    
+    calc();
+  }
+
+  function getFirstSkillId() {
+    const card = document.querySelector('#skills-list .skill-card');
+    if (!card) return null;
+    return card.id.replace('skill-card-', '');
+  }
+
+  function getFirstSkillValue() {
+    const id = getFirstSkillId();
+    if (!id) return 0;
+    const luckyEl = document.getElementById(`sk-res-lucky-${id}`);
+    const avgEl = document.getElementById(`sk-res-avg-${id}`);
+    let value = 0;
+    if (luckyEl) {
+      if (luckyEl.dataset && luckyEl.dataset.value) {
+        value = parseFloat(luckyEl.dataset.value) || 0;
+      } else if (luckyEl.textContent && luckyEl.textContent.trim() !== '—') {
+        value = parseFloat(luckyEl.textContent.replace(/,/g, '')) || 0;
+      }
+    }
+    if (!value && avgEl) {
+      if (avgEl.dataset && avgEl.dataset.value) {
+        value = parseFloat(avgEl.dataset.value) || 0;
+      } else if (avgEl.textContent) {
+        value = parseFloat(avgEl.textContent.replace(/,/g, '')) || 0;
+      }
+    }
+    return isNaN(value) ? 0 : value;
+  }
+
+  function getCurrentSubstats() {
+    return {
+      crit: getVal('crit-rate-stat'),
+      luck: getVal('luck-stat'),
+      mastery: getVal('mastery-stat'),
+      vers: getVal('vers-dmg-pct'),
+    };
+  }
+
+  function setSubstats({crit, luck, mastery, vers}) {
+    document.getElementById('crit-rate-stat').value = crit;
+    document.getElementById('luck-stat').value      = luck;
+    document.getElementById('mastery-stat').value   = mastery;
+    document.getElementById('vers-dmg-pct').value  = vers;
+    calc();
+  }
+
+  async function optimizeSubstats() {
+    optimizingSubstats = true;
+    const button = document.getElementById('optimize-substats-button');
+    if (button) button.disabled = true;
+    const factor = getOptimizerFactor();
+    const skillId = getFirstSkillId();
+    const output = document.getElementById('optimize-substats-output');
+    if (!skillId || !output) {
+      optimizingSubstats = false;
+      if (button) button.disabled = false;
+      return;
+    }
+    output.textContent = 'Optimizing...';
+
+    optimizerBackup = getCurrentSubstats();
+    const original = { ...optimizerBackup };
+    const isLocked = {
+      crit: getChecked('lock-crit'),
+      luck: getChecked('lock-luck'),
+      mastery: getChecked('lock-mastery'),
+      vers: getChecked('lock-vers')
+    };
+
+    const unlockedKeys = ['crit', 'luck', 'mastery', 'vers'].filter(k => !isLocked[k]);
+    if (unlockedKeys.length === 0) {
+      output.textContent = 'All substats are locked; nothing to optimize.';
+      optimizingSubstats = false;
+      if (button) button.disabled = false;
+      return;
+    }
+
+    const baseOriginal = { ...original };
+    unlockedKeys.forEach(k => {
+      const mul = factor[k] || 1;
+      baseOriginal[k] = mul !== 0 ? original[k] / mul : original[k];
+    });
+
+    const pool = unlockedKeys.reduce((sum, key) => sum + baseOriginal[key], 0);
+    if (pool <= 0) {
+      output.textContent = 'Total points must be positive to optimize (unlocked stats only).';
+      optimizingSubstats = false;
+      if (button) button.disabled = false;
+      return;
+    }
+
+    const pause = () => new Promise(resolve => setTimeout(resolve, 0));
+    const buildEffective = (baseStats) => {
+      const effective = { ...original };
+      unlockedKeys.forEach(k => {
+        const mul = factor[k] || 1;
+        effective[k] = baseStats[k] * mul;
+      });
+      return effective;
+    };
+
+    const getSummaryTotalDamage = () => {
+      const totalEl = document.getElementById('summary-total-damage');
+      if (!totalEl || !totalEl.textContent) return NaN;
+      if (totalEl.dataset && totalEl.dataset.value) {
+        const v = parseFloat(totalEl.dataset.value);
+        return Number.isNaN(v) ? NaN : v;
+      }
+      const value = parseFloat(totalEl.textContent.replace(/,/g, '').replace(/[^0-9.+\-]/g, ''));
+      return Number.isNaN(value) ? NaN : value;
+    };
+
+    const evaluate = (baseStats) => {
+      const effective = buildEffective(baseStats);
+      setSubstats(effective);
+      const totalDamage = getSummaryTotalDamage();
+      return totalDamage === 0 || Number.isNaN(totalDamage) ? getFirstSkillValue() : totalDamage;
+    };
+
+    const asDisplay = (baseStats) => {
+      const e = buildEffective(baseStats);
+      return `Crit:${e.crit.toFixed(2)}, Luck:${e.luck.toFixed(2)}, Mastery:${e.mastery.toFixed(2)}, Vers:${e.vers.toFixed(2)}`;
+    };
+
+    let bestBase = { ...baseOriginal };
+    bestBase.value = evaluate(bestBase);
+    output.textContent = `Starting: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
+
+    const steps = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+    const restarts = 4;
+
+    const genRandomStart = () => {
+      const state = { ...baseOriginal };
+      let remaining = pool;
+      unlockedKeys.forEach((k, index) => {
+        if (index === unlockedKeys.length - 1) {
+          state[k] = Math.max(0, Math.round(remaining));
+        } else {
+          const val = Math.round(Math.random() * remaining);
+          state[k] = val;
+          remaining -= val;
+        }
+      });
+      // locked base values stay constant
+      Object.keys(original).forEach(k => { if (isLocked[k]) state[k] = baseOriginal[k]; });
+      return state;
+    };
+
+    for (let run = 0; run < restarts; run++) {
+      let current = run === 0 ? { ...baseOriginal } : genRandomStart();
+      current.value = evaluate(current);
+      if (current.value > bestBase.value) {
+        bestBase = { ...current };
+        output.textContent = `Best now: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
+      }
+      await pause();
+
+      for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+        const step = steps[stepIndex];
+        let improved = true;
+        while (improved) {
+          improved = false;
+          let localBest = { ...current };
+
+          for (let i = 0; i < unlockedKeys.length; i++) {
+            for (let j = 0; j < unlockedKeys.length; j++) {
+              if (i === j) continue;
+              const src = unlockedKeys[j];
+              const dst = unlockedKeys[i];
+
+              const candidate = { ...current };
+              candidate[dst] += step;
+              candidate[src] -= step;
+              if (candidate[src] < 0) continue;
+              candidate.value = evaluate(candidate);
+
+              if (candidate.value > localBest.value + 0.0001) {
+                localBest = { ...candidate };
+              }
+            }
+          }
+
+          if (localBest.value > current.value + 0.0001) {
+            current = { ...localBest };
+            improved = true;
+            if (current.value > bestBase.value) {
+              bestBase = { ...current };
+              output.textContent = `Best now: ${bestBase.value.toFixed(2)} (${asDisplay(bestBase)})`;
+            }
+          }
+          await pause();
+        }
+        const percent = Math.min(100, ((run * steps.length + stepIndex + 1) / (restarts * steps.length)) * 100);
+        setButtonProgress('optimize-substats-button', percent);
+      }
+      await pause();
+    }
+
+    const bestEffective = buildEffective(bestBase);
+    setSubstats(bestEffective);
+    optimizerDone = true;
+    optimizingSubstats = false;
+    output.textContent = `Optimized: ${bestBase.value.toFixed(2)} with ${asDisplay(bestBase)} (Pool ${pool.toFixed(2)}) — Optimization complete ✅`;
+    if (button) button.disabled = false;
+  }
+
+  function setButtonProgress(buttonId, percent) {
+    const button = document.getElementById(buttonId);
+    button.style.setProperty("--progress", percent + "%");
+  }
+
+  function undoOptimizeSubstats() {
+    const output = document.getElementById('optimize-substats-output');
+    if (!output) return;
+    if (!optimizerBackup) {
+      output.textContent = 'Nothing to undo yet.';
+      return;
+    }
+    setSubstats(optimizerBackup);
+    output.textContent = `Undo complete. Restored Crit:${optimizerBackup.crit}, Luck:${optimizerBackup.luck}, Mastery:${optimizerBackup.mastery}, Vers:${optimizerBackup.vers}`;
+    optimizerBackup = null;
+    setButtonProgress('optimize-substats-button', 0);
+  }
+
+  updateProfileDropdown();
+  loadPersistedState();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (pendingPsychoscopeState && typeof applyPsychoscopeSaveState === 'function') {
+      applyPsychoscopeSaveState(pendingPsychoscopeState);
+      pendingPsychoscopeState = null;
+    }
+  });
+
+  if (document.querySelectorAll('.weapon-line-effect-card').length === 0) {
+    addWeaponLineEffectRow();
+  }
+
+  calc();
+
+
+</script>
+
+<!-- ZDPS Import Modal -->
+<div id="zdps-modal" class="modal-overlay" style="display: none;" onclick="closeZdpsImportModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Import Stats from ZDPS</h2>
+      <button class="modal-close" onclick="closeZdpsImportModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="zdps-import-top">
+        <div class="modal-instructions">
+          <ol>
+            <li>Open ZDPS and click on your character.</li>
+            <li>In game, swap loadout to another different class/heavily different loadout. (remember to save current loadout if needed)</li>
+            <li>Swap Back to your normal loadout.</li>
+            <li>Un-equip and re-equip weapon.</li>
+            <li>Wait 20-30 seconds to lose all temporary buffs like life wave.</li>
+            <li>Go to the attributes tab in the entity inspector, and right click copy all attributes.</li>
+            <li>Paste attributes in the box below and load.</li>
+          </ol>
+        </div>
+        <textarea id="zdps-attributes" placeholder="Paste your attributes here..." style="width: 100%; min-height: 200px; background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 8px; font-family: 'Consolas', 'SF Mono', monospace; font-size: 12px; resize: vertical;"></textarea>
+      </div>
+      <button class="btn-add-skill" id="zdps-toggle-top" onclick="toggleZdpsImportTop()" style="display: none; margin-bottom: 10px;">Show instructions</button>
+      <div id="zdps-attribute-feedback" style="margin-top: 12px;"></div>
+      <div id="element-selection" style="display: none; margin-top: 10px;">
+        <label style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; display: block;">Select your damage element type:</label>
+        <div id="element-options" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn-add-skill" id="load-btn" onclick="loadZdpsAttributes()">Load Attributes</button>
+        <button class="btn-add-skill" id="apply-element-btn" onclick="applyElementSelection()" style="display: none;">Apply Element Selection</button>
+        <button class="btn-add-skill" onclick="closeZdpsImportModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

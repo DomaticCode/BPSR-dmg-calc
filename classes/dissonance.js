@@ -60,6 +60,7 @@ function provideDissonanceClassBonuses(stats) {
 window.CLASS_BONUS_PROVIDERS = window.CLASS_BONUS_PROVIDERS || {};
 
 function getDissonanceFactorValue(keyword) {
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return 0;
   const searchKeyword = keyword.toLowerCase().trim();
   let totalValue = 0;
 

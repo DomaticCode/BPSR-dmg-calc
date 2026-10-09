@@ -5,9 +5,9 @@ const CLASS_BASES = {
   dissonance: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
 };
 
-const STAT_SCALER = 50015;
-const VERS_SCALER = 28000;
-const ALL_ELEMENTAL_DMG_SCALER = 11000;
+const STAT_SCALER = 200000;
+const VERS_SCALER = 112000;
+const ALL_ELEMENTAL_DMG_SCALER = 18000;
 
 // Module data
 const MODULE_DATA = {
@@ -62,84 +62,8 @@ const WEAPON_LINE_EFFECT_OPTIONS = {
 };
 
 
-// Legacy field order kept for migration from old saves.
-const LEGACY_SAVE_FIELD_ORDER = [
-  'damageType',
-  'PhysResEnabled',
-  'magResEnabled',
-  'inspiration',
-  'target-type',
-  'main-attr',
-  'adaptive-atk',
-  'base-atk',
-  'refined-atk',
-  'elemental-atk',
-  'crit-rate-stat',
-  'base-crit-pct',
-  'haste-stat',
-  'base-haste-pct',
-  'luck-stat',
-  'base-luck-pct',
-  'mastery-stat',
-  'base-mastery-pct',
-  'vers-dmg-pct',
-  'base-vers-pct',
-  'crit-mult',
-  'luck-effect-bonus',
-  'matk-pct',
-  'int-pct',
-  'cast-speed-pct',
-  'atk-speed-pct',
-  'boss-dmg-pct',
-  'mastery-elem-dmg-pct',
-  'elem-dmg-pct',
-  'elem-power',
-  'gen-dmg-pct',
-  'elite-dmg-pct',
-  'mag-boost-pct',    
-  'type-dmg-bonus',
-  'type-dmg-expertise',
-  'type-dmg-special',
-  'type-dmg-basic',
-  'type-dmg-ultimate',
-  'lucky-mult-display',
-  'lucky-mult-bonus',
-  'lucky-mult-manual',
-  'enemy-armour',
-  'phys-resist-override',
-  'lock-crit',
-  'lock-luck',
-  'lock-mastery',
-  'lock-vers',
-  'substat-factor',
-  'food-enabled',
-  'food-atk',
-  'food-dmg-bonus',
-  'dream-dmg-pct',    
-  'team-luck-crit',
-  'main-stat-pct',
-  'serum-oil-enabled',
-  'serum-oil-type',
-  'serum-oil-value',
-  'oblivion-buff',
-  'endless-mind',
-  'parse-duration',
-  'extra-main-attr',
-  'lucky-strike-dmg-bonus',
-  'luck-crit-chance',
-  'substat-factor-value',
-  'substat-factor-2',
-  'substat-factor-value-2',
-  'substat-factor-apply-imported',
-  'substat-factor-2-apply-imported',
-  'substat-factor-3',
-  'substat-factor-value-3',
-  'substat-factor-3-apply-imported',
-  'class-elemental-atk',
-];
-
-// Current save field order: factor-related fields are now stored in psychoscope save state.
-const SAVE_FIELD_ORDER = [
+// Core field IDs used to serialize the named character fields.
+const SAVE_FIELD_IDS = [
   'damageType',
   'PhysResEnabled',
   'magResEnabled',
@@ -196,8 +120,7 @@ const SAVE_FIELD_ORDER = [
   'serum-oil-enabled',
   'serum-oil-type',
   'serum-oil-value',
-  'oblivion-buff',
-  'endless-mind',
+  'inspiring-chant',
   'parse-duration',
   'extra-main-attr',
   'lucky-strike-dmg-bonus',
@@ -206,59 +129,8 @@ const SAVE_FIELD_ORDER = [
   'module-apply-main-stats',
 ];
 
-const PSYCHOSCOPE_SAVE_FIELD_ORDER = ['tree', 'values', 'factors'];
-
-// Legacy class field orders kept for migration from old saves.
-const LEGACY_CLASS_FIELDS_ORDER = {
-  none: [],
-  smite: [
-    'smite-spec',
-    'luck-dmg-talent',
-    'flowers-ascension',
-    'thorn',
-    'wide-area-thorns',
-    'tree-x11',
-    'tree-x4',
-    'tree-x11-value',
-    'tree-x4-value',
-    'tree-x7',
-    'tree-x7-value',
-    'arcane-of-green',
-    'thornbreaker',
-    'pulse-echo',
-  ],
-  dissonance: [
-    'in-rhapsody',
-    'in-heroic-melody',
-    'center-stage',
-    'luck-multiplier',
-    'fire-day',
-    'encore-chain',
-    's2-2-set',
-    'trio-rhapsody',
-  ],
-  stormblade: [
-    // no fields
-  ],
-  marksman: [
-    // no fields
-  ],
-  windknight: [
-    // no fields
-  ],
-  heavyguardian: [
-    // no fields
-  ],
-  shieldknight: [
-    // no fields
-  ],
-  twinaxe: [
-    // no fields
-  ],
-};
-
-// Class-specific field orders: ADD NEW CLASS FIELDS AT THE END OF EACH CLASS ARRAY (for dropdown selection)
-const CLASS_FIELDS_ORDER = {
+// Class field IDs used to serialize the named class values.
+const CLASS_FIELD_IDS = {
   none: [],
   smite: [
     'smite-spec',
@@ -269,8 +141,9 @@ const CLASS_FIELDS_ORDER = {
     'arcane-of-green',
     'thornbreaker',
     'pulse-echo',
-    's1-set-value',
-    's2-set-value',
+    'bloomheal',
+    'lucky-pulse',
+    'set-value',
   ],
   dissonance: [
     'in-rhapsody',
@@ -299,38 +172,6 @@ const CLASS_FIELDS_ORDER = {
   ],
   twinaxe: [
     // no fields
-  ],
-};
-
-// Psychoscope tree field orders: ADD NEW PSYCHOSCOPE FIELDS AT THE END OF EACH TREE ARRAY (for dropdown selection)
-const PSYCHOSCOPE_FIELDS_ORDER = {
-  none: [],
-  dreamforce: [
-    'psychoscope-bond-lvl35',
-    'psychoscope-main-stats',
-    'psychoscope-main-stats-bonus',
-    'psychoscope-amplify-rare',
-  ],
-  'fantasia-impact': [
-    'psychoscope-fantasia-bond-35',
-    'psychoscope-fantasia-linkage',
-    'psychoscope-fantasia-linkage-pct',
-    'psychoscope-fantasia-reconstruct',
-    'psychoscope-fantasia-ultimate-fortune',
-  ],
-  'endless-mind': [
-    'psychoscope-endless-bond-35',
-    'psychoscope-endless-aegis',
-    'psychoscope-endless-still-continuum',
-    'psychoscope-endless-split-brilliance',
-    'psychoscope-endless-finale-chant',
-  ],
-  'oblivion': [
-    'psychoscope-oblivion-bond-35',
-    'psychoscope-oblivion-harmony-grace',
-    'psychoscope-oblivion-tuning',
-    'psychoscope-oblivion-beauty-refinement',
-    'psychoscope-oblivion-feint-strike',
   ],
 };
 

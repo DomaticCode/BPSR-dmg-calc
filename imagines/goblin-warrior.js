@@ -1,7 +1,7 @@
 (function(){
 
   // goblin warrior bonus arrays
-  const GOBLIN_WARRIOR_ACTIVE_LUCK_STAT = [4480, 5376, 6272, 7168, 8064, 8960];
+  const GOBLIN_WARRIOR_ACTIVE_LUCK_STAT = [17920, 21504, 25088, 28672, 32256, 35840];
   const GOBLIN_WARRIOR_ACTIVE_LUCKY_STRIKE_MULT_PCT = [10, 12, 14, 16, 18, 20];
 
   window.IMAGINES = window.IMAGINES || {};

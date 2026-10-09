@@ -31,6 +31,14 @@ function toggleZdpsImportTop() {
 
 let parsedAttrs = {};
 
+function getRefinedAtkOrMatk() {
+  return parsedAttrs.AttrRefineMattackAdd
+    ?? parsedAttrs.AttrRefineAttackAdd
+    ?? parsedAttrs.AttrRefineMattack
+    ?? parsedAttrs.AttrRefineAttack
+    ?? parsedAttrs.AttrRefineAttackTotal;
+}
+
 function getZdpsMainStatInfo() {
   const stats = [
     { totalKey: 'AttrStrengthTotal', addKey: 'AttrStrengthAdd', label: 'Strength' },
@@ -119,8 +127,7 @@ function displayZdpsAttributePreview() {
   const lines = expectedAttrs.map(attr => {
     let value;
     if (attr.key === 'AttrRefineMattack') {
-      // Use either RefineMattack or RefineAttackTotal
-      value = parsedAttrs.AttrRefineMattack ?? parsedAttrs.AttrRefineAttackTotal;
+      value = getRefinedAtkOrMatk();
     } else if (attr.isMainStat && mainStatInfo && mainStatInfo.add !== null) {
       value = mainStatInfo.add;
     } else {
@@ -208,9 +215,7 @@ function applyElementSelection() {
   if (parsedAttrs.AttrMastery !== undefined) document.getElementById('mastery-stat').value = parsedAttrs.AttrMastery;
   if (parsedAttrs.AttrVersatility !== undefined) document.getElementById('vers-dmg-pct').value = parsedAttrs.AttrVersatility;
 
-  const refinedAtkOrMatk = 0 + Math.max(parsedAttrs.AttrRefineMattack ?? -Infinity, parsedAttrs.AttrRefineAttack ?? -Infinity, 0);
-
-  const refinedAtk = refinedAtkOrMatk;
+  const refinedAtk = getRefinedAtkOrMatk() ?? 0;
   if (refinedAtk !== undefined) document.getElementById('refined-atk').value = refinedAtk;
 
   let elementalAtk = 0;

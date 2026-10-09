@@ -14,16 +14,6 @@ function calcSkill(id) {
   const imagineBasicSkillDmgPct = (imagineBonuses.basicSkillDmgPct || 0) / 100; 
   const imagineUltimateSkillDmgPct = (imagineBonuses.ultimateSkillDmgPct || 0) / 100;
 
-  const genericNonSubstatFactors = typeof window.getGenericNonSubstatFactorBonuses === 'function'
-  ? window.getGenericNonSubstatFactorBonuses()
-  : [];
-
-  const genericFactorSpecialAttackPct = (genericNonSubstatFactors.specialAttackPct || 0) / 100;
-  const genericFactorExpertiseDmgPct = (genericNonSubstatFactors.expertiseDmgPct || 0) / 100;
-
-  const foodAtkBonus = c._foodAtkBonus || 0;
-  const foodDmgBonusPct = c._foodDmgBonusPct || 0;
-
   const mult        = getVal(`sk-mult-${id}`, 0) / 100;
   const flat        = getVal(`sk-flat-${id}`, 0);
   const skillType   = document.getElementById(`sk-type-${id}`).value;
@@ -36,10 +26,10 @@ function calcSkill(id) {
   let typeDmgPct = typeMap[skillType] ? getVal(typeMap[skillType]) / 100 : 0;
   let wlExpMagPct = 0;
   if(skillType === 'expertise'){
-    typeDmgPct += imagineExpertiseDmgPct || 0 + genericFactorExpertiseDmgPct || 0;
+    typeDmgPct += imagineExpertiseDmgPct;
     wlExpMagPct += c.wlExpMagPct || 0;
   } else if(skillType === 'special') {
-    typeDmgPct += imagineSpecialSkillDmgPct || 0 + genericFactorSpecialAttackPct || 0;
+    typeDmgPct += imagineSpecialSkillDmgPct;
   } else if (skillType === 'ultimate') {
     typeDmgPct += imagineUltimateSkillDmgPct || 0;
   } else if (skillType === 'basic') {
@@ -88,7 +78,7 @@ function calcSkill(id) {
   };
 
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
-  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, luckEffectBonus = 0;
+  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectStaticCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, luckEffectBonus = 0;
   let effectNoElem = false, effectNoClassElem = false, effectNoElemAtk = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false, effectNoWlAtk = false, effectNoWlMagic = false, effectNoIntellectBoost = false, effectNoAgilityBoost = false, 
   effectNoWlRanged = false, effectNoThorns = false, effectNoCrit = false;
   let skillDamageType = c.classDamageType; // for recognizing magic dmg % boosts applying to imagine magical based dmg and vice versa
@@ -152,6 +142,7 @@ function calcSkill(id) {
       case 'dreamDmg': effectDream += value / 100; break;
       case 'critChance': effectCritChance += value / 100; break;
       case 'critDamage': effectCritDmg += value / 100; break;
+      case 'staticCritDamage': effectStaticCritDmg = 1 + value / 100; break;
       case 'elemDmg': effectElem += value / 100; break;
       case 'magBoost': effectMagBoost += value / 100; break;
       case 'otherScaler': effectOtherScaler += value / 100; break;
@@ -229,7 +220,11 @@ function calcSkill(id) {
   }
   const finalDreamDmgPct = effectNoDream ? 0 : originalDream;
   const finalCritRatePct = effectNoCrit ? 0 : Math.min(1, c.critRatePct + effectCritChance);
-  const finalCritMult = effectNoCrit ? 1 : c.critMultPct + effectCritDmg;
+  const finalCritMult = effectNoCrit
+    ? 1
+    : effectStaticCritDmg !== 0
+      ? effectStaticCritDmg
+      : c.critMultPct + effectCritDmg;
   const finalMagBoost = effectNoMagBoost ? 0 : originalMag;
   const versDmgPct = effectNoVers ? 0 : originalVers;
   const finalDmgPct = c._finalDmgPct + effectFinalDamage;
@@ -396,9 +391,13 @@ function calcSkill(id) {
     const critRateText = effectCritChance !== 0
       ? `${(c.critRatePct*100).toFixed(3)}% + ${(effectCritChance*100).toFixed(3)}% = ${(finalCritRatePct*100).toFixed(3)}%`
       : `${(c.critRatePct*100).toFixed(3)}%`;
-    const critMultText = effectCritDmg !== 0
-      ? `${(c.critMultPct*100).toFixed(3)}% + ${(effectCritDmg*100).toFixed(3)}% = ${(finalCritMult*100).toFixed(3)}%`
-      : `${(c.critMultPct*100).toFixed(3)}%`;
+    const critMultText = effectNoCrit
+      ? '100.000% (no crit)'
+      : effectStaticCritDmg !== 0
+        ? `static ${(finalCritMult*100).toFixed(3)}%`
+        : effectCritDmg !== 0
+          ? `${(c.critMultPct*100).toFixed(3)}% + ${(effectCritDmg*100).toFixed(3)}% = ${(finalCritMult*100).toFixed(3)}%`
+          : `${(c.critMultPct*100).toFixed(3)}%`;
     const magText = (() => {
       let baseMag = 0;
       if(luckEffectSkill){

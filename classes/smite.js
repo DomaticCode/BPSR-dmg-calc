@@ -8,6 +8,8 @@ function provideSmiteClassBonuses(stats) {
   let luckyDreamDmgPct = 0;
   let luckyFinalDmgPct = 0;
   let luckMult = 0;
+  let skillFinalDmgPct = 0;
+  let luckyDmgPct = 0;
 
   let thornsPct = 0;
   if (isSmiteClass && getChecked('flowers-ascension')) {
@@ -41,9 +43,17 @@ function provideSmiteClassBonuses(stats) {
     luckyFinalDmgPct += 50;
   }
 
+  if (isSmiteClass && getChecked('bloomheal')) {
+    skillFinalDmgPct -= 10;
+  }
+
   if (isSmiteClass && getChecked('luck-dmg-talent')) {
     const luckTalentMult = 1.5;
     luckMult += 5 + (stats.luck * 100 * luckTalentMult);
+  }
+
+  if (isSmiteClass && getChecked('lucky-pulse')) {
+    luckyDmgPct += 30;
   }
 
   if(isSmiteClass && getChecked('arcane-of-green')) {
@@ -62,6 +72,8 @@ function provideSmiteClassBonuses(stats) {
     classLuckyDreamDmgPct: luckyDreamDmgPct,
     classLuckMult: luckMult, // NOT A PERCENT SCALER, it's flat
     classLuckyFinalDmgPct: luckyFinalDmgPct,
+    classLuckyDmgPct: luckyDmgPct, // generic dmg to lucky strikes
+    classSkillFinalDmgPct: skillFinalDmgPct,
     classMatkPct: matkPct,
   };
 }
@@ -70,103 +82,61 @@ function provideSmiteClassBonuses(stats) {
 window.CLASS_BONUS_PROVIDERS = window.CLASS_BONUS_PROVIDERS || {};
 
 
-function getSmiteFactorValue(keyword){
-  const searchKeyword = keyword.toLowerCase().trim();
-  let totalValue = 0;
-
-  const escapedKeyword = searchKeyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedKeyword}\\b`);
-
-  [1, 2, 3].forEach(index => {
-    const nameInput = document.getElementById(`psychoscope-factor-class-${index}-name`);
-    const valueInput = document.getElementById(`psychoscope-factor-class-${index}-value`);
-    
-    const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = valueInput ? getVal(valueInput.id, 0) : 0;
-
-    if (regex.test(name) && value > 0) {
-      totalValue += value;
-    }
+function isSmiteFactorSelected(key){
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return false;
+  const suggestions = provideSmiteFactorSuggestions('class');
+  return [1, 2, 3].some(index => {
+    const name = document.getElementById(`psychoscope-factor-class-${index}-name`)?.value || '';
+    return getFactorSelectionKey(name, suggestions) === key;
   });
-
-  return totalValue;
 }
 
-function getSmiteRealityFactorValue(keyword){
-  const searchKeyword = keyword.toLowerCase().trim();
-  let totalValue = 0;
+function isSmiteSingularitySelected(key){
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return false;
+  const name = document.getElementById('psychoscope-factor-singularity-1-name')?.value || '';
+  const suggestions = provideSmiteFactorSuggestions('singularity');
+  return getFactorSelectionKey(name, suggestions) === key;
+}
 
-  const escapedKeyword = searchKeyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedKeyword}\\b`);
-
-  [1, 2, 3].forEach(index => {
-    const nameInput = document.getElementById(`psychoscope-factor-class-reality-${index}-name`);
-    const valueInput = document.getElementById(`psychoscope-factor-class-reality-${index}-value`);
-    
-    const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = valueInput ? getVal(valueInput.id, 0) : 0;
-
-    if (regex.test(name) && value > 0) {
-      totalValue += value;
-    }
-  });
-
-  return totalValue;
+function hasSmiteThornsLuckySingularity() {
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return false;
+  const name = document.getElementById('psychoscope-factor-singularity-1-name')?.value || '';
+  const suggestions = provideSmiteFactorSuggestions('singularity');
+  return getFactorSelectionKey(name, suggestions) === 'singularity-x1';
 }
 
 function provideSmiteFactorSuggestions(type = 'class') {
-  if (type !== 'class' && type !== 'class-reality') return [];
+  if (type !== 'class' && type !== 'singularity') return [];
   if(type === 'class'){
     return [
     {
       key: 'x1',
-      label: 'X1 (Wild Bloom/Stag Charge)',
-      aliases: ['x1', 'special', 'wild bloom', 'stag charge'],
-      defaultValue: 31.3,
+      label: 'X1 Regen Pulse',
+      aliases: ['x1', 'regen', 'pulse', 'crit'],
     },
     {
       key: 'x2',
-      label: 'X2 (Infusion)',
-      aliases: ['x2', 'infusion'],
-      defaultValue: 16.7,
+      label: 'X2 (Ward -> Stag Charge)',
+      aliases: ['x2', 'ward', 'stag', 'stag charge'],
     },
     {
       key: 'x3',
-      label: 'X3 (Regen Pulse)',
-      aliases: ['x3', 'regen pulse'],
+      label: 'X3 (Regen bud -> Season Dmg)',
+      aliases: ['x3', 'Healing', 'Regen Bud', 'Season Dmg', 'rest', 'oath', '8%'],
       defaultValue: 18.5,
-    },
-    {
-      key: 'x4',
-      label: 'X4 (Symbiotic Mark MATK)',
-      aliases: ['x4', 'symbiotic mark', 'symbiotic-mark', 'symbiotic'],
-      defaultValue: 7.5,
-    }, 
-    {
-      key: 'x5',
-      label: 'X5 (Feral Seed)',
-      aliases: ['x5', 'feral seed'],
-      defaultValue: 25.0,
-    },
-    {
-      key: 'x7',
-      label: 'X7 (Ward MATK)',
-      aliases: ['x7', 'ward matk', 'ward-matk', 'ward'],
-      defaultValue: 16.7,
-    }, 
-    {
-      key: 'x11',
-      label: 'X11 (Seasonal Luck DMG)',
-      aliases: ['x11', 'seasonal luck dmg', 'seasonal-luck-dmg', 'luck dmg'],
-      defaultValue: 50,
-    }];
-  } else if (type === 'class-reality') {
+    }
+  ];
+  } else if (type === 'singularity') {
     return [
       {
-        key: 'reality-x3',
-        label: 'X3 (Thorns Lucky proc)',
-        aliases: ['x3', 'thorns', 'luck', 'lucky', 'proc'],
-        defaultValue: 100,
+        key: 'singularity-x1',
+        label: 'X1 (Thorns trigger lucky)',
+        aliases: ['x1', 'thorns', 'luck', 'lucky', 'proc'],
+      },
+      {
+        key: 'singularity-x2',
+        label: 'X2 (Special +1 bud, 10% mastery)',
+        aliases: ['x2', 'special', 'bud', 'mastery', 'wild bloom'],
       }
     ];
   }
@@ -177,101 +147,81 @@ function provideSmiteFactorBonuses() {
   const isSmiteClass = document.getElementById('class-select')?.value === 'smite';
   if (!isSmiteClass) return {};
 
-  const classFactorLuckyDreamDmgPct = getSmiteFactorValue('x11');
-  const classFactorMatkPct = getSmiteFactorValue('x7') + getSmiteFactorValue('x4');
+  let classFactorCritPct = 0;
+  let classFactorCritDmgPct = 0;
+  let classFactorSeasonDmgPct = 0;
+  let classFactorMasteryPct = 0;
+  if (isSmiteFactorSelected('x1')){
+    classFactorCritPct += 10;
+    classFactorCritDmgPct = 30;
+  }
+  if (isSmiteFactorSelected('x3')){
+    classFactorSeasonDmgPct += 8;
+  }
+
+  if (isSmiteSingularitySelected('singularity-x2')){
+    classFactorMasteryPct += 10;
+  }
+
+  console.log(' smite class returning = ', classFactorMasteryPct)
 
   return {
-    classFactorLuckyDreamDmgPct,
-    classFactorMatkPct,
+    classFactorCritPct,
+    classFactorCritDmgPct,
+    classFactorSeasonDmgPct,
+    classFactorMasteryPct
   };
 }
 
 
 function getInfusionEffects(){
   const effects = [];
-  const x2Value = getSmiteFactorValue('x2');
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
-  const s1set = getVal('s1-set-value');
+  //const s1set = getVal('s1-set-value');
   if (thornbreaker) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
-  if(x2Value > 0){
-    effects.push(['dreamDmg', `${x2Value}`]);
-  }
-  if(s1set >= 4){
-    effects.push(['generic', '60']);
-  }
+  //if(s1set >= 4){
+  //  effects.push(['generic', '60']);
+  //}
   return effects;
 }
 
 function getStagChargeEffects(){
-  const effects = [
-    ['damageType', 'no-thorns'],
-  ];
+  const effects = [];
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
-  const x1Value = getSmiteFactorValue('x1');
   if (thornbreaker) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
-  if(x1Value > 0){
-    effects.push(['dreamDmg', `${x1Value}`]);
+  if(isSmiteFactorSelected('x2')){
+    effects.push(['dreamDmg', 'sub-luck-pct'])
+    effects.push(['critChance', '100'])
   }
   return effects;
 }
 
 function getWildBloomEffects(){
-  const effects = [];
-  const x1Value = getSmiteFactorValue('x1');
-  if(x1Value > 0){
-    effects.push(['dreamDmg', `${x1Value}`]);
-  }
-  return effects;
+  return [];
 }
 
 function getRegenPulseEffects(){
-  const effects = [
-    ['damageType', 'no-thorns'],
-  ];
-  const x3Value = getSmiteFactorValue('x3');
+  const effects = [];
   const pulseEcho = !!document.getElementById('pulse-echo')?.checked;
   if (pulseEcho) {
     effects.push(['generic', '100']);
-  }
-  if(x3Value > 0){
-    effects.push(['dreamDmg', `${x3Value}`]);
   }
   return effects;
 }
 
 function getRegenBudEffects(){
   const effects = [
-    ['damageType', 'no-thorns'],
+    ['damageType', 'luck-effect'],
   ];
   return effects;
 }
 
-function getFeralSeedEffects(){
-  const effects = [];
-  const x5Value = getSmiteFactorValue('x5');
-  const s2set = getVal('s2-set-value');
-  if(x5Value > 0){
-    effects.push(['dreamDmg', `${x5Value}`]);
-  }
-  // Season 2, 2 set is still bugged, does not give elemental dmg
-  //if(s2set >= 2){
-  //  effects.push(['elemDmg', '12']);
-  //}
-  return effects;
-}
-
-function getThornsLuck() {
-  return getSmiteRealityFactorValue('x3');
-}
-function canThornsLucky() {
-  return getSmiteRealityFactorValue('x3');
-}
-
 function provideSmiteSkills() {
+  const thornsCanProcLucky = hasSmiteThornsLuckySingularity();
   return [
     [
       'expertise',
@@ -326,9 +276,9 @@ function provideSmiteSkills() {
       "none",
       20,
       0,
-      canThornsLucky(),
+      thornsCanProcLucky,
       "Thorns",
-      [['luckUptime', getThornsLuck()]],
+      [],
       243,
       0
     ],
@@ -338,7 +288,7 @@ function provideSmiteSkills() {
       614.84,
       true,
       "Feral Seed - Seed Meteor",
-      getFeralSeedEffects(),
+      [],
       23,
       0
     ],
@@ -348,7 +298,7 @@ function provideSmiteSkills() {
       232.58,
       true,
       "Feral Seed - Stage 1",
-      getFeralSeedEffects(),
+      [],
       23,
       0
     ],
@@ -358,7 +308,7 @@ function provideSmiteSkills() {
       232.58,
       true,
       "Feral Seed - Stage 2",
-      getFeralSeedEffects(),
+      [],
       23,
       0
     ],
@@ -388,12 +338,6 @@ function provideSmiteFormulaParts(kind = 'elem') {
     if (!Number.isNaN(masteryVal) && masteryVal !== 0) parts.push(`Mastery ${(masteryVal).toFixed(3)}%`);
     return parts.length ? parts.join(' + ') : '';
   }
-  if (kind === 'dreamLucky') {
-    const value = getSmiteFactorValue('x11');
-    if(value) {
-      return `x11 factor ${value.toFixed(2)}%`;
-    }
-  }
   if (kind === 'luckyFinal') {
     return `Smite ${50}%`;
   }
@@ -409,12 +353,13 @@ const SMITE_OPTIONS_HTML = `
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-dmg-talent" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="luck-dmg-talent">Luck Damage Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">5% Lucky DMG Multiplier + 1.2% per 1% Luck.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="flowers-ascension" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="flowers-ascension">Flowers Ascension</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Forest dmg on spending buds. (8 seconds)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thorn" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thorn">Thorn</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">20% Forest dmg to targets with thorn (Regen Pulse is bugged for this).</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="wide-area-thorns" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="wide-area-thorns">Wide-area Thorns</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hidden 4% Elite Forest DMG (always up).</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="wide-area-thorns" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="wide-area-thorns">Wide-area Thorns</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hidden 8% Elite Forest DMG (always up).</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="arcane-of-green" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="arcane-of-green">Arcane of Green</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Balance Patch (full) only, MATK boost by Mastery % * Luck %.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thornbreaker" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thornbreaker">Thornbreaker</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Increased damage done by infusion and stag charge by 100% + Mastery % * 4 (final)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="pulse-echo" style="width:14px;height:14px;" onchange="updateClassSkills(); calc()"><label for="pulse-echo">Pulse Echo</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hitting with infusion boosts damage of Regen Pulse (up to 100%).</span></span></div>
-    <div class="cb-row" style="gap:6px;"><label>S1 Set (Void Corruption)</label><input type="number" id="s1-set-value" min="0" max="4" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"> 2 Set: Increased Mark healing<br>4 Set: 60% generic dmg for infusion </span></span></div>
-    <div class="cb-row" style="gap:6px;"><label>S2 Set (Phantom)</label><input type="number" id="s2-set-value" min="0" max="4" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"> 2 Set: Feral Seed: 12% Elemental DMG and 25% CDR<br>4 Set: Bigger ward shield </span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="bloomheal" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="bloomheal">Bloomheal</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles inspiration bonus at the cost of 10% final damage.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="lucky-pulse" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="lucky-pulse">Lucky Pulse</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Lucky Strike DMG +30%, removes inspiration.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><label>Set Bonus (WIP)</label><input type="number" id="set-value" min="0" max="6" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"> 2 Set: WIP<br>4 Set: WIP </span></span></div>
   </div>
 `;
 
@@ -426,6 +371,22 @@ function renderSmiteOptions(containerId = 'class-options') {
   }
   container.innerHTML = SMITE_OPTIONS_HTML;
   container.style.display = '';
+}
+
+function syncSmiteInspiration() {
+  if (document.getElementById('class-select')?.value !== 'smite') return;
+  const luckyPulseEnabled = !!document.getElementById('lucky-pulse')?.checked;
+  const bloomhealEnabled = !!document.getElementById('bloomheal')?.checked;
+  const inspirationEl = document.getElementById('inspiration');
+  if (inspirationEl) {
+    inspirationEl.value = luckyPulseEnabled ? '0' : bloomhealEnabled ? '3' : '1.5';
+  }
+}
+
+function onSmiteInspirationToggle() {
+  syncSmiteInspiration();
+  updateClassSkills();
+  calc();
 }
 
 function onSmiteSelected() {
