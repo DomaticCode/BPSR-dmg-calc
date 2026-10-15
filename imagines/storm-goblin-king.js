@@ -132,5 +132,10 @@
 
     return skills;
   }
-  window.IMAGINES['storm-goblin-king'] = { displayName: 'Storm Goblin King', provideBonuses, provideSkills };
+  window.IMAGINES['storm-goblin-king'] = { 
+    displayName: 'Storm Goblin King', 
+    aliases: ['luck', 'luck boost'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

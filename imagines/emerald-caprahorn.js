@@ -48,5 +48,10 @@
       0
     ]];
   }
-  window.IMAGINES['emerald-caprahorn'] = { displayName: 'Emerald Caprahorn', provideBonuses, provideSkills };
+  window.IMAGINES['emerald-caprahorn'] = { 
+    displayName: 'Emerald Caprahorn', 
+    aliases: ['haste', 'caprahorn'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

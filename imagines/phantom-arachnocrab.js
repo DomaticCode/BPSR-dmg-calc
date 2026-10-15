@@ -49,5 +49,10 @@
       0
     ]];
   }
-  window.IMAGINES['phantom-arachnocrab'] = { displayName: 'Phantom Arachnocrab', provideBonuses, provideSkills };
+  window.IMAGINES['phantom-arachnocrab'] = { 
+    displayName: 'Phantom Arachnocrab', 
+    aliases: ['crab', 'mastery'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

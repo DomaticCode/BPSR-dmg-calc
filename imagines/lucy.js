@@ -13,5 +13,9 @@
 
     return { mainStatPct };
   }
-  window.IMAGINES['lucy'] = { displayName: 'Lucy', provideBonuses };
+  window.IMAGINES['lucy'] = { 
+    displayName: 'Lucy', 
+    aliases: ['transform'],
+    provideBonuses 
+  };
 })();

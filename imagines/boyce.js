@@ -55,5 +55,10 @@
       0
     ]];
   }
-  window.IMAGINES['boyce'] = { displayName: 'Boyce', provideBonuses, provideSkills };
+  window.IMAGINES['boyce'] = { 
+    displayName: 'Boyce', 
+    aliases: ['atk', 'attack', 'matk', 'magic attack'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

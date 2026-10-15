@@ -52,5 +52,10 @@
       0
     ]];
   }
-  window.IMAGINES['muku-chief'] = { displayName: 'Muku Chief', provideBonuses, provideSkills };
+  window.IMAGINES['muku-chief'] = { 
+    displayName: 'Muku Chief', 
+    aliases: ['crit dmg', 'crit damage'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

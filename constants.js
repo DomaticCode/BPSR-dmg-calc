@@ -5,8 +5,8 @@ const CLASS_BASES = {
   dissonance: { crit: 5, haste: 0, luck: 5, mastery: 6, vers: 0 },
 };
 
-const STAT_SCALER = 200000;
-const VERS_SCALER = 112000;
+const STAT_SCALER = 200050;
+const VERS_SCALER = 112200;
 const ALL_ELEMENTAL_DMG_SCALER = 18000;
 
 // Module data
@@ -69,6 +69,8 @@ const SAVE_FIELD_IDS = [
   'magResEnabled',
   'inspiration',
   'target-type',
+  'seasonal-strength-difference',
+  'unity-bonus',
   'main-attr',
   'adaptive-atk',
   'base-atk',

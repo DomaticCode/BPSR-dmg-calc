@@ -17,7 +17,7 @@
       luckyStrikeMultPct: [10, 12, 14, 16, 18, 20]
     },
     'Storm Goblin King': {
-      luckStat: [5600, 6720, 7840, 8960, 10080, 11200],
+      luckStat: [22400, 26880, 31360, 35840, 40320, 44800],
       luckEffectPct: [16, 19.2, 22.4, 25.6, 28.8, 32]
     },
     'Jungle Goblin Warrior': {
@@ -362,5 +362,11 @@
 
     return `SGW (GK summon averaged value) ${elemPct.toFixed(2)}%`;
   }
-  window.IMAGINES['goblin-king'] = { displayName: 'Goblin King', provideBonuses, provideSkills, provideFormulaParts };
+  window.IMAGINES['goblin-king'] = { 
+    displayName: 'Goblin King', 
+    aliases: ['versatility', 'gamble'],
+    provideBonuses, 
+    provideSkills, 
+    provideFormulaParts 
+  };
 })();

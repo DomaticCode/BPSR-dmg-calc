@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
-<!-- Increment this asset revision when deploying updated static assets. -->
-<link rel="stylesheet" href="styles.css?v=20261008-1">
+<script>
+  const APP_VERSION = 'v2.1.0';
+  document.write(`<link rel="stylesheet" href="styles.css?v=${APP_VERSION}">`);
+</script>
 <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
 <link rel="shortcut icon" href="favicon/favicon.ico" />
@@ -22,7 +24,7 @@
       </span><br><span class="highlight-purple">Support me for free when you top up at:</span> <a href="https://shop.nexus.gg/blue-protocol-star-resonance" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">shop.nexus.gg/blue-protocol-star-resonance</a> 
       <span class="highlight-purple">with code:</span> <span class="copy-trigger" role="button" title="Click to copy promo code" onclick="copyTextValue(event, 'doma','Promo code copied: doma');">doma</span></span>
     <div class="header-meta">
-      <span class="header-version">v2.0.0</span>
+      <span class="header-version" id="app-version"></span>
       <button id="reset-all-btn" onclick="resetAll()" style="margin-left:14px; padding:4px 10px; font-size:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer;">Reset All</button>
     </div>
   </header>
@@ -92,10 +94,21 @@
         <span class="tip"><span class="tip-icon">i</span><span class="tip-box">Normal: no bonuses. Elite: Elite DMG% and Wide-area Thorns elemental apply. Boss: Boss DMG% applies (not available on Guild Hall dummy).</span></span>
       </label>
       <select id="target-type" onchange="calc()">
-        <option value="normal">Normal</option>
+        <option value="normal">Normal (dummy)</option>
         <option value="elite" selected>Elite (target dummy)</option>
-        <option value="boss">Boss</option>
+        <option value="boss">Boss (theoretical)</option>
+        <option value="seasonal">Seasonal</option>
+        <option value="elite-seasonal">Seasonal Elite</option>
+        <option value="boss-seasonal">Seasonal Boss</option>
       </select>
+    </div>
+    <div class="field seasonal-target-field" id="seasonal-strength-field" style="display:none;">
+      <label for="seasonal-strength-difference">Oath Str Diff <span class="tip"><span class="tip-icon red">i</span><span class="tip-box">Positive values only. 150 = 5%, capped at 20%</span></span></label>
+      <input type="number" id="seasonal-strength-difference" value="0" min="0" step="1" oninput="calc()">
+    </div>
+    <div class="field seasonal-target-field" id="unity-bonus-field" style="display:none;">
+      <label for="unity-bonus">Unity Bonus (%)<span class="tip"><span class="tip-icon">i</span><span class="tip-box">Dungeon bonus for holy trinity/different classes (generally 25%)</span></span></label>
+      <input type="number" id="unity-bonus" value="25" min="0" step="0.1" placeholder="25%" oninput="calc()">
     </div>
     <div class="field">
       <label class="checkbox-label" for="food-enabled">
@@ -407,6 +420,7 @@
               <div class="input-row single" style="margin-bottom:10px;">
                 <div class="field"><label>Tree</label><select id="psychoscope-tree" onchange="onPsychoscopeChange()">
                   <option value="none">None</option>
+                  <!--- <option value="boilerplate">Boilerplate</option>   debug tree --->
                   <option value="stat-symphony">Stat Symphony</option>
                   <option value="momentum-burst">Momentum Burst</option>
                 </select></div>
@@ -470,7 +484,7 @@
                         <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
                         <div class="module-option" data-value="shell-gathering-cultist">Shell-Gathering Cultist</div>
                         <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
-                        <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
+                        <div class="module-option" data-value="sunfire-moonstrike">Sunfire & Moonstrike</div>
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
@@ -497,7 +511,10 @@
                     <div class="radio-group">
                       <label><input type="radio" id="imagine-1-mode-passive" name="imagine-1-mode" value="passive" checked onchange="onImagineSlotSettingsChange(1)"> Passive</label>
                       <label><input type="radio" id="imagine-1-mode-active" name="imagine-1-mode" value="active" onchange="onImagineSlotSettingsChange(1)"> Active</label>
-                      <span id="imagine-1-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="onImagineSlotSettingsChange(1)" style="width:54px;"></span>
+                      <div class="imagine-stack-inputs">
+                        <span id="imagine-1-stacks-field" style="display:inline-flex; align-items:center; gap:6px;"><span id="imagine-1-stacks-label" style="display:inline-block;">Stacks:</span><input id="imagine-1-stacks" type="number" min="0" max="5" value="5" oninput="clamp(this); onImagineSlotSettingsChange(1)" style="width:54px;"></span>
+                        <span id="imagine-1-stacks-2-field" style="display:none; align-items:center; gap:6px;"><span id="imagine-1-stacks-2-label" style="display:inline-block;">Stacks 2:</span><input id="imagine-1-stacks-2" type="number" min="0" max="5" value="3" oninput="clamp(this); onImagineSlotSettingsChange(1)" style="width:54px;"></span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -540,7 +557,7 @@
                         <div class="module-option" data-value="shadow-captain">Shadow Captain</div>
                         <div class="module-option" data-value="shell-gathering-cultist">Shell-Gathering Cultist</div>
                         <div class="module-option" data-value="storm-goblin-king">Storm Goblin King</div>
-                        <!-- <div class="module-option" data-value="sunfire-moonstrike">Sunfire Moonstrike</div> -->
+                        <div class="module-option" data-value="sunfire-moonstrike">Sunfire & Moonstrike</div>
                         <div class="module-option" data-value="tatta">Tatta</div>
                         <div class="module-option" data-value="tina">Tina</div>
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
@@ -566,7 +583,10 @@
                     <div class="radio-group">
                       <label><input type="radio" id="imagine-2-mode-passive" name="imagine-2-mode" value="passive" checked onchange="onImagineSlotSettingsChange(2)"> Passive</label>
                       <label><input type="radio" id="imagine-2-mode-active" name="imagine-2-mode" value="active" onchange="onImagineSlotSettingsChange(2)"> Active</label>
-                      <span id="imagine-2-stacks-field" style="margin-left:8px; display:inline-flex; align-items:center; gap:6px;"><span style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
+                      <div class="imagine-stack-inputs">
+                        <span id="imagine-2-stacks-field" style="display:inline-flex; align-items:center; gap:6px;"><span id="imagine-2-stacks-label" style="display:inline-block;">Stacks:</span><input id="imagine-2-stacks" type="number" min="0" max="5" value="5" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
+                        <span id="imagine-2-stacks-2-field" style="display:none; align-items:center; gap:6px;"><span id="imagine-2-stacks-2-label" style="display:inline-block;">Stacks 2:</span><input id="imagine-2-stacks-2" type="number" min="0" value="3" onchange="onImagineSlotSettingsChange(2)" style="width:54px;"></span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -589,6 +609,7 @@
                 <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
                 <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
                 <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
+                <div id="imagine-note-sunfire-moonstrike" style="display:none;"><span class="hl">Sunfire & Moonstrike:</span> Passive heal stacks give lucky strike multiplier<br>Active Crit Reduction stacks: 0 = just casted imagine, 3 = 90 luck effect hits after casting. <br>Passive hit count assumes 80% of lucky strikes trigger it, you can update this manually.</div>
               </div>
             </div>
           </div>
@@ -717,69 +738,70 @@
     </div>
 </div>
 
-<script src="constants.js?v=20261008-1"></script>
-<script src="import_modal.js?v=20261008-1"></script>
-<script src="base_main_stat_modal.js?v=20261008-1"></script>
-<script src="modules_calc.js?v=20261008-1"></script>
-<!-- Classes -->
-<script src="classes/smite.js?v=20261008-1"></script>
-<script src="classes/dissonance.js?v=20261008-1"></script>
-<script src="classes/stormblade.js?v=20261008-1"></script>
-<script src="classes/marksman.js?v=20261008-1"></script>
-<script src="classes/windknight.js?v=20261008-1"></script>
-<script src="classes/heavyguardian.js?v=20261008-1"></script>
-<script src="classes/shieldknight.js?v=20261008-1"></script>
-<script src="classes/frostmage.js?v=20261008-1"></script>
-<script src="classes/twinaxe.js?v=20261008-1"></script>
-<script src="util.js?v=20261008-1"></script>
-<!-- Imagines -->
-<script src="imagines/muku-scout.js?v=20261008-1"></script>
-<script src="imagines/muku-chief.js?v=20261008-1"></script>
-<script src="imagines/flamehorn.js?v=20261008-1"></script>
-<script src="imagines/rorola.js?v=20261008-1"></script>
-<script src="imagines/airona.js?v=20261008-1"></script>
-<script src="imagines/tina.js?v=20261008-1"></script>
-<script src="imagines/tatta.js?v=20261008-1"></script>
-<script src="imagines/dorothy.js?v=20261008-1"></script>
-<script src="imagines/celestial-flier.js?v=20261008-1"></script>
-<script src="imagines/phantom-arachnocrab.js?v=20261008-1"></script>
-<script src="imagines/blackfire-foxen.js?v=20261008-1"></script>
-<script src="imagines/emerald-caprahorn.js?v=20261008-1"></script>
-<script src="imagines/bluespine-lizard.js?v=20261008-1"></script>
-<script src="imagines/shadow-captain.js?v=20261008-1"></script>
-<script src="imagines/boarrier-tyrant.js?v=20261008-1"> </script>
-<script src="imagines/inferno-goblin-mage.js?v=20261008-1"></script>
-<script src="imagines/brigand-scout-leader.js?v=20261008-1"></script>
-<script src="imagines/jungle-goblin-warrior.js?v=20261008-1"></script>
-<script src="imagines/goblin-king.js?v=20261008-1"></script>
-<script src="imagines/lizardman-hunter.js?v=20261008-1"></script>
-<script src="imagines/goblin-warrior.js?v=20261008-1"></script>
-<script src="imagines/storm-goblin-king.js?v=20261008-1"></script>
-<script src="imagines/goblin-chief.js?v=20261008-1"></script>
-<script src="imagines/muku-warrior.js?v=20261008-1"></script>
-<script src="imagines/fafala.js?v=20261008-1"></script>
-<script src="imagines/olvera.js?v=20261008-1"></script>
-<script src="imagines/bloodthirsty-furball.js?v=20261008-1"></script>
-<script src="imagines/boyce.js?v=20261008-1"></script>
-<script src="imagines/void-bzzar.js?v=20261008-1"></script>
-<script src="imagines/void-watcher.js?v=20261008-1"></script>
-<script src="imagines/wandering-traveler.js?v=20261008-1"></script>
-<script src="imagines/predator-spider.js?v=20261008-1"></script>
-<script src="imagines/igoreus.js?v=20261008-1"></script>
-<script src="imagines/shell-gathering-cultist.js?v=20261008-1"></script>
-<script src="imagines/kartgriff.js?v=20261008-1"></script>
-<script src="imagines/lucy.js?v=20261008-1"></script>
-<script src="imagines/sunfire-moonstrike.js?v=20261008-1"></script>
-<script src="imagines/natsu.js?v=20261008-1"></script>
-<!-- <script src="imagines/brigand-leader.js?v=20261008-1"></script> not ready yet, was here for testing -->
-<!-- Psychoscope Trees -->
-<script src="psychoscope/psychoscope-tree.js?v=20261008-1"></script>
-<script src="psychoscope/boilerplate.js?v=20261008-1"></script>
-<script src="psychoscope/stat-symphony.js?v=20261008-1"></script>
-<script src="psychoscope/momentum-burst.js?v=20261008-1"></script>
-<!-- final stat values and damage calculation -->
-<script src="calc.js?v=20261008-1"></script>
-<script src="calc_skill.js?v=20261008-1"></script>
+<script>
+  document.getElementById('app-version').textContent = APP_VERSION;
+  [
+    'constants.js',
+    'import_modal.js',
+    'base_main_stat_modal.js',
+    'modules_calc.js',
+    'classes/smite.js',
+    'classes/dissonance.js',
+    'classes/stormblade.js',
+    'classes/marksman.js',
+    'classes/windknight.js',
+    'classes/heavyguardian.js',
+    'classes/shieldknight.js',
+    'classes/frostmage.js',
+    'classes/twinaxe.js',
+    'util.js',
+    'imagines/muku-scout.js',
+    'imagines/muku-chief.js',
+    'imagines/flamehorn.js',
+    'imagines/rorola.js',
+    'imagines/airona.js',
+    'imagines/tina.js',
+    'imagines/tatta.js',
+    'imagines/dorothy.js',
+    'imagines/celestial-flier.js',
+    'imagines/phantom-arachnocrab.js',
+    'imagines/blackfire-foxen.js',
+    'imagines/emerald-caprahorn.js',
+    'imagines/bluespine-lizard.js',
+    'imagines/shadow-captain.js',
+    'imagines/boarrier-tyrant.js',
+    'imagines/inferno-goblin-mage.js',
+    'imagines/brigand-scout-leader.js',
+    'imagines/jungle-goblin-warrior.js',
+    'imagines/goblin-king.js',
+    'imagines/lizardman-hunter.js',
+    'imagines/goblin-warrior.js',
+    'imagines/storm-goblin-king.js',
+    'imagines/goblin-chief.js',
+    'imagines/muku-warrior.js',
+    'imagines/fafala.js',
+    'imagines/olvera.js',
+    'imagines/bloodthirsty-furball.js',
+    'imagines/boyce.js',
+    'imagines/void-bzzar.js',
+    'imagines/void-watcher.js',
+    'imagines/wandering-traveler.js',
+    'imagines/predator-spider.js',
+    'imagines/igoreus.js',
+    'imagines/shell-gathering-cultist.js',
+    'imagines/kartgriff.js',
+    'imagines/lucy.js',
+    'imagines/sunfire-moonstrike.js',
+    'imagines/natsu.js',
+    'psychoscope/psychoscope-tree.js',
+    'psychoscope/boilerplate.js',
+    'psychoscope/stat-symphony.js',
+    'psychoscope/momentum-burst.js',
+    'calc.js',
+    'calc_skill.js'
+  ].forEach(src => document.write(`<script src="${src}?v=${APP_VERSION}"><\/script>`));
+</script>
+<!-- <script src="imagines/brigand-leader.js"></script> not ready yet, was here for testing -->
 <script>
   let damageType = 'physical';
   let magResEnabled = true;
@@ -790,6 +812,7 @@
   let modules = [];
   let weaponLineEffectCount = 0;
   const SAVE_FORMAT_VERSION = document.querySelector('.header-meta .header-version')?.textContent?.trim() || 'v2.0.0';
+  const MIN_SUPPORTED_SAVE_VERSION = 'v2.0.0';
   let optimizerBackup = null;
   let optimizerDone = false;
   let optimizingSubstats = false;
@@ -830,6 +853,15 @@
     calc();
   }
 
+  function getImagineStackInputConfig(imagineType, key, defaultLabel) {
+    const config = window.IMAGINES?.[imagineType]?.stackInputLabels?.[key];
+    if (typeof config === 'string') return { label: config, max: 5 };
+    return {
+      label: config?.label || defaultLabel,
+      max: Number.isFinite(config?.max) ? Math.max(0, config.max) : 5
+    };
+  }
+
   function onImagineChange(slot) {
     const val = document.getElementById(`imagine-${slot}`).value;
     const levelField = document.getElementById(`imagine-${slot}-level-field`);
@@ -843,9 +875,39 @@
     'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-traveler', 'void-watcher', 'predator-spider', 'igoreus', 'shell-gathering-cultist', 'kartgriff', 'sunfire-moonstrike'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
-    // Show stacks input only for Rorola
+    // Show stack inputs only for imagines that use them
+    const imagine = window.IMAGINES?.[val];
+    const stackInputLabels = imagine?.stackInputLabels || {};
+    const stacksConfig = getImagineStackInputConfig(val, 'stacks', 'Stacks:');
+    const stacks2Config = getImagineStackInputConfig(val, 'stacks2', 'Stacks 2:');
     const stacksField = document.getElementById(`imagine-${slot}-stacks-field`);
-    if (stacksField) stacksField.style.display = (val === 'rorola' || val === 'boyce' || val === 'igoreus' || val === 'sunfire-moonstrike') ? '' : 'none';
+    const usesStacks = ['rorola', 'boyce', 'igoreus'].includes(val) || Boolean(stackInputLabels.stacks);
+    if (stacksField) stacksField.style.display = usesStacks ? '' : 'none';
+    const stacksLabel = document.getElementById(`imagine-${slot}-stacks-label`);
+    if (stacksLabel) stacksLabel.textContent = stacksConfig.label;
+    const stacksInput = document.getElementById(`imagine-${slot}-stacks`);
+    if (stacksInput) {
+      stacksInput.max = String(stacksConfig.max);
+      const currentStacks = parseInt(stacksInput.value);
+      if (Number.isFinite(currentStacks) && currentStacks > stacksConfig.max) {
+        stacksInput.value = String(stacksConfig.max);
+      }
+    }
+    const stacks2Field = document.getElementById(`imagine-${slot}-stacks-2-field`);
+    const usesStacks2 = Boolean(stackInputLabels.stacks2);
+    if (stacks2Field) stacks2Field.style.display = usesStacks2 ? 'inline-flex' : 'none';
+    const stacks2Label = document.getElementById(`imagine-${slot}-stacks-2-label`);
+    if (stacks2Label) stacks2Label.textContent = stacks2Config.label;
+    const stacks2Input = document.getElementById(`imagine-${slot}-stacks-2`);
+    if (stacks2Input) {
+      stacks2Input.max = String(stacks2Config.max);
+      const currentStacks2 = parseInt(stacks2Input.value);
+      if (Number.isFinite(currentStacks2) && currentStacks2 > stacks2Config.max) {
+        stacks2Input.value = String(stacks2Config.max);
+      }
+    }
+    const radioGroup = modeField.querySelector('.radio-group');
+    if (radioGroup) radioGroup.classList.toggle('two-stack-inputs', usesStacks && usesStacks2);
     // Show passive stats checkbox for passive stats imagines
     const passiveFieldImagines = ['flamehorn', 'celestial-flier', 'shell-gathering-cultist', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 'goblin-king', 'wandering-traveler', 'airona', 
     'boyce', 'dorothy', 'fafala', 'olvera', 'rorola', 'tina', 'tatta', 'kartgriff', 'lucy', 'natsu'];
@@ -883,6 +945,7 @@
       'kartgriff',
       'lucy',
       'natsu',
+      'sunfire-moonstrike',
     ];
 
     let hasAnyNote = false;
@@ -903,14 +966,23 @@
     }
   }
   function getImagineState(slot) {
+    const imagineType = document.getElementById(`imagine-${slot}`)?.value || 'none';
+    const stacksInput = document.getElementById(`imagine-${slot}-stacks`);
+    const stacks2Input = document.getElementById(`imagine-${slot}-stacks-2`);
+    const parsedStacks = parseInt(stacksInput?.value);
+    const parsedStacks2 = parseInt(stacks2Input?.value);
+    const stacksMax = getImagineStackInputConfig(imagineType, 'stacks', 'Stacks:').max;
+    const stacks2Max = getImagineStackInputConfig(imagineType, 'stacks2', 'Stacks 2:').max;
     return {
-      imagine: document.getElementById(`imagine-${slot}`)?.value || 'none',
+      imagine: imagineType,
 
       level: parseInt(document.getElementById(`imagine-${slot}-level`)?.value) || 0,
 
       mode: document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive',
 
-      stacks: Math.min(parseInt(document.getElementById(`imagine-${slot}-stacks`)?.value) || 0, 5),
+      stacks: Math.min(Number.isFinite(parsedStacks) ? parsedStacks : 0, stacksMax),
+
+      stacks2: Math.min(Number.isFinite(parsedStacks2) ? Math.max(0, parsedStacks2) : 0, stacks2Max),
 
       applyPassiveStats: document.getElementById(`imagine-${slot}-passive-stats`) ? document.getElementById(`imagine-${slot}-passive-stats`).checked : false,
 
@@ -953,10 +1025,37 @@
 
   function getPsychoscopeBonuses() {
     const tree = document.getElementById('psychoscope-tree') ? document.getElementById('psychoscope-tree').value : 'none';
+    let bonuses = {};
     if (window.PSYCHOSCOPE_MODULES && PSYCHOSCOPE_MODULES[tree] && typeof PSYCHOSCOPE_MODULES[tree].getBonuses === 'function') {
-      return PSYCHOSCOPE_MODULES[tree].getBonuses();
+      bonuses = PSYCHOSCOPE_MODULES[tree].getBonuses() || {};
     }
-    return {};
+    const factorSeasonDmgPct = window.getFactorSocketEffectTotal?.('generic:seasonal-damage') || 0;
+    const factorLuckySeasonDmgPct = window.getFactorSocketEffectTotal?.('generic:lucky-strike-seasonal-damage') || 0;
+    const factorSeasonalPenetration = window.getFactorSocketEffectTotal?.('generic:seasonal-penetration') || 0;
+    const factorClassElementalAtk = window.getFactorSocketEffectTotal?.('generic:class-elemental-atk', true) || 0;
+    const factorMatkPct = window.getFactorSocketEffectTotal?.('generic:atk-matk-pct') || 0;
+    const factorRefinePct = window.getFactorSocketEffectTotal?.('generic:refined-atk-matk-pct') || 0;
+    const factorMainStatPct = window.getFactorSocketEffectTotal?.('generic:main-stat-pct', true) || 0;
+    const factorCritStat = window.getFactorSocketEffectTotal?.('generic:crit-stat', true) || 0;
+    const factorHasteStat = window.getFactorSocketEffectTotal?.('generic:haste-stat', true) || 0;
+    const factorLuckStat = window.getFactorSocketEffectTotal?.('generic:luck-stat', true) || 0;
+    const factorMasteryStat = window.getFactorSocketEffectTotal?.('generic:mastery-stat', true) || 0;
+    const factorVersatilityStat = window.getFactorSocketEffectTotal?.('generic:versatility-stat', true) || 0;
+    return {
+      ...bonuses,
+      factorSeasonDmgPct,
+      factorLuckySeasonDmgPct,
+      factorSeasonalPenetration,
+      factorClassElementalAtk,
+      factorMatkPct,
+      factorRefinePct,
+      factorMainStatPct,
+      factorCritStat,
+      factorHasteStat,
+      factorLuckStat,
+      factorMasteryStat,
+      factorVersatilityStat,
+    };
   }
 
   function getPsychoscopeSkillsForTree(tree) {
@@ -1181,6 +1280,7 @@
       handleTreeChange(treeKey);
     }
     updatePsychoscopeSkills();
+    updateClassSkills();
     calc();
   }
 
@@ -1359,7 +1459,7 @@
   function resetAll(message = 'All fields reset to defaults.') {
     localStorage.removeItem(LOCAL_STORAGE_STATE_KEY);
     setStatus(message, false);
-    // Reload to apply HTML default values; loadProfiles discards pre-v2 profiles.
+    // Reload to apply HTML default values; loadProfiles discards unsupported profiles.
     location.reload();
   }
 
@@ -1376,7 +1476,7 @@
       return isSetupRecord(state) &&
         typeof state.version === 'string' &&
         /^v\d+\.\d+\.\d+$/.test(state.version) &&
-        compareVersion(state.version, SAVE_FORMAT_VERSION) >= 0;
+        compareVersion(state.version, MIN_SUPPORTED_SAVE_VERSION) >= 0;
     }));
     if (Object.keys(currentProfiles).length !== Object.keys(profiles).length) {
       saveProfiles(currentProfiles);
@@ -1545,11 +1645,17 @@
       const level = parseInt(document.getElementById(`imagine-${slot}-level`).value) || 0;
       const mode = document.querySelector(`input[name="imagine-${slot}-mode"]:checked`)?.value || 'passive';
       const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
-      const stacks = stacksEl ? parseInt(stacksEl.value) || 0 : 0;
+      const stacksMax = getImagineStackInputConfig(imagine, 'stacks', 'Stacks:').max;
+      const parsedStacks = stacksEl ? parseInt(stacksEl.value) : NaN;
+      const stacks = Math.min(Number.isFinite(parsedStacks) ? parsedStacks : 0, stacksMax);
+      const stacks2El = document.getElementById(`imagine-${slot}-stacks-2`);
+      const parsedStacks2 = stacks2El ? parseInt(stacks2El.value) : NaN;
+      const stacks2Max = getImagineStackInputConfig(imagine, 'stacks2', 'Stacks 2:').max;
+      const stacks2 = Math.min(Number.isFinite(parsedStacks2) ? Math.max(0, parsedStacks2) : 3, stacks2Max);
       const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
       const passiveStats = passiveStatsEl ? passiveStatsEl.checked : false;
       
-      imagineState.push({ slot, imagine, level, mode, stacks, passiveStats });
+      imagineState.push({ slot, imagine, level, mode, stacks, stacks2, passiveStats });
     }
 
     const psychoscopeState = typeof getPsychoscopeSaveState === 'function'
@@ -1869,11 +1975,7 @@
     if (typeof state.version !== 'string' || !/^v\d+\.\d+\.\d+$/.test(state.version)) {
       throw new Error('Invalid setup version; expected a version such as `v2.0.0`');
     }
-    const versionComparison = compareVersion(state.version, SAVE_FORMAT_VERSION);
-    if (versionComparison < 0) return null;
-    if (versionComparison > 0) {
-      throw new Error(`Setup version ${state.version} is newer than this calculator (${SAVE_FORMAT_VERSION})`);
-    }
+    if (compareVersion(state.version, MIN_SUPPORTED_SAVE_VERSION) < 0) return null;
 
     const character = state.character;
     if (!isSetupRecord(character) ||
@@ -1898,7 +2000,7 @@
   function applySetupState(inputState) {
     const state = normalizeSetupState(inputState);
     if (!state) {
-      resetAll(`This setup predates ${SAVE_FORMAT_VERSION}; all settings reset to defaults.`);
+      resetAll(`This setup predates ${MIN_SUPPORTED_SAVE_VERSION}; all settings reset to defaults.`);
       return;
     }
     console.log('loaded setup version', state.version);
@@ -1906,7 +2008,10 @@
 
     const coreFieldIds = new Set(SAVE_FIELD_IDS);
     for (const [fieldId, fieldValue] of Object.entries(state.character.fields)) {
-      if (!coreFieldIds.has(fieldId)) continue;
+      const resolvedFieldId = fieldId === 'oath-strength-difference'
+        ? 'seasonal-strength-difference'
+        : fieldId;
+      if (!coreFieldIds.has(resolvedFieldId)) continue;
 
       if (fieldId === 'damageType') {
         if (typeof fieldValue === 'string') {
@@ -1941,7 +2046,7 @@
         continue;
       }
 
-      const el = document.getElementById(fieldId);
+      const el = document.getElementById(resolvedFieldId);
       if (!el) continue;
       if (el.type === 'checkbox' || el.type === 'radio') {
         el.checked = Boolean(fieldValue);
@@ -2016,7 +2121,7 @@
     state.imagines.forEach(imagineData => {
       const slot = Number(imagineData.slot);
       if (slot === 1 || slot === 2) {
-        const imagineType = imagineData.imagine || 'none';
+        const imagineType = imagineData.imagine ?? '';
         const imagineEl = document.getElementById(`imagine-${slot}`);
         const imagineSearch = document.getElementById(`imagine-${slot}-search`);
         const imagineDropdown = document.getElementById(`imagine-dropdown-${slot}`);
@@ -2034,6 +2139,9 @@
 
         const stacksEl = document.getElementById(`imagine-${slot}-stacks`);
         if (stacksEl && imagineData.stacks !== undefined) stacksEl.value = imagineData.stacks || 0;
+
+        const stacks2El = document.getElementById(`imagine-${slot}-stacks-2`);
+        if (stacks2El && imagineData.stacks2 !== undefined) stacks2El.value = imagineData.stacks2;
 
         const passiveStatsEl = document.getElementById(`imagine-${slot}-passive-stats`);
         if (passiveStatsEl && imagineData.passiveStats !== undefined) passiveStatsEl.checked = Boolean(imagineData.passiveStats);
@@ -2848,16 +2956,6 @@
     search.addEventListener('click', show);
     search.addEventListener('focus', show);
 
-    search.addEventListener('input', () => {
-      const filter = (search.value || '').toLowerCase();
-      let hasVisible = false;
-      dropdown.querySelectorAll('.module-option').forEach(opt => {
-        const text = opt.textContent.toLowerCase();
-        if (!filter || text.includes(filter)) { opt.style.display = 'block'; hasVisible = true; } else { opt.style.display = 'none'; }
-      });
-      dropdown.style.display = hasVisible ? 'block' : 'none';
-    });
-
     // Abbreviation matching for filter (sgk -> "Storm Goblin King")
     const getAbbreviation = (text) => {
       return text
@@ -2868,17 +2966,19 @@
     };
 
     search.addEventListener('input', () => {
-      const filter = (search.value || '').toLowerCase();
+      const filter = (search.value || '').trim().toLowerCase();
       let hasVisible = false;
 
       dropdown.querySelectorAll('.module-option').forEach(opt => {
         const text = opt.textContent.toLowerCase();
         const abbr = getAbbreviation(text);
+        const aliases = window.IMAGINES?.[opt.dataset.value]?.aliases || [];
 
         const matches =
           !filter ||
           text.includes(filter) ||
-          abbr.includes(filter); 
+          abbr.includes(filter) ||
+          aliases.some(alias => String(alias).toLowerCase().includes(filter));
 
         if (matches) {
           opt.style.display = 'block';

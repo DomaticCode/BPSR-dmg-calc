@@ -48,5 +48,10 @@
       0 // collapsed or not
     ]];
   }
-  window.IMAGINES['blackfire-foxen'] = { displayName: 'Blackfire Foxen', provideBonuses, provideSkills };
+  window.IMAGINES['blackfire-foxen'] = { 
+    displayName: 'Blackfire Foxen', 
+    aliases: ['mastery', 'mastery stat'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

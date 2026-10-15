@@ -81,5 +81,10 @@
       0
     ]];
   }
-  window.IMAGINES['igoreus'] = { displayName: 'Igoreus', provideBonuses, provideSkills };
+  window.IMAGINES['igoreus'] = { 
+    displayName: 'Igoreus', 
+    aliases: ['crit dmg', 'crit damage', 'dragon'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

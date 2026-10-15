@@ -6,9 +6,9 @@ function provideSmiteClassBonuses(stats) {
   let matkPct = 0;
   let magBoostPct = 0;
   let luckyDreamDmgPct = 0;
-  let luckyFinalDmgPct = 0;
   let luckMult = 0;
-  let skillFinalDmgPct = 0;
+  const classOtherMultipliersPct = [];
+  const classLuckyFinalMultipliersPct = [];
   let luckyDmgPct = 0;
 
   let thornsPct = 0;
@@ -21,7 +21,7 @@ function provideSmiteClassBonuses(stats) {
   }
 
   const targetType = document.getElementById('target-type').value;
-  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss';
+  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss' || targetType === 'elite-seasonal' || targetType === 'boss-seasonal';
 
   if (isSmiteClass && getChecked('wide-area-thorns') && isEliteOrBoss) {
     let wideAreaThornsPct = 8;
@@ -40,11 +40,11 @@ function provideSmiteClassBonuses(stats) {
   }
 
   if (isSmiteClass) {
-    luckyFinalDmgPct += 50;
+    classLuckyFinalMultipliersPct.push({ label: 'Smite', pct: 50 });
   }
 
   if (isSmiteClass && getChecked('bloomheal')) {
-    skillFinalDmgPct -= 10;
+    classOtherMultipliersPct.push({ label: 'Bloomheal', pct: -10 });
   }
 
   if (isSmiteClass && getChecked('luck-dmg-talent')) {
@@ -61,9 +61,15 @@ function provideSmiteClassBonuses(stats) {
     matkPct += arcaneOfGreenPct;
   }
 
+  const setValue = document.getElementById('set-value').value;
+
+  if (setValue >= 4) {
+    luckyDmgPct += 20;
+  }
+
   matkPct = Math.floor(matkPct * 100) / 100;
 
-  console.log(`smite class returning bonuses: ${elemPct}, ${magBoostPct}, ${luckyDreamDmgPct}, ${luckMult}, ${luckyFinalDmgPct}, ${matkPct}`);
+  console.log(`smite class returning bonuses: ${elemPct}, ${magBoostPct}, ${luckyDreamDmgPct}, ${luckMult}, ${matkPct}`);
 
   return {
     classElemPct: elemPct,
@@ -71,9 +77,9 @@ function provideSmiteClassBonuses(stats) {
     classMagBoostPct: magBoostPct,
     classLuckyDreamDmgPct: luckyDreamDmgPct,
     classLuckMult: luckMult, // NOT A PERCENT SCALER, it's flat
-    classLuckyFinalDmgPct: luckyFinalDmgPct,
+    classLuckyFinalMultipliersPct,
     classLuckyDmgPct: luckyDmgPct, // generic dmg to lucky strikes
-    classSkillFinalDmgPct: skillFinalDmgPct,
+    classOtherMultipliersPct,
     classMatkPct: matkPct,
   };
 }
@@ -142,6 +148,17 @@ function provideSmiteFactorSuggestions(type = 'class') {
   }
 }
 
+function provideSmiteFactorEffectSuggestions() {
+  return [
+    {
+      key: 'infusion-seasonal-damage',
+      label: 'Infusion Oath Damage',
+      aliases: ['Infusion Seasonal Damage', 'Infusion Oath Damage', 'Infusion Oath DMG', 'Infusion Seasonal DMG'],
+      unit: '%',
+    },
+  ];
+}
+
 // Returns simple bonus values for calc.js to consume.
 function provideSmiteFactorBonuses() {
   const isSmiteClass = document.getElementById('class-select')?.value === 'smite';
@@ -177,9 +194,13 @@ function provideSmiteFactorBonuses() {
 function getInfusionEffects(){
   const effects = [];
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
+  const socketSeasonalDamage = window.getFactorSocketEffectTotal?.('class:smite:infusion-seasonal-damage') || 0;
   //const s1set = getVal('s1-set-value');
   if (thornbreaker) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
+  }
+  if (socketSeasonalDamage !== 0) {
+    effects.push(['dreamDmg', String(socketSeasonalDamage)]);
   }
   //if(s1set >= 4){
   //  effects.push(['generic', '60']);
@@ -331,15 +352,12 @@ function provideSmiteFormulaParts(kind = 'elem') {
     const parts = [];
     if (getChecked('flowers-ascension')) parts.push(`Flowers ${(0.10*100).toFixed(2)}%`);
     if (getChecked('thorn')) parts.push(`Thorn ${(0.20*100).toFixed(2)}%`);
-    if (getChecked('wide-area-thorns') && (document.getElementById('target-type')?.value === 'elite' || document.getElementById('target-type')?.value === 'boss')) parts.push(`W.Thorns ${(0.08*100).toFixed(2)}%`);
+    if (getChecked('wide-area-thorns') && ['elite', 'boss', 'elite-seasonal', 'boss-seasonal'].includes(document.getElementById('target-type')?.value)) parts.push(`W.Thorns ${(0.08*100).toFixed(2)}%`);
     // Mastery element bonus: prefer the input element if present, else leave out
     const masteryEl = document.getElementById('mastery-elem-dmg-pct');
     const masteryVal = masteryEl ? parseFloat(masteryEl.value) : NaN;
     if (!Number.isNaN(masteryVal) && masteryVal !== 0) parts.push(`Mastery ${(masteryVal).toFixed(3)}%`);
     return parts.length ? parts.join(' + ') : '';
-  }
-  if (kind === 'luckyFinal') {
-    return `Smite ${50}%`;
   }
   // other kinds: no class-specific parts
   return '';
@@ -358,8 +376,8 @@ const SMITE_OPTIONS_HTML = `
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thornbreaker" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thornbreaker">Thornbreaker</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Increased damage done by infusion and stag charge by 100% + Mastery % * 4 (final)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="pulse-echo" style="width:14px;height:14px;" onchange="updateClassSkills(); calc()"><label for="pulse-echo">Pulse Echo</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hitting with infusion boosts damage of Regen Pulse (up to 100%).</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="bloomheal" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="bloomheal">Bloomheal</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles inspiration bonus at the cost of 10% final damage.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="lucky-pulse" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="lucky-pulse">Lucky Pulse</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Lucky Strike DMG +30%, removes inspiration.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><label>Set Bonus (WIP)</label><input type="number" id="set-value" min="0" max="6" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"> 2 Set: WIP<br>4 Set: WIP </span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="lucky-pulse" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="lucky-pulse">Lucky Pulse</label><span class="tip"><span class="tip-icon red">i</span><span class="tip-box">Lucky Strike DMG +30%, removes inspiration.<br><span class='hl-red'>Import your stats without this node taken or it might be inaccurate.</span></span></span></div>
+    <div class="cb-row" style="gap:6px;"><label>Set Bonus</label><input type="number" id="set-value" min="0" max="6" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon gold">i</span><span class="tip-box"> 2 Set: DMG reduction + energy regen<br>4 Set: +20% Generic Lucky DMG <span class='hl-red'>Thorns effect not implemented yet </span></span></span></div>
   </div>
 `;
 
@@ -422,6 +440,7 @@ window.CLASS_MODULES.smite = {
   onSelected: onSmiteSelected,
   provideClassBonuses: provideSmiteClassBonuses,
   provideFactorSuggestions: provideSmiteFactorSuggestions,
+  provideFactorEffectSuggestions: provideSmiteFactorEffectSuggestions,
   provideFactorBonuses: provideSmiteFactorBonuses,
   provideSkills: provideSmiteSkills,
   provideFormulaParts: provideSmiteFormulaParts,
@@ -430,6 +449,3 @@ window.CLASS_MODULES.smite = {
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };
-
-
-

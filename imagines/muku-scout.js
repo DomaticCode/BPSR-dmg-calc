@@ -51,5 +51,10 @@
       0
     ]];
   }
-  window.IMAGINES['muku-scout'] = { displayName: 'Muku Scout', provideBonuses, provideSkills };
+  window.IMAGINES['muku-scout'] = { 
+    displayName: 'Muku Scout', 
+    aliases: ['attack', 'atk', 'matk', 'magic attack'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

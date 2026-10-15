@@ -52,5 +52,10 @@
       0
     ]];
   }
-  window.IMAGINES['goblin-chief'] = { displayName: 'Goblin Chief', provideBonuses, provideSkills };
+  window.IMAGINES['goblin-chief'] = { 
+    displayName: 'Goblin Chief', 
+    aliases: ['expertise'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

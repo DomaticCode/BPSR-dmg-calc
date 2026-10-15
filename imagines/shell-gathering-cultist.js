@@ -49,5 +49,10 @@
       0
     ]];
   }
-  window.IMAGINES['shell-gathering-cultist'] = { displayName: 'Shell-Gathering Cultist', provideBonuses, provideSkills };
+  window.IMAGINES['shell-gathering-cultist'] = { 
+    displayName: 'Shell-Gathering Cultist', 
+    aliases: ['crit', 'crit stat', 'crit chance'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

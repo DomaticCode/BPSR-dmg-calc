@@ -252,10 +252,22 @@ const PSYCHOSCOPE_TREES = {
 const FACTOR_SOCKET_MAX = 4;
 
 const GENERIC_FACTOR_EFFECT_SUGGESTIONS = [
-  { key: 'crit-gained-in-any-way', label: 'Crit gained', aliases: ['crit', 'critical', 'crit gain', 'x5'], unit: '%' },
-  { key: 'luck-gained-in-any-way', label: 'Luck gained', aliases: ['luck', 'lucky', 'luck gain', 'x6'], unit: '%' },
-  { key: 'mastery-gained-in-any-way', label: 'Mastery gained', aliases: ['mastery', 'masteries', 'mastery gain', 'x7'], unit: '%' },
-  { key: 'haste-gained-in-any-way', label: 'Haste gained', aliases: ['haste', 'attack speed', 'haste gain', 'x8'], unit: '%' },
+  { key: 'seasonal-damage', label: 'Oath DMG', aliases: ['Oath', 'os', 'oath damage', 'oath DMG', "seasonal", "seasonal damage"], unit: '%' },
+  { key: 'lucky-strike-seasonal-damage', label: 'Lucky Strike Oath DMG', aliases: ['Lucky Strike Oath Damage', 'Lucky Strike Oath DMG', 'Lucky Strike Seasonal DMG'], unit: '%' },
+  { key: 'seasonal-penetration', label: 'Oath Penetration', aliases: ['seasonal penetration', 'oath penetration'], unit: 'pts' },
+  { key: 'class-elemental-atk', label: 'Class Elemental Attack', aliases: ['class elemental atk', 'class element atk', 'class element attack'], unit: 'pts', showApplyCheckbox: true },
+  { key: 'atk-matk-pct', label: 'ATK/MATK %', aliases: ['atk', 'matk', 'attack', 'magic attack', 'atk %', 'matk %'], unit: '%' }, // does not need apply checkbox (must be added manually even if user imports with it equipped)
+  { key: 'refined-atk-matk-pct', label: 'Refined ATK/MATK %', aliases: ['refined atk', 'refined matk', 'refined attack', 'refined magic attack'], unit: '%' }, // does not need apply checkbox (must be added manually even if user imports with it equipped)
+  { key: 'main-stat-pct', label: 'Main Stat %', aliases: ['main stat', 'main-stat', 'intellect', 'int', 'strength', 'str', 'agility', 'agi'], unit: '%', showApplyCheckbox: true },
+  { key: 'crit-gained-in-any-way', label: 'Crit gained', aliases: ['crit', 'critical', 'crit gain', 'x5'], unit: '%', showApplyCheckbox: true, allowMultiple: false },
+  { key: 'luck-gained-in-any-way', label: 'Luck gained', aliases: ['luck', 'lucky', 'luck gain', 'x6'], unit: '%', showApplyCheckbox: true, allowMultiple: false },
+  { key: 'mastery-gained-in-any-way', label: 'Mastery gained', aliases: ['mastery', 'masteries', 'mastery gain', 'x7'], unit: '%', showApplyCheckbox: true, allowMultiple: false },
+  { key: 'haste-gained-in-any-way', label: 'Haste gained', aliases: ['haste', 'attack speed', 'haste gain', 'x8'], unit: '%', showApplyCheckbox: true, allowMultiple: false },
+  { key: 'crit-stat', label: 'Crit', aliases: ['crit stat', 'critical stat'], unit: 'pts', showApplyCheckbox: true },
+  { key: 'haste-stat', label: 'Haste', aliases: ['haste stat', 'attack speed stat'], unit: 'pts', showApplyCheckbox: true },
+  { key: 'luck-stat', label: 'Luck', aliases: ['luck stat'], unit: 'pts', showApplyCheckbox: true },
+  { key: 'mastery-stat', label: 'Mastery', aliases: ['mastery stat'], unit: 'pts', showApplyCheckbox: true },
+  { key: 'versatility-stat', label: 'Versatility', aliases: ['versatility stat', 'vers stat'], unit: 'pts', showApplyCheckbox: true },
 ];
 
 function getSelectedClassValue() {
@@ -283,15 +295,25 @@ function getFactorEffectSuggestions() {
   const classModule = window.CLASS_MODULES?.[classValue];
   const classSuggestions = classModule?.provideFactorEffectSuggestions?.() || [];
   const suggestions = [
-    ...GENERIC_FACTOR_EFFECT_SUGGESTIONS.map(effect => ({ ...effect, id: `generic:${effect.key}`, source: 'generic' })),
     ...(Array.isArray(classSuggestions) ? classSuggestions.map(effect => ({
       ...effect,
       id: `class:${classValue}:${effect.key}`,
       source: 'class',
     })) : []),
+    ...GENERIC_FACTOR_EFFECT_SUGGESTIONS.map(effect => ({ ...effect, id: `generic:${effect.key}`, source: 'generic' })),
   ];
 
   return suggestions;
+}
+
+function getFactorEffectOptionMarkup() {
+  return getFactorEffectSuggestions().map(effect => {
+    const search = [effect.label, effect.key, ...(Array.isArray(effect.aliases) ? effect.aliases : [])]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return `<div class="module-option" data-value="${escapeHtmlAttr(effect.id)}" data-search="${escapeHtmlAttr(search)}">${escapeHtmlAttr(effect.label || '')}</div>`;
+  }).join('');
 }
 
 // Maps the #psychoscope-tree <select> values to PSYCHOSCOPE_TREES keys.
@@ -816,9 +838,8 @@ function escapeHtmlAttr(value) {
 // =============================================================================
 // Factor "sockets" -- up to FACTOR_SOCKET_MAX freeform effect lines per
 // factor slot (class, singularity, or defensive), addable/removable like
-// weapon line effects elsewhere in the app. Purely inert/placeholder for
-// now -- nothing reads socket content for calc purposes yet, it's just
-// captured and saved so the shape is right when effects get implemented.
+// weapon line effects elsewhere in the app. Generic substat effects can
+// affect the calculation; other socket effects are captured for later use.
 // =============================================================================
 
 function renderFactorSocketRow(slotId, index, socket = {}) {
@@ -826,13 +847,12 @@ function renderFactorSocketRow(slotId, index, socket = {}) {
   const key = socketData.key || '';
   const suggestions = getFactorEffectSuggestions();
   const selectedEffect = suggestions.find(effect => effect.id === key);
+  const applyCheckboxId = `${slotId}-socket-apply-${index}`;
+  const showApplyCheckbox = selectedEffect?.showApplyCheckbox === true;
   const legacyWeaponEffect = WEAPON_LINE_EFFECT_OPTIONS[key];
   const legacyLabel = typeof legacyWeaponEffect === 'string' ? legacyWeaponEffect : (legacyWeaponEffect?.label || '');
   const effectLabel = selectedEffect?.label || socketData.label || legacyLabel;
-  const optionMarkup = suggestions.map(effect => {
-    const search = [effect.label, effect.key, ...(Array.isArray(effect.aliases) ? effect.aliases : [])].filter(Boolean).join(' ').toLowerCase();
-    return `<div class="module-option" data-value="${escapeHtmlAttr(effect.id)}" data-search="${escapeHtmlAttr(search)}">${escapeHtmlAttr(effect.label || '')}</div>`;
-  }).join('');
+  const optionMarkup = getFactorEffectOptionMarkup();
 
   return `
     <div class="psychoscope-factor-socket-row" data-socket-index="${index}" data-selected-effect="${escapeHtmlAttr(key)}">
@@ -841,9 +861,13 @@ function renderFactorSocketRow(slotId, index, socket = {}) {
                placeholder="Select effect..." autocomplete="off" value="${escapeHtmlAttr(effectLabel)}">
         <div class="module-dropdown psychoscope-factor-socket-dropdown" style="display:none;">${optionMarkup}</div>
       </div>
-            <input type="text" inputmode="decimal" class="module-level-input psychoscope-factor-socket-value" id="${slotId}-socket-value-${index}"
-              placeholder="${escapeHtmlAttr(selectedEffect?.unit || socketData.unit || '%')}" value="${escapeHtmlAttr(socketData.value ?? '')}">
+      <input type="text" inputmode="decimal" class="module-level-input psychoscope-factor-socket-value" id="${slotId}-socket-value-${index}"
+             placeholder="${escapeHtmlAttr(selectedEffect?.unit || socketData.unit || '%')}" value="${escapeHtmlAttr(socketData.value ?? '')}">
       <button type="button" class="psychoscope-factor-socket-remove" aria-label="Remove effect">&times;</button>
+      <label class="psychoscope-factor-socket-apply-wrap" id="${applyCheckboxId}-wrap"${showApplyCheckbox ? '' : ' style="display:none;"'}>
+        <input type="checkbox" class="psychoscope-factor-socket-apply" id="${applyCheckboxId}"${showApplyCheckbox && socketData.apply === true ? ' checked' : ''}>
+        Apply
+      </label>
     </div>`;
 }
 
@@ -859,7 +883,22 @@ function getFactorSocketValues(slotId) {
     label: row.querySelector('.psychoscope-factor-socket-effect')?.value || '',
     unit: row.querySelector('.psychoscope-factor-socket-value')?.placeholder || '%',
     value: row.querySelector('.psychoscope-factor-socket-value')?.value || '',
+    apply: row.querySelector('.psychoscope-factor-socket-apply')?.checked === true,
   }));
+}
+
+function getFactorSocketEffectTotal(effectId, requireApply = false) {
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return 0;
+
+  const total = Array.from(document.querySelectorAll('#psychoscope-factors .psychoscope-factor-socket-row'))
+    .filter(row => row.dataset.selectedEffect === effectId
+      && (!requireApply || row.querySelector('.psychoscope-factor-socket-apply')?.checked === true))
+    .reduce((total, row) => {
+      const valueText = String(row.querySelector('.psychoscope-factor-socket-value')?.value || '').trim();
+      const value = valueText === '' ? 0 : Number(valueText);
+      return Number.isFinite(value) ? total + value : total;
+    }, 0);
+  return Number(total.toFixed(10));
 }
 
 // Re-numbers socket rows' ids/data-index after an add/remove, and shows or
@@ -870,8 +909,12 @@ function reindexFactorSockets(slotId) {
     row.dataset.socketIndex = String(i);
     const effectInput = row.querySelector('.psychoscope-factor-socket-effect');
     const valueInput = row.querySelector('.psychoscope-factor-socket-value');
+    const applyInput = row.querySelector('.psychoscope-factor-socket-apply');
     if (effectInput) effectInput.id = `${slotId}-socket-effect-${i}`;
     if (valueInput) valueInput.id = `${slotId}-socket-value-${i}`;
+    if (applyInput) applyInput.id = `${slotId}-socket-apply-${i}`;
+    const applyWrap = row.querySelector('.psychoscope-factor-socket-apply-wrap');
+    if (applyWrap) applyWrap.id = `${slotId}-socket-apply-${i}-wrap`;
   });
   const addBtn = document.getElementById(`${slotId}-socket-add`);
   if (addBtn) addBtn.style.display = rows.length < FACTOR_SOCKET_MAX ? '' : 'none';
@@ -885,12 +928,17 @@ function wireFactorSockets(slotId) {
   const container = document.getElementById(`${slotId}-sockets`);
   const addBtn = document.getElementById(`${slotId}-socket-add`);
 
+  const refresh = () => {
+    if (typeof updateClassSkills === 'function') updateClassSkills();
+    if (typeof calc === 'function') calc();
+  };
+
   addBtn?.addEventListener('click', () => {
     const current = container?.querySelectorAll('.psychoscope-factor-socket-row').length || 0;
     if (current >= FACTOR_SOCKET_MAX) return;
     container?.insertAdjacentHTML('beforeend', renderFactorSocketRow(slotId, current));
     reindexFactorSockets(slotId);
-    if (typeof calc === 'function') calc();
+    refresh();
   });
 
   container?.addEventListener('focusin', (event) => {
@@ -910,7 +958,11 @@ function wireFactorSockets(slotId) {
       filterFactorSocketOptions(row, effectInput.value);
       if (dropdown) dropdown.style.display = 'block';
     }
-    if (typeof calc === 'function') calc();
+    if (!event.target.matches('.psychoscope-factor-socket-apply')) refresh();
+  });
+
+  container?.addEventListener('change', (event) => {
+    if (event.target.matches('.psychoscope-factor-socket-apply')) refresh();
   });
 
   container?.addEventListener('click', (event) => {
@@ -922,17 +974,22 @@ function wireFactorSockets(slotId) {
       if (row) row.dataset.selectedEffect = option.dataset.value || '';
       const valueInput = row?.querySelector('.psychoscope-factor-socket-value');
       const selectedEffect = getFactorEffectSuggestions().find(effect => effect.id === option.dataset.value);
+      const applyInput = row?.querySelector('.psychoscope-factor-socket-apply');
+      const applyWrap = row?.querySelector('.psychoscope-factor-socket-apply-wrap');
+      const showApplyCheckbox = selectedEffect?.showApplyCheckbox === true;
+      if (applyWrap) applyWrap.style.display = showApplyCheckbox ? '' : 'none';
+      if (!showApplyCheckbox && applyInput) applyInput.checked = false;
       if (valueInput && selectedEffect?.unit) valueInput.placeholder = selectedEffect.unit;
       const dropdown = row?.querySelector('.psychoscope-factor-socket-dropdown');
       if (dropdown) dropdown.style.display = 'none';
-      if (typeof calc === 'function') calc();
+      refresh();
       return;
     }
     const removeBtn = event.target.closest('.psychoscope-factor-socket-remove');
     if (!removeBtn) return;
     removeBtn.closest('.psychoscope-factor-socket-row')?.remove();
     reindexFactorSockets(slotId);
-    if (typeof calc === 'function') calc();
+    refresh();
   });
 
   container?.addEventListener('focusout', (event) => {
@@ -948,14 +1005,18 @@ function wireFactorSockets(slotId) {
 function filterFactorSocketOptions(row, query) {
   const normalizedQuery = String(query || '').toLowerCase().trim();
   const currentKey = row?.dataset.selectedEffect || '';
-  const selectedElsewhere = new Set(Array.from(row?.parentElement?.querySelectorAll('.psychoscope-factor-socket-row') || [])
+  const dropdown = row?.querySelector('.psychoscope-factor-socket-dropdown');
+  if (dropdown) dropdown.innerHTML = getFactorEffectOptionMarkup();
+  const selectedElsewhere = new Set(Array.from(document.querySelectorAll('#psychoscope-factors .psychoscope-factor-socket-row'))
     .filter(otherRow => otherRow !== row)
     .map(otherRow => otherRow.dataset.selectedEffect)
     .filter(Boolean));
   row?.querySelectorAll('.psychoscope-factor-socket-dropdown .module-option').forEach(option => {
     const key = option.dataset.value || '';
     const search = (option.dataset.search || option.textContent).toLowerCase();
-    option.style.display = !selectedElsewhere.has(key) && (key === currentKey || search.includes(normalizedQuery)) ? 'block' : 'none';
+    const effect = getFactorEffectSuggestions().find(suggestion => suggestion.id === key);
+    const isDuplicate = effect?.allowMultiple === false && selectedElsewhere.has(key);
+    option.style.display = !isDuplicate && (key === currentKey || search.includes(normalizedQuery)) ? 'block' : 'none';
   });
 }
 
@@ -1511,6 +1572,7 @@ function normalizePsychoscopeSocketList(rawSockets) {
       label: String(socket?.label || ''),
       unit: String(socket?.unit || '%'),
       value: String(socket?.value ?? ''),
+      apply: socket?.apply === true || socket?.apply === 1,
     };
   }).filter(socket => socket.key || socket.value !== '');
 }
@@ -1616,11 +1678,12 @@ function getPsychoscopeSaveState() {
 
   document.querySelectorAll('[data-psychoscope-optional-input]').forEach(el => {
     const key = el.dataset.psychoscopeOptionalKey || el.id;
-    const value = getPsychoscopeElementSaveValue(el);
-    if (value !== null) {
-      values[el.id] = value;
-      optionalInputs[key] = value;
-    }
+    const value = el.type === 'checkbox'
+      ? (el.checked ? 1 : 0)
+      : getPsychoscopeElementSaveValue(el);
+    if (value === null) return;
+    values[el.id] = value;
+    optionalInputs[key] = value;
   });
 
   const factors = {
@@ -1763,7 +1826,11 @@ function applyPsychoscopeSaveState(state) {
     const key = el.dataset.psychoscopeOptionalKey || el.id;
     const value = savedState.optionalInputs?.[key] ?? savedState.values?.[el.id];
     if (value === undefined || value === null || value === '') return;
-    el.value = String(value);
+    if (el.type === 'checkbox' || el.type === 'radio') {
+      el.checked = Boolean(value);
+    } else {
+      el.value = String(value);
+    }
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
@@ -1805,6 +1872,7 @@ function applyPsychoscopeSaveState(state) {
     console.log('[psychoscope] calling onPsychoscopeChange');
     onPsychoscopeChange();
   }
+  if (typeof updateClassSkills === 'function') updateClassSkills();
 }
 
 // Small helper for applyPsychoscopeSaveState() above, since it only has the
@@ -1817,3 +1885,4 @@ function getActiveTreeConfigKey() {
 window.normalizePsychoscopeSaveState = normalizePsychoscopeSaveState;
 window.getPsychoscopeSaveState = getPsychoscopeSaveState;
 window.applyPsychoscopeSaveState = applyPsychoscopeSaveState;
+window.getFactorSocketEffectTotal = getFactorSocketEffectTotal;

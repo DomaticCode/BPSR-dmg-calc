@@ -55,5 +55,10 @@
     ]];
   }
 
-  window.IMAGINES['inferno-goblin-mage'] = { displayName: 'Inferno Goblin Mage', provideBonuses, provideSkills };
+  window.IMAGINES['inferno-goblin-mage'] = { 
+    displayName: 'Inferno Goblin Mage', 
+    aliases: ['intellect'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

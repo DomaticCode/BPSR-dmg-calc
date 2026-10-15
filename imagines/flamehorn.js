@@ -14,9 +14,9 @@
       luckStat = (FLAMEHORN_LUCK_STAT && FLAMEHORN_LUCK_STAT[level]) || 0;
     }
 
-    const boost = (FLAMEHORN_BOOST && FLAMEHORN_BOOST[level]) || 0;
+    const luckMult = (FLAMEHORN_BOOST && FLAMEHORN_BOOST[level]) || 0;
 
-    return { luckStat, flamehornBoost: boost};
+    return { luckStat, luckMult };
   }
 
   function provideSkills(state) {
@@ -68,5 +68,10 @@
       ]
     ];
   }
-  window.IMAGINES['flamehorn'] = { displayName: 'Flamehorn', provideBonuses, provideSkills };
+  window.IMAGINES['flamehorn'] = { 
+    displayName: 'Flamehorn', 
+    aliases: ['luck', 'deer'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

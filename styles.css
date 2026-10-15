@@ -16,6 +16,9 @@
     --accent-purple: #9b7fe8;
     --accent-final: #9efce0;
     --accent-seasonal: #ff6b9d;
+    --accent-seasonal-strength: #ff8a72;
+    --accent-unity: #68d9c4;
+    --accent-seasonal-reduction: #f0c95e;
     --text: #d8dce8;
     --text-secondary: #dfe2e7;
     --text-muted: #b4b9c4;
@@ -217,6 +220,9 @@
   .formula-box .fp { color: var(--accent-purple); }
   .formula-box .forange { color: var(--accent-orange); }
   .formula-box .ffinal { color: var(--accent-final); }
+  .formula-box .fseasonal-strength { color: var(--accent-seasonal-strength); }
+  .formula-box .funity { color: var(--accent-unity); }
+  .formula-box .fseasonal-reduction { color: var(--accent-seasonal-reduction); }
 
   .matk-breakdown { font-size: 12px; color: var(--text-muted); font-family: 'Consolas', 'SF Mono', monospace; padding: 5px 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; line-height: 1.8; overflow-x: auto;}
   .matk-breakdown-wrap { }
@@ -336,6 +342,11 @@
   .result-label { font-size: 11px; color: var(--text-muted); }
   .result-value { font-size: 15px; font-weight: 600; font-family: 'Consolas', 'SF Mono', monospace; color: var(--accent-gold); }
   .radio-group { display: flex; gap: 12px; align-items: center; }
+  .radio-group .imagine-stack-inputs { display: contents; }
+  .radio-group .imagine-stack-inputs > span { margin-left: 8px; }
+  .radio-group.two-stack-inputs { flex-wrap: wrap; }
+  .radio-group.two-stack-inputs .imagine-stack-inputs { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 4px; }
+  .radio-group.two-stack-inputs .imagine-stack-inputs > span { margin-left: 0; }
   .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text); cursor: pointer; }
   .radio-group input[type="radio"] { margin: 0; }
 
@@ -445,6 +456,9 @@
   .skill-formula .fp { color:#9b7fe8; }
   .skill-formula .forange { color: var(--accent-orange); }
   .skill-formula .ffinal { color: var(--accent-final); }
+  .skill-formula .fseasonal-strength { color: var(--accent-seasonal-strength); }
+  .skill-formula .funity { color: var(--accent-unity); }
+  .skill-formula .fseasonal-reduction { color: var(--accent-seasonal-reduction); }
   @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .skill-result { grid-template-columns: 1fr 1fr; } .lucky-panel-grid { grid-template-columns: 1fr; } }
 
@@ -625,19 +639,22 @@
 }
 .psychoscope-dot--active { background: var(--accent-purple); border-color: var(--accent-purple); }
 
-#psychoscope-factors { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-.factor-group { display: flex; flex-direction: column; gap: 8px; padding: 4px 5px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
+#psychoscope-factors { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+.factor-group { display: flex; flex-direction: column; gap: 5px; padding: 0; background: transparent; border: 0; border-radius: 0; }
 .factor-group-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-.factor-slots { display: flex; flex-direction: column; gap: 8px; }
-.psychoscope-factor-slot { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.factor-slots { display: flex; flex-direction: column; gap: 6px; }
+.psychoscope-factor-slot { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .psychoscope-factor-slot-header { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .psychoscope-factor-slot-label { flex: 1; color: var(--text-secondary); font-size: 12px; }
 .psychoscope-factor-select-container { min-width: 0; position: relative; }
 .psychoscope-factor-dropdown { position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 30; display: none; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 18px rgba(0,0,0,0.28); max-height: 180px; overflow: auto; }
 .psychoscope-factor-search { width: 100%; }
-.psychoscope-factor-sockets { display: flex; flex-direction: column; gap: 6px; }
-.psychoscope-factor-socket-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 24px; align-items: center; gap: 8px; padding: 4px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; }
-.psychoscope-factor-socket-select { min-width: 0; }
+.psychoscope-factor-sockets { display: flex; flex-direction: column; gap: 3px; margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border); }
+.psychoscope-factor-socket-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 24px; grid-template-rows: auto auto; align-items: start; gap: 5px; padding: 2px 0; background: transparent; border: 0; border-radius: 0; }
+.psychoscope-factor-socket-select { grid-column: 1; grid-row: 1; min-width: 0; width: 100%; flex: initial; }
+.psychoscope-factor-socket-value { grid-column: 2; grid-row: 1; align-self: center; }
+.psychoscope-factor-socket-remove { grid-column: 3; grid-row: 1; align-self: center; }
+.psychoscope-factor-socket-apply-wrap { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 11px; cursor: pointer; }
 .psychoscope-factor-socket-effect,
 .psychoscope-factor-socket-value { width: 100%; box-sizing: border-box; }
 .psychoscope-factor-socket-dropdown { position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; max-height: 180px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }

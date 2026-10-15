@@ -50,5 +50,10 @@
     ]];
   }
 
-  window.IMAGINES['celestial-flier'] = { displayName: 'Celestial Flier', provideBonuses, provideSkills };
+  window.IMAGINES['celestial-flier'] = { 
+    displayName: 'Celestial Flier',
+    aliases: ['haste', 'fish', 'flying fish', 'celestial', 'flier'],
+    provideBonuses, 
+    provideSkills 
+    };
 })();

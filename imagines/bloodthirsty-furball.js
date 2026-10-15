@@ -66,5 +66,10 @@
       ]
     ];
   }
-  window.IMAGINES['bloodthirsty-furball'] = { displayName: 'Bloodthirsty Furball', provideBonuses, provideSkills };
+  window.IMAGINES['bloodthirsty-furball'] = { 
+    displayName: 'Bloodthirsty Furball', 
+    aliases: ['additional damage', 'proc damage'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

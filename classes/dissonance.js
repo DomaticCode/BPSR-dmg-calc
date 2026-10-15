@@ -31,7 +31,7 @@ function provideDissonanceClassBonuses(stats) {
   }
 
   const targetType = document.getElementById('target-type').value;
-  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss';
+  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss' || targetType === 'elite-seasonal' || targetType === 'boss-seasonal';
 
   if (isDissonanceClass && getChecked('fire-day') && isEliteOrBoss) {
     elemPct += 8;
@@ -353,7 +353,7 @@ function provideDissonanceFormulaParts(kind = 'elem') {
   if (kind === 'elem') {
     const parts = [];
     if (getChecked('in-rhapsody')) parts.push(`in-rhapsody ${(0.10*100).toFixed(2)}%`);
-    if (getChecked('fire-day') && (document.getElementById('target-type')?.value === 'elite' || document.getElementById('target-type')?.value === 'boss')) parts.push(`Fire Day ${(0.08*100).toFixed(2)}%`);
+    if (getChecked('fire-day') && ['elite', 'boss', 'elite-seasonal', 'boss-seasonal'].includes(document.getElementById('target-type')?.value)) parts.push(`Fire Day ${(0.08*100).toFixed(2)}%`);
     if (getChecked('s2-2-set') && getChecked('in-heroic-melody')) parts.push(`S2 2-piece ${(0.05*100).toFixed(2)}%`);
     if (getChecked('tree-x8') && getChecked('in-rhapsody')) {
       const x8Value = getVal('tree-x8-value', 0);
@@ -432,6 +432,5 @@ window.CLASS_MODULES.dissonance = {
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };
-
 
 

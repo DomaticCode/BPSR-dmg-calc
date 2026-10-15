@@ -47,5 +47,10 @@
       0
     ]];
   }
-  window.IMAGINES['kartgriff'] = { displayName: 'Kartgriff', provideBonuses, provideSkills };
+  window.IMAGINES['kartgriff'] = { 
+    displayName: 'Kartgriff', 
+    aliases: ['robot', 'mech', 'main stat'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

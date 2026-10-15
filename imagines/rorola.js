@@ -65,5 +65,11 @@
 
     return `rorola ${genDamagePct.toFixed(2)}%`;
   }
-  window.IMAGINES['rorola'] = { displayName: 'Rorola', provideBonuses, provideFormulaParts, provideSkills };
+  window.IMAGINES['rorola'] = { 
+    displayName: 'Rorola', 
+    aliases: ['generic damage'],
+    provideBonuses, 
+    provideFormulaParts, 
+    provideSkills 
+  };
 })();

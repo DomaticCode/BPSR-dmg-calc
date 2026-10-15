@@ -40,15 +40,19 @@ function calc() {
   const psych = (typeof getPsychoscopeBonuses === 'function') ? getPsychoscopeBonuses() : {};
   const psychoscopeMainStat = psych.mainStat || 0;
   const psychoscopeMainStatPct = (psych.mainStatPct || 0) / 100;
+  const psychoscopeFactorMainStatPct = (psych.factorMainStatPct || 0) / 100;
   const psychoscopeDreamDmgPct = (psych.dreamDmgPct || psych.seasonDmgPct || 0) / 100;
+  const factorSeasonDmgPct = (psych.factorSeasonDmgPct || 0) / 100;
   const psychoscopeLuckPct = (psych.luckPct || 0) / 100;
   const psychoscopeLuckyStrikeMultPct = (psych.luckyStrikeMultPct || 0) / 100;
   const psychoscopeHighestSubstatPctBonus = (psych.highestSubstatPctBonus || 0) / 100;
   const psychoscopeAtkPct = (psych.atkPct || psych.matkPct || 0) / 100;
+  const psychoscopeFactorMatkPct = (psych.factorMatkPct || 0) / 100;
 
   const psychoscopeAtk = psych.atk || psych.matk || 0;
 
   const psychoscopeRefinePct = (psych.refinePct || 0) / 100;
+  const psychoscopeFactorRefinePct = (psych.factorRefinePct || 0) / 100;
 
 
   const psychoscopeTargetCritPct = (psych.targetCritPct || 0) / 100;
@@ -62,7 +66,8 @@ function calc() {
   const imagineVersatilityPct = (imagineStats.versatilityPct || 0) / 100;
   const imagineCritPct = (imagineStats.critPct || 0) / 100;
 
-  const optimizerFactor = getOptimizerFactor(); // substat factors
+  const optimizerFactor = getOptimizerFactor(); // factors for external stat sources
+  const importedOptimizerFactor = getOptimizerFactor(true);
   const imagineCritStat = (imagineStats.critStat || 0) * optimizerFactor.crit;
   const imagineHasteStat = (imagineStats.hasteStat || 0) * optimizerFactor.haste;
   const imagineLuckStat = (imagineStats.luckStat || 0) * optimizerFactor.luck;
@@ -119,22 +124,22 @@ function calc() {
   const baseMasteryStat = getVal('mastery-stat');
   const baseVersStat = getVal('vers-dmg-pct');
 
-  const critStat    = (baseCritStat * optimizerFactor.crit) + imagineCritStat;
+  const critStat    = ((baseCritStat + (psych.factorCritStat || 0)) * importedOptimizerFactor.crit) + imagineCritStat;
   const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonusStatsPct + imagineCritPct;
 
-  const versStat    = (baseVersStat * optimizerFactor.vers) + imagineVersatilityStat;
+  const versStat    = ((baseVersStat + (psych.factorVersatilityStat || 0)) * importedOptimizerFactor.vers) + imagineVersatilityStat;
   const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct ;
   const versDmgPct  = versPct * 0.35;
   console.log ('baseVersStat = ' + baseVersStat + ', imagineVersatilityStat = ' + imagineVersatilityStat + ', versStat = ' + versStat + ', versPct = ' + versPct + ', versDmgPct = ' + versDmgPct);
   console.log('vers stat = ' + versStat + ', vers pct = ' + versPct + ', vers dmg pct = ' + versDmgPct);
 
-  const luckStat        = (baseLuckStat * optimizerFactor.luck) + imagineLuckStat;
+  const luckStat        = ((baseLuckStat + (psych.factorLuckStat || 0)) * importedOptimizerFactor.luck) + imagineLuckStat;
   const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct + imagineLuckPct;
 
-  const masteryStat  = (baseMasteryStat * optimizerFactor.mastery) + imagineMasteryStat;
+  const masteryStat  = ((baseMasteryStat + (psych.factorMasteryStat || 0)) * importedOptimizerFactor.mastery) + imagineMasteryStat;
   const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonusStatsPct + imagineMasteryPct;
 
-  const hasteStat    = (baseHasteStat * optimizerFactor.haste) + imagineHasteStat;
+  const hasteStat    = ((baseHasteStat + (psych.factorHasteStat || 0)) * importedOptimizerFactor.haste) + imagineHasteStat;
   const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonusStatsPct + imagineHastePct;
 
   document.getElementById('sub-crit-pct').textContent    = (critRatePct * 100).toFixed(2) + '%';
@@ -283,8 +288,21 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   // === Target type ===
   const targetType    = document.getElementById('target-type').value;
-  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss';
-  const isBoss        = targetType === 'boss';
+  const isSeasonalTarget = targetType === 'seasonal' || targetType === 'elite-seasonal' || targetType === 'boss-seasonal';
+  const isEliteOrBoss = targetType === 'elite' || targetType === 'boss' || targetType === 'elite-seasonal' || targetType === 'boss-seasonal';
+  const isBoss        = targetType === 'boss' || targetType === 'boss-seasonal';
+  ['seasonal-strength-field', 'unity-bonus-field'].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.style.display = isSeasonalTarget ? 'flex' : 'none';
+  });
+  const seasonalStrengthDifference = isSeasonalTarget ? getVal('seasonal-strength-difference') : 0;
+  const seasonalStrengthPct = Math.min(Math.max(seasonalStrengthDifference, 0) / 3000, 0.2);
+  const unityBonusPct = isSeasonalTarget ? getVal('unity-bonus') / 100 : 0;
+  const seasonalPenetration = isSeasonalTarget ? psych.factorSeasonalPenetration || 0 : 0;
+  const seasonalDamageReduction = isSeasonalTarget
+    ? (2142 - seasonalPenetration) / (4998 + 2142 - seasonalPenetration)
+    : 0;
+  const seasonalDamageTakenMultiplier = 1 - seasonalDamageReduction;
 
   // === DMG Bonuses ===
   const elemPower      = getVal('elem-power');
@@ -314,7 +332,18 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const classThornsPct = (classBonuses.classThornsPct || 0) / 100; // Smite buggy skill which requires special handling...
   const classMagBoostPct = (classBonuses.classMagBoostPct || 0) / 100;
   const classLuckMult = classBonuses.classLuckMult || 0; // NOT A PERCENT SCALER, it's flat, do not divide by 100.
-  const classLuckyFinalDmgPct = (classBonuses.classLuckyFinalDmgPct || 0) / 100;
+  const classOtherMultipliersPct = Array.isArray(classBonuses.classOtherMultipliersPct)
+    ? classBonuses.classOtherMultipliersPct
+      .filter(lane => lane && Number.isFinite(lane.pct))
+      .map(lane => ({ label: lane.label || '', pct: lane.pct / 100 }))
+    : [];
+  const classOtherMultiplier = classOtherMultipliersPct.reduce((multiplier, lane) => multiplier * (1 + lane.pct), 1);
+  const classLuckyFinalMultipliersPct = Array.isArray(classBonuses.classLuckyFinalMultipliersPct)
+    ? classBonuses.classLuckyFinalMultipliersPct
+      .filter(lane => lane && Number.isFinite(lane.pct))
+      .map(lane => ({ label: lane.label || '', pct: lane.pct / 100 }))
+    : [];
+  const classLuckyFinalMultiplier = classLuckyFinalMultipliersPct.reduce((multiplier, lane) => multiplier * (1 + lane.pct), 1);
   const classLuckyDmgPct = (classBonuses.classLuckyDmgPct || 0) / 100; // generic dmg to lucky strikes
 
 
@@ -385,6 +414,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const imagineLuckyStrikeMultPct = imagineBonuses.luckyStrikeMultPct || 0;
   const imagineLuckEffectPct = (imagineBonuses.luckEffectPct || 0) / 100;
+  const imagineLuckEffectCritChancePct = (imagineBonuses.luckEffectCritPct || 0) / 100;
+
+  const imagineLuckMult = imagineBonuses.luckMult || 0;
 
   console.log('Imagine bonuses:', imagineBonuses);
 
@@ -414,8 +446,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   console.log(`moduleApplyMainStats = ${moduleApplyMainStats}`);
 
   // INT/ATK calculations
-  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + moduleApplyMainStats + classFactorMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + imagineMainStatPct);
-  console.log("intScaled = " + intScaled.toFixed(2) + " (base: " + intBase + ", extraMainAttr: " + extraMainAttr + ", psychoscopeMainStat: " + psychoscopeMainStat + ", inspirationMainStats: " + inspirationMainStats + ", classMainStat: " + classMainStat + ", moduleApplyMainStats: " + moduleApplyMainStats + ", classFactorMainStat: " + classFactorMainStat + ", intPct: " + intPct.toFixed(4) + ", mainStatPct: " + mainStatPct.toFixed(4) + ", psychoscopeMainStatPct: " + psychoscopeMainStatPct.toFixed(4) + ", imagineMainStatPct: " + imagineMainStatPct.toFixed(4) + ")");
+  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + moduleApplyMainStats + classFactorMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + psychoscopeFactorMainStatPct + imagineMainStatPct);
+  console.log("intScaled = " + intScaled.toFixed(2) + " (base: " + intBase + ", extraMainAttr: " + extraMainAttr + ", psychoscopeMainStat: " + psychoscopeMainStat + ", inspirationMainStats: " + inspirationMainStats + ", classMainStat: " + classMainStat + ", moduleApplyMainStats: " + moduleApplyMainStats + ", classFactorMainStat: " + classFactorMainStat + ", intPct: " + intPct.toFixed(4) + ", mainStatPct: " + mainStatPct.toFixed(4) + ", psychoscopeMainStatPct: " + psychoscopeMainStatPct.toFixed(4) + ", psychoscopeFactorMainStatPct: " + psychoscopeFactorMainStatPct.toFixed(4) + ", imagineMainStatPct: " + imagineMainStatPct.toFixed(4) + ")");
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
   const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
@@ -426,10 +458,10 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   let innerFloor;
   let matkBase;
 
-  const totalMatkPct = matkPct + imagineMatkPct + classMatkPct + classAtkPct + wlAtkPct + moduleAllAtkPct + psychoscopeAtkPct;
+  const totalMatkPct = matkPct + imagineMatkPct + classMatkPct + classAtkPct + wlAtkPct + moduleAllAtkPct + psychoscopeAtkPct + psychoscopeFactorMatkPct;
   let effectiveAtk;
 
-  const refinedAtk   = Math.floor(getVal('refined-atk') * (1 + psychoscopeRefinePct));
+  const refinedAtk   = Math.floor(getVal('refined-atk') * (1 + psychoscopeRefinePct + psychoscopeFactorRefinePct));
 
   // Not directly used, was going to use it for atk calculations, but seems its class based not archetype based.
   const mainStat = getClassMainStatType();
@@ -465,6 +497,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   if (imagineMatkPct > 0) pctSegments.push(`Imagines:${(imagineMatkPct * 100).toFixed(3)}%`);
   if (classMatkPct > 0) pctSegments.push(`Class:${(classMatkPct * 100).toFixed(3)}%`);
   if (psychoscopeAtkPct > 0) pctSegments.push(`Psychoscope:${(psychoscopeAtkPct * 100).toFixed(3)}%`);
+  if (psychoscopeFactorMatkPct > 0) pctSegments.push(`Psychoscope factor:${(psychoscopeFactorMatkPct * 100).toFixed(3)}%`);
   const matkPctSummary = pctSegments.length > 0
     ? `[${atkLabel}%: ${pctSegments.join(' + ')} = ${(totalMatkPct * 100).toFixed(3)}%]`
     : `[${atkLabel}%: ${(totalMatkPct * 100).toFixed(3)}%]`;
@@ -473,10 +506,11 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     ` = ${matkBase}` +
     `  →  FLOOR(${matkBase}x${(1 + totalMatkPct).toFixed(3)}) + ${foodAtkBonus}(food) = <span class="hl">${effectiveAtk}</span>` +
     (psychoscopeMainStat > 0 ? `  <span style="color:#ff79c6">[Psychoscope: +${psychoscopeMainStat} INT]</span>` : '') +
+    (psychoscopeFactorMainStatPct > 0 ? `  <span style="color:#ff79c6">[Psychoscope Main Stat: +${(psychoscopeFactorMainStatPct * 100).toFixed(3)}%]</span>` : '') +
     `  <span style="color:var(--accent)">${matkPctSummary}</span>`;
 
   const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus;
-  const classElementalAtk = getVal('class-elemental-atk');
+  const classElementalAtk = getVal('class-elemental-atk') + (psych.factorClassElementalAtk || 0);
   const totalElementalAtk = elementalAtk + classElementalAtk;
 
   // Sum all element raw stats together, get pct from that, then add with pct sources of all element for final all element pct.
@@ -531,16 +565,17 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   // === Lucky Strike DMG Mult ===
   const isManual      = document.getElementById('lucky-mult-manual').checked;
 
-  const baseDreamDmgPct = psychoscopeDreamDmgPct + inspiringChantSeasonalPct + getVal('dream-dmg-pct') / 100 + classFactorSeasonDmgPct;
+  const baseDreamDmgPct = psychoscopeDreamDmgPct + factorSeasonDmgPct + inspiringChantSeasonalPct + getVal('dream-dmg-pct') / 100 + classFactorSeasonDmgPct;
   const dreamDmgPct = baseDreamDmgPct; // for standard hits
-  const dreamDmgPctLucky = baseDreamDmgPct + classFactorLuckyDreamDmgPct; // for lucky strikes
+  const factorLuckySeasonDmgPct = (psych.factorLuckySeasonDmgPct || 0) / 100;
+  const dreamDmgPctLucky = baseDreamDmgPct + classFactorLuckyDreamDmgPct + factorLuckySeasonDmgPct; // for lucky strikes
 
   let luckyMult;
   if (isManual) {
     luckyMult = getVal('lucky-mult-display') / 100;
   } else {
     let multPct = 40 + (finalLuckPct * 100 * 0.25);
-    multPct += (imagineBonuses && imagineBonuses.flamehornBoost) ? imagineBonuses.flamehornBoost : 0;
+    multPct += imagineLuckMult || 0;
     multPct += psychoscopeLuckyStrikeMultPct * 100;
     multPct += moduleLuckyStrikeBonus * 100;
     multPct += getVal('lucky-mult-bonus');
@@ -552,7 +587,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const luckyMultFinal  = luckyMult;
   const luckEffectPct   = finalLuckPct + luckEffectBonus + imagineLuckEffectPct;
-  const luckFinalDamagePct = finalDmgPct + classLuckyFinalDmgPct;
+  const luckFinalDamageMultiplier = (1 + finalDmgPct) * classLuckyFinalMultiplier;
 
   const serumOilEnabled = getChecked('serum-oil-enabled');
   const serumOilType = document.getElementById('serum-oil-type')?.value || 'serum';
@@ -572,7 +607,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
 
   const luckyGenPct     = totalGenDmgPct + luckEffectPct + foodDmgBonusPct + luckyStrikeDmgBonus + classLuckyDmgPct;
   const luckyBase       = (effectiveAtk + defenseFreeAtk) * luckyMultFinal;
-  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + luckyMagBoostPct) * (1 + luckFinalDamagePct);
+  const baseMultipliers = (1 + postWlVersDmgPct) * (1 + elemDmgPct) * (1 + luckyGenPct) * (1 + dreamDmgPctLucky) * (1 + luckyMagBoostPct) * luckFinalDamageMultiplier * (1 + seasonalStrengthPct) * (1 + unityBonusPct) * seasonalDamageTakenMultiplier * classOtherMultiplier;
 
   let additionalDamage = 0;
   if (imagineBonuses.additionalDamageProc !== undefined) {
@@ -590,7 +625,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     : 0;
   const finalLuckCritPct = Math.max(
     0,
-    Math.min(1, finalCritPct + luckCritChancePct)
+    Math.min(1, finalCritPct + luckCritChancePct + imagineLuckEffectCritChancePct)
   );
   const lsAvg = lsNormal * (1 - (finalLuckCritPct + psychoscopeTargetCritPct)) 
             + lsCrit   * (finalLuckCritPct + psychoscopeTargetCritPct);
@@ -633,14 +668,23 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _resLabel:  damageType === 'physical' ? `${((physResEnabled ? physRes : 0)*100).toFixed(1)}%` : (magResEnabled ? '8%' : '0%'),
     _additionalElem: additionalElemDmg, _elemPower: elemPowerBonus, _wlElem: wlElemBonus,
     _genBase: genDmgBase, _boss: bossDmgPct, _elite: eliteDmgPct, _dreamDmgPct: dreamDmgPct,
-    _psychoscopeDreamDmgPct: psychoscopeDreamDmgPct, _inspiringChantSeasonalPct: inspiringChantSeasonalPct, _dreamManual: getVal('dream-dmg-pct') / 100,
+    _psychoscopeDreamDmgPct: psychoscopeDreamDmgPct, _factorSeasonDmgPct: factorSeasonDmgPct, _factorLuckySeasonDmgPct: factorLuckySeasonDmgPct, _inspiringChantSeasonalPct: inspiringChantSeasonalPct, _dreamManual: getVal('dream-dmg-pct') / 100,
     _wlAtk: wlAtkDmg, _wlMagic: wlMagicDmg, _wlRanged: wlRangedDmgBonus,
     _luckyEff: luckEffectBonus, _totalGenDmgPct: totalGenDmgPct, _totalMatkPct: totalMatkPct, _matkBase: matkBase, _magBoost: magBoostPct, _luckyMagBoostPct: luckyMagBoostPct, _luckyStrikeDmgBonus: luckyStrikeDmgBonus,
     _classLuckyDmgPct: classLuckyDmgPct,
     _classFactorSeasonDmgPct: classFactorSeasonDmgPct,
-    _finalDmgPct: finalDmgPct + (classBonuses.classSkillFinalDmgPct || 0) / 100,
+    _baseFinalDmgPct: finalDmgPct,
+    _finalDmgPct: finalDmgPct,
+    _classOtherMultipliersPct: classOtherMultipliersPct,
+    _classLuckyFinalMultipliersPct: classLuckyFinalMultipliersPct,
     _serumOilEnabled: serumOilEnabled, _serumOilType: serumOilType, _serumOilValue: serumOilValue, _serumOilPct: serumOilPct,
     _targetType: targetType,
+    _isSeasonalTarget: isSeasonalTarget,
+    _seasonalStrengthPct: seasonalStrengthPct,
+    _unityBonusPct: unityBonusPct,
+    _seasonalPenetration: seasonalPenetration,
+    _seasonalDamageReduction: seasonalDamageReduction,
+    _seasonalDamageTakenMultiplier: seasonalDamageTakenMultiplier,
     _foodEnabled: foodEnabled,
     _foodAtkBonus: foodAtkBonus,
     _foodDmgBonusPct: foodDmgBonusPct,
@@ -734,6 +778,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   function buildDreamStr(c) {
     const ps = [];
     if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(3)}%`);
+    if (c._factorSeasonDmgPct) ps.push(`factor sockets ${(c._factorSeasonDmgPct*100).toFixed(3)}%`);
     if (c._inspiringChantSeasonalPct) ps.push(`Inspiring Chant ${(c._inspiringChantSeasonalPct*100).toFixed(3)}%`);
     if (c._dreamManual) ps.push(`manual ${(c._dreamManual*100).toFixed(3)}%`);
     const classDreamParts = getClassFormulaParts('dream');
@@ -744,15 +789,23 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     return ps.length ? ps.join(' + ') + ` = ${(c._dreamDmgPct*100).toFixed(3)}%` : `${(c._dreamDmgPct*100).toFixed(3)}%`;
   }
   function buildFinalStr(c) {
-    if (finalDmgPct > 0) {
-      const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(3)}%`);
-      const classFinalParts = getClassFormulaParts('final');
-      if (classFinalParts) ps.push(classFinalParts);
-      const total = finalDmgPct;
-      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(3)}%</span>\n` : `${(total*100).toFixed(3)}%`;
-    }
-    return '';
+    const ps = [];
+    if (finalDmgPct) ps.push(`Final Damage: ${(finalDmgPct*100).toFixed(3)}%`);
+    const classFinalParts = getClassFormulaParts('final');
+    if (classFinalParts) ps.push(classFinalParts);
+    return ps.length
+      ? 'x <span class="ffinal">(1 + ' + ps.join(' + ') + `)</span>\n`
+      : '';
+  }
+  function buildClassOtherMultiplierStr(c) {
+    return (c._classOtherMultipliersPct || [])
+      .map((lane, index) => `x <span class="ffinal">(1 + ${lane.label || `Class Other ${index + 1}`}: ${(lane.pct*100).toFixed(3)}%)</span>\n`)
+      .join('');
+  }
+  function buildClassLuckyFinalMultiplierStr(c) {
+    return (c._classLuckyFinalMultipliersPct || [])
+      .map((lane, index) => `x <span class="ffinal">(1 + ${lane.label || `Class Lucky Final ${index + 1}`}: ${(lane.pct*100).toFixed(3)}%)</span>\n`)
+      .join('');
   }
   function buildLuckyGenStr(c) {
     const ps = [];
@@ -778,26 +831,26 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   function buildDreamStrLucky(c) {
     const ps = [];
     if (c._psychoscopeDreamDmgPct) ps.push(`psychoscope ${(c._psychoscopeDreamDmgPct*100).toFixed(3)}%`);
+    if (c._factorSeasonDmgPct) ps.push(`factor sockets ${(c._factorSeasonDmgPct*100).toFixed(3)}%`);
     if (c._inspiringChantSeasonalPct) ps.push(`Inspiring Chant ${(c._inspiringChantSeasonalPct*100).toFixed(3)}%`);
     if (c._dreamManual)    ps.push(`manual ${(c._dreamManual*100).toFixed(3)}%`);
     const classDreamLuckyParts = getClassFormulaParts('dreamLucky');
     if (classDreamLuckyParts) ps.push(classDreamLuckyParts);
     const imagineDreamLuckyParts = getImagineFormulaParts('dreamLucky');
     if (imagineDreamLuckyParts) ps.push(imagineDreamLuckyParts);
+    if (c._factorLuckySeasonDmgPct) ps.push(`factor sockets ${(c._factorLuckySeasonDmgPct*100).toFixed(3)}%`);
     if (c._classFactorSeasonDmgPct) ps.push(`factors ${(c._classFactorSeasonDmgPct*100).toFixed(3)} `)
     const total = dreamDmgPctLucky;
     return ps.length ? ps.join(' + ') + ` = ${(total*100).toFixed(3)}%` : `${(total*100).toFixed(3)}%`;
   }
   function buildLuckyFinalStr(c) {
-    if (luckFinalDamagePct > 0) {
-      const ps = [];
-      if (finalDmgPct) ps.push(`final ${(finalDmgPct*100).toFixed(3)}%`);
-      const classLuckyFinal = getClassFormulaParts('luckyFinal');
-      if (classLuckyFinal) ps.push(classLuckyFinal);
-      const total = luckFinalDamagePct;
-      return ps.length ? 'x <span class="ffinal">(1 + Final: ' + ps.join(' + ') + `)=${(total*100).toFixed(3)}%</span>\n` : `${(total*100).toFixed(3)}%`;
-    }
-    return '';
+    const ps = [];
+    if (finalDmgPct) ps.push(`Final Damage: ${(finalDmgPct*100).toFixed(3)}%`);
+    const classLuckyFinal = getClassFormulaParts('luckyFinal');
+    if (classLuckyFinal) ps.push(classLuckyFinal);
+    return ps.length
+      ? 'x <span class="ffinal">(1 + ' + ps.join(' + ') + `)</span>\n`
+      : '';
   }
   window._buildElemStr    = buildElemStr;
   window._buildGenStr     = buildGenStr;
@@ -806,11 +859,25 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   window._buildDreamStrLucky = buildDreamStrLucky;
   window._buildLuckyGenStr = buildLuckyGenStr;
   window._buildLuckyFinalStr = buildLuckyFinalStr;
+  window._buildClassOtherMultiplierStr = buildClassOtherMultiplierStr;
+  window._buildClassLuckyFinalMultiplierStr = buildClassLuckyFinalMultiplierStr;
 
   updateImagineNotes();
 
   const c = window._calc;
-  const tgLabel = targetType === 'boss' ? 'Boss' : targetType === 'elite' ? 'Elite' : 'Normal';
+  const tgLabel = ({
+    normal: 'Normal',
+    elite: 'Elite',
+    boss: 'Boss',
+    seasonal: 'Seasonal',
+    'elite-seasonal': 'Seasonal Elite',
+    'boss-seasonal': 'Seasonal Boss',
+  })[targetType] || 'Normal';
+  const seasonalTargetLines = isSeasonalTarget
+    ? `x <span class="fseasonal-strength">(1 + Oath Strength: ${(seasonalStrengthPct * 100).toFixed(3)}%)</span>\n` +
+      `x <span class="funity">(1 + Unity Bonus: ${(unityBonusPct * 100).toFixed(3)}%)</span>\n` +
+      `x <span class="fseasonal-reduction">(1 - Seasonal Damage Reduction: ${(seasonalDamageReduction * 100).toFixed(3)}%; Oath Penetration: ${seasonalPenetration.toFixed(3)}) = ${(seasonalDamageTakenMultiplier * 100).toFixed(3)}% damage taken</span>\n`
+    : '';
   const luTags = [];
   const luckyTag = luTags.length ? ` [${luTags.join(', ')}]` : '';
 
@@ -826,6 +893,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     `x <span class="fdream">(1 + Seasonal: ${buildDreamStr(c)})</span>\n` +
     `x <span class="fmag">(1 + MAG: ${(c._magBoost || 0)*100 >= 0 ? (c._magBoost*100).toFixed(3) : '0.0'}%)</span>\n` +
     buildFinalStr(c) +
+    buildClassOtherMultiplierStr(c) +
+    seasonalTargetLines +
     `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(3)}%) (if crit)</span>\n\n` +
     `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
     `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">All Element ATK(${(elementalAtk)})</span> + <span class="felem">Class Element ATK(${(classElementalAtk)})</span>)` +
@@ -836,6 +905,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     `x <span class="fdream">(1 + Seasonal: ${buildDreamStrLucky(c)})</span>\n` +
     `x <span class="fmag">(1 + MAG: ${(c._luckyMagBoostPct || 0)*100 >= 0 ? (c._luckyMagBoostPct*100).toFixed(3) : '0.0'}%)</span>\n` +
     buildLuckyFinalStr(c) +
+    buildClassLuckyFinalMultiplierStr(c) +
+    buildClassOtherMultiplierStr(c) +
+    seasonalTargetLines +
     `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(3)}%) (if crit)</span>\n`;
 
   if (!optimizingSubstats && optimizerDone) {

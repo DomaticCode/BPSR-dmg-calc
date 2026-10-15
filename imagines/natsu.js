@@ -13,5 +13,9 @@
 
     return { matkPct };
   }
-  window.IMAGINES['natsu'] = { displayName: 'Natsu', provideBonuses };
+  window.IMAGINES['natsu'] = { 
+    displayName: 'Natsu', 
+    aliases: ['transform'],
+    provideBonuses 
+  };
 })();

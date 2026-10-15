@@ -106,7 +106,7 @@ function getClassElemType() {
 
 // Substat Factors and Optimizer
 
-function getOptimizerFactor() {
+function getOptimizerFactor(forImportedStats = false) {
   const factors = { crit: 1, luck: 1, mastery: 1, haste: 1, vers: 1 };
   const effectTypes = {
     'generic:crit-gained-in-any-way': 'crit',
@@ -122,8 +122,12 @@ function getOptimizerFactor() {
     const value = valueText === '' ? 0 : Number.parseFloat(valueText);
     if (!Number.isFinite(value) || value <= 0) return;
 
+    if (forImportedStats && row.querySelector('.psychoscope-factor-socket-apply')?.checked !== true) return;
+
     const effectFactors = buildSubstatFactorValueMap(type, value);
-    Object.keys(factors).forEach(stat => { factors[stat] *= effectFactors[stat] || 1; });
+    Object.keys(factors).forEach(stat => {
+      factors[stat] *= effectFactors[stat] || 1;
+    });
   });
 
   console.log('Optimizer factors:', factors);

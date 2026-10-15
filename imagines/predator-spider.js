@@ -67,5 +67,10 @@
       0
     ]];
   }
-  window.IMAGINES['predator-spider'] = { displayName: 'Predator Spider', provideBonuses, provideSkills };
+  window.IMAGINES['predator-spider'] = { 
+    displayName: 'Predator Spider', 
+    aliases: ['attack', 'atk', 'matk', 'magic attack'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

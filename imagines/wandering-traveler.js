@@ -49,5 +49,10 @@
       0
     ]];
   }
-  window.IMAGINES['wandering-traveler'] = { displayName: 'Wandering Traveler', provideBonuses, provideSkills };
+  window.IMAGINES['wandering-traveler'] = { 
+    displayName: 'Wandering Traveler', 
+    aliases: ['luck', 'luck stat', 'luck chance'],
+    provideBonuses, 
+    provideSkills 
+  };
 })();

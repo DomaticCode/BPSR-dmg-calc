@@ -8,6 +8,7 @@ function calcSkill(id) {
   const psychoscopeTargetCritPct = (psych.targetCritPct || 0) / 100;
 
   const imagineBonuses = (typeof getImagineBonuses === 'function') ? getImagineBonuses() : {};
+  const imagineLuckEffectCritPct = (imagineBonuses.luckEffectCritPct || 0) / 100;
   const imagineExpertiseDmgPct = (imagineBonuses.expertiseDmgPct || 0) / 100;
   const imagineSpecialSkillDmgPct = (imagineBonuses.specialDmgPct || 0) / 100;
   // don't believe these two exist at all, added for future
@@ -78,7 +79,8 @@ function calcSkill(id) {
   };
 
   const effectRows = Array.from(document.querySelectorAll(`#skill-effects-${id} .skill-effect-row`));
-  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectStaticCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectFinalDamage = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, luckEffectBonus = 0;
+  let effectGen = 0, effectDream = 0, effectCritChance = 0, effectCritDmg = 0, effectStaticCritDmg = 0, effectLuckUptime = 1, effectElem = 0, effectMagBoost = 0, effectOtherScaler = 0, effectNoIntellectBoostDeduction = 0, effectNoAgilityBoostAtk = 0, luckEffectBonus = 0;
+  const effectFinalDamageMultipliersPct = [];
   let effectNoElem = false, effectNoClassElem = false, effectNoElemAtk = false, effectNoDream = false, effectNoMagBoost = false, effectNoVers = false, effectNoGen = false, effectNoWlAtk = false, effectNoWlMagic = false, effectNoIntellectBoost = false, effectNoAgilityBoost = false, 
   effectNoWlRanged = false, effectNoThorns = false, effectNoCrit = false;
   let skillDamageType = c.classDamageType; // for recognizing magic dmg % boosts applying to imagine magical based dmg and vice versa
@@ -146,7 +148,7 @@ function calcSkill(id) {
       case 'elemDmg': effectElem += value / 100; break;
       case 'magBoost': effectMagBoost += value / 100; break;
       case 'otherScaler': effectOtherScaler += value / 100; break;
-      case 'finalDamage': effectFinalDamage += value / 100; break;
+      case 'finalDamage': effectFinalDamageMultipliersPct.push(value / 100); break;
     }
   });
 
@@ -219,7 +221,9 @@ function calcSkill(id) {
     finalElemDmgPct = originalElem - thornPct
   }
   const finalDreamDmgPct = effectNoDream ? 0 : originalDream;
-  const finalCritRatePct = effectNoCrit ? 0 : Math.min(1, c.critRatePct + effectCritChance);
+  const finalCritRatePct = effectNoCrit
+    ? 0
+    : Math.min(1, c.critRatePct + effectCritChance + (luckEffectSkill ? imagineLuckEffectCritPct : 0));
   const finalCritMult = effectNoCrit
     ? 1
     : effectStaticCritDmg !== 0
@@ -227,7 +231,9 @@ function calcSkill(id) {
       : c.critMultPct + effectCritDmg;
   const finalMagBoost = effectNoMagBoost ? 0 : originalMag;
   const versDmgPct = effectNoVers ? 0 : originalVers;
-  const finalDmgPct = c._finalDmgPct + effectFinalDamage;
+  const effectFinalDamageMultiplier = effectFinalDamageMultipliersPct.reduce((multiplier, pct) => multiplier * (1 + pct), 1);
+  const classOtherMultipliersPct = c._classOtherMultipliersPct || [];
+  const classOtherMultiplier = classOtherMultipliersPct.reduce((multiplier, lane) => multiplier * (1 + lane.pct), 1);
 
   const skillResistance = skillDamageType === 'physical' ? c._physRes : (skillDamageType === 'magical' ? (c._magResEnabled ? 0.08 : 0) : c.resistance);
   let effectiveAtk = c.effectiveAtk;
@@ -238,7 +244,10 @@ function calcSkill(id) {
   const classElementalAtk = c.classElementalAtk || 0;
   const defenseFreeAtk = effectNoElemAtk ? Math.max(0, c.defenseFreeAtk - classElementalAtk) : c.defenseFreeAtk;
   const stdBase   = (skillAtkDefReduced + defenseFreeAtk) * mult + flat;
-  const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler) * (1 + finalDmgPct); // Assume final is after other
+  const seasonalStrengthPct = c._isSeasonalTarget ? c._seasonalStrengthPct : 0;
+  const unityBonusPct = c._isSeasonalTarget ? c._unityBonusPct : 0;
+  const seasonalDamageTakenMultiplier = c._isSeasonalTarget ? c._seasonalDamageTakenMultiplier : 1;
+  const stdMult   = (1 + versDmgPct) * (1 + finalElemDmgPct) * (1 + totalGen) * (1 + finalDreamDmgPct) * (1 + finalMagBoost) * (1 + effectOtherScaler) * (1 + c._finalDmgPct) * effectFinalDamageMultiplier * (1 + seasonalStrengthPct) * (1 + unityBonusPct) * seasonalDamageTakenMultiplier * classOtherMultiplier; // Assume final is after other
 
   let additionalDamage = 0;
   if (imagineBonuses.additionalDamageProc !== undefined && ( luckEffectSkill || skillType === "special" || skillType === "expertise" || skillType === "ultimate" || skillType === "class" || skillType === "basic")) {
@@ -427,8 +436,18 @@ function calcSkill(id) {
     const otherLine = effectOtherScaler !== 0
       ? `x <span class="forange">(1+Other: ${otherText})</span>\n`
       : '';
-    const finalDmgLine = finalDmgPct !== 0
-      ? `x <span class="ffinal">(1+Final: ${(finalDmgPct*100).toFixed(3)}%)</span>\n`
+    const finalDmgLines = [];
+    if (c._baseFinalDmgPct) finalDmgLines.push(`x <span class="ffinal">(1 + Final Damage: ${(c._baseFinalDmgPct*100).toFixed(3)}%)</span>\n`);
+    effectFinalDamageMultipliersPct.forEach(pct => {
+      finalDmgLines.push(`x <span class="ffinal">(1 + Final Damage: ${(pct*100).toFixed(3)}%)</span>\n`);
+    });
+    const classOtherDmgLines = classOtherMultipliersPct
+      .map((lane, index) => `x <span class="ffinal">(1 + ${lane.label || `Class Other ${index + 1}`}: ${(lane.pct*100).toFixed(3)}%)</span>\n`)
+      .join('');
+    const seasonalTargetLines = c._isSeasonalTarget
+      ? `x <span class="fseasonal-strength">(1+Oath Strength: ${(seasonalStrengthPct*100).toFixed(3)}%)</span>\n` +
+        `x <span class="funity">(1+Unity Bonus: ${(unityBonusPct*100).toFixed(3)}%)</span>\n` +
+        `x <span class="fseasonal-reduction">(1-Seasonal Damage Reduction: ${(c._seasonalDamageReduction*100).toFixed(3)}%; Oath Penetration: ${(c._seasonalPenetration || 0).toFixed(3)}) = ${(seasonalDamageTakenMultiplier*100).toFixed(3)}% damage taken</span>\n`
       : '';
     const skillResLabel = skillDamageType === 'physical' 
       ? `${(c._physRes*100).toFixed(1)}%` 
@@ -450,7 +469,9 @@ function calcSkill(id) {
       `x <span class="fdream">(1+Seasonal: ${finalDreamStr})</span>\n` +
       `x <span class="fmag">(1+MAG: ${magText})</span>\n` +
       otherLine +
-      finalDmgLine +
+      finalDmgLines.join('') +
+      classOtherDmgLines +
+      seasonalTargetLines +
       `x <span class="fr">CRIT(${critMultText}) (if crit)</span>\n`;
   } else if (formulaEl) {
     formulaEl.style.display = 'none';
