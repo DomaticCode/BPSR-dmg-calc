@@ -18,7 +18,6 @@
 
     if (state.mode === 'active') {
       luckPct = SM_ACTIVE_LUCK_PCT?.[level] || 0;
-      console.log("stack2:", state.stacks2);
       luckEffectCritPct = (SM_LUCK_EFFECT_CRIT_PCT[level] || 0)
         - (SM_LUCK_EFFECT_CRIT_REDUCED[level] || 0) * (state.stacks2 || 0);
     }
@@ -49,7 +48,12 @@
     const match = firstChild.textContent.match(/\(([^)]+)\)/);
     const luckyHitsCount = match ? parseInt(match[1], 10) : null;
 
-    const passiveHitsPerParse = Math.round(luckyHitsCount * 0.8);
+    
+    const selectedClass = document.getElementById('class-select')?.value;
+    const passiveHitRate = selectedClass === 'dissonance' ? 0.472
+      : selectedClass === 'smite' ? 0.560
+        : 0.5;
+    const passiveHitsPerParse = Math.round(luckyHitsCount * passiveHitRate);
 
     const hitsPerParse = 2 * Math.max(1, Math.floor((parseDurationSeconds + cooldown) / cooldown));
     const skillName = `Sunfire & Moonstrike (${level})`;
@@ -68,7 +72,7 @@
         0
       ],
       [
-        'imagine',
+        'imagine(passive)',
         passiveDamageMultiplier,
         0,
         false,

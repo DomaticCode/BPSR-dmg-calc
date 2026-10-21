@@ -180,8 +180,6 @@ function provideSmiteFactorBonuses() {
     classFactorMasteryPct += 10;
   }
 
-  console.log(' smite class returning = ', classFactorMasteryPct)
-
   return {
     classFactorCritPct,
     classFactorCritDmgPct,

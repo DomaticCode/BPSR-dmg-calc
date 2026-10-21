@@ -238,6 +238,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const classFactorBonuses = classModule?.provideFactorBonuses?.() || {};
 
   const classFactorLuckyDreamDmgPct = (classFactorBonuses.classFactorLuckyDreamDmgPct || 0) / 100;
+  const classFactorLuckyFinalPct = (classFactorBonuses.classFactorLuckyFinalPct || 0) / 100;
   const classFactorMatkPct = (classFactorBonuses.classFactorMatkPct || 0) / 100;
   const classFactorAtkPct = (classFactorBonuses.classFactorAtkPct || 0) / 100;
   const classFactorMainStat = classFactorBonuses.classFactorMainStat || 0;
@@ -332,6 +333,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   const classThornsPct = (classBonuses.classThornsPct || 0) / 100; // Smite buggy skill which requires special handling...
   const classMagBoostPct = (classBonuses.classMagBoostPct || 0) / 100;
   const classLuckMult = classBonuses.classLuckMult || 0; // NOT A PERCENT SCALER, it's flat, do not divide by 100.
+  const classLuckMultFinalPct = (classBonuses.classLuckMultFinalPct || 0) / 100;
   const classOtherMultipliersPct = Array.isArray(classBonuses.classOtherMultipliersPct)
     ? classBonuses.classOtherMultipliersPct
       .filter(lane => lane && Number.isFinite(lane.pct))
@@ -343,6 +345,9 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
       .filter(lane => lane && Number.isFinite(lane.pct))
       .map(lane => ({ label: lane.label || '', pct: lane.pct / 100 }))
     : [];
+  if (classFactorLuckyFinalPct) {
+    classLuckyFinalMultipliersPct.push({ label: 'Dissonance Factor (X2)', pct: classFactorLuckyFinalPct });
+  }
   const classLuckyFinalMultiplier = classLuckyFinalMultipliersPct.reduce((multiplier, lane) => multiplier * (1 + lane.pct), 1);
   const classLuckyDmgPct = (classBonuses.classLuckyDmgPct || 0) / 100; // generic dmg to lucky strikes
 
@@ -365,12 +370,16 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     classMatk = classBonuses.classMatk || 0;
   }
 
+  const classMainStatPct = (classBonuses.classMainStatPct || 0) / 100;
+
 
   const classFinalCritPct = (classBonuses.classFinalCritPct || 0) / 100; // not in use yet
   const classFinalHastePct = (classBonuses.classFinalHastePct || 0) / 100;  // not in use yet
   const classFinalLuckPct = (classBonuses.classFinalLuckPct || 0) / 100; // disso luck boost
   const classFinalMasteryPct = (classBonuses.classFinalMasteryPct || 0) / 100; // not in use yet
   const classFinalVersPct = (classBonuses.classFinalVersPct || 0) / 100; // not in use yet
+  const classLuckyCritIncrement = (classBonuses.classLuckyCritIncrement || 0) / 100;
+  const classLuckyStaticCritDmg = (classBonuses.classLuckyStaticCritDmg || 0) / 100; // this should include the 100% i.e. 180% = 180% returned here NOT 80%.
 
   const finalCritPct = postWlCritPct * (1 + classFinalCritPct); // not in use yet
   const finalHastePct = postWlHastePct * (1 + classFinalHastePct);  // not in use yet
@@ -446,8 +455,8 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   console.log(`moduleApplyMainStats = ${moduleApplyMainStats}`);
 
   // INT/ATK calculations
-  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + moduleApplyMainStats + classFactorMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + psychoscopeFactorMainStatPct + imagineMainStatPct);
-  console.log("intScaled = " + intScaled.toFixed(2) + " (base: " + intBase + ", extraMainAttr: " + extraMainAttr + ", psychoscopeMainStat: " + psychoscopeMainStat + ", inspirationMainStats: " + inspirationMainStats + ", classMainStat: " + classMainStat + ", moduleApplyMainStats: " + moduleApplyMainStats + ", classFactorMainStat: " + classFactorMainStat + ", intPct: " + intPct.toFixed(4) + ", mainStatPct: " + mainStatPct.toFixed(4) + ", psychoscopeMainStatPct: " + psychoscopeMainStatPct.toFixed(4) + ", psychoscopeFactorMainStatPct: " + psychoscopeFactorMainStatPct.toFixed(4) + ", imagineMainStatPct: " + imagineMainStatPct.toFixed(4) + ")");
+  const intScaled    = (intBase + extraMainAttr + psychoscopeMainStat + inspirationMainStats + classMainStat + moduleApplyMainStats + classFactorMainStat) * (1 + intPct + mainStatPct + psychoscopeMainStatPct + psychoscopeFactorMainStatPct + imagineMainStatPct + classMainStatPct);
+  console.log("intScaled = " + intScaled.toFixed(2) + " (base: " + intBase + ", extraMainAttr: " + extraMainAttr + ", psychoscopeMainStat: " + psychoscopeMainStat + ", inspirationMainStats: " + inspirationMainStats + ", classMainStat: " + classMainStat + ", moduleApplyMainStats: " + moduleApplyMainStats + ", classFactorMainStat: " + classFactorMainStat + ", intPct: " + intPct.toFixed(4) + ", mainStatPct: " + mainStatPct.toFixed(4) + ", psychoscopeMainStatPct: " + psychoscopeMainStatPct.toFixed(4) + ", psychoscopeFactorMainStatPct: " + psychoscopeFactorMainStatPct.toFixed(4) + ", imagineMainStatPct: " + imagineMainStatPct.toFixed(4) + ", classMainStatPct: " + classMainStatPct.toFixed(4) + ")");
   const weaponMatk   = getVal('base-atk');
   const foodEnabled = getChecked('food-enabled');
   const foodAtkBonus = foodEnabled ? getVal('food-atk') : 0;
@@ -582,10 +591,12 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     multPct += imagineLuckyStrikeMultPct;
     multPct += classLuckMult;
     luckyMult = multPct / 100;
-    document.getElementById('lucky-mult-display').value = multPct.toFixed(2);
   }
 
-  const luckyMultFinal  = luckyMult;
+  const luckyMultFinal  = luckyMult * (1 + classLuckMultFinalPct);
+  if (!isManual) {
+    document.getElementById('lucky-mult-display').value = (luckyMultFinal * 100).toFixed(2);
+  }
   const luckEffectPct   = finalLuckPct + luckEffectBonus + imagineLuckEffectPct;
   const luckFinalDamageMultiplier = (1 + finalDmgPct) * classLuckyFinalMultiplier;
 
@@ -616,7 +627,10 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   }
 
   const lsNormal        = (luckyBase * baseMultipliers) + additionalDamage;
-  const lsCrit          = lsNormal * effectiveCritMult;
+
+  const lsCritDmg = classLuckyStaticCritDmg > 0 ? (classLuckyStaticCritDmg) : effectiveCritMult;
+  const lsCrit          = lsNormal * lsCritDmg;
+
   console.log('psychoscopeTargetCritPct', psychoscopeTargetCritPct);
 
   // Cap final luck crit between 0 and 100%
@@ -627,8 +641,12 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     0,
     Math.min(1, finalCritPct + luckCritChancePct + imagineLuckEffectCritChancePct)
   );
-  const lsAvg = lsNormal * (1 - (finalLuckCritPct + psychoscopeTargetCritPct)) 
-            + lsCrit   * (finalLuckCritPct + psychoscopeTargetCritPct);
+  const luckyStrikeCritRatePct = avgCrit(
+    finalLuckCritPct + psychoscopeTargetCritPct,
+    classLuckyCritIncrement
+  );
+  const lsAvg = lsNormal * (1 - luckyStrikeCritRatePct)
+            + lsCrit   * luckyStrikeCritRatePct;
 
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -898,7 +916,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(3)}%) (if crit)</span>\n\n` +
     `<span class="fp">Lucky Strike${luckyTag}:</span>\n` +
     `( <span class="fb">${atkLabel}(${effectiveAtk})</span> + <span class="fref">Refined(${(refinedAtk)})</span> + <span class="felem">All Element ATK(${(elementalAtk)})</span> + <span class="felem">Class Element ATK(${(classElementalAtk)})</span>)` +
-    `\nx <span class="fls">Lucky Strike DMG Mult(${(luckyMult*100).toFixed(3)}%)</span>\n` +
+    `\nx <span class="fls">Lucky Strike DMG Mult(${(luckyMultFinal*100).toFixed(3)}%)</span>\n` +
     `x <span class="fvers">(1 + Vers: ${(postWlVersDmgPct*100).toFixed(3)}%)</span>\n` +
     `x <span class="felem">(1 + Elem: ${buildElemStr(c)})</span>\n` +
     `x <span class="fg">(1 + Gen: ${buildLuckyGenStr(c)})</span>\n` +
@@ -908,7 +926,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     buildClassLuckyFinalMultiplierStr(c) +
     buildClassOtherMultiplierStr(c) +
     seasonalTargetLines +
-    `x <span class="fr">CRIT DMG(${(effectiveCritMult*100).toFixed(3)}%) (if crit)</span>\n`;
+    `x <span class="fr">CRIT CHANCE(${(luckyStrikeCritRatePct*100).toFixed(3)}%) | CRIT DMG(${(lsCritDmg*100).toFixed(3)}%) (if crit)</span>\n`;
 
   if (!optimizingSubstats && optimizerDone) {
     const output = document.getElementById('optimize-substats-output');

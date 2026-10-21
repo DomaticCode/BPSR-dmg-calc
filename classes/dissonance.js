@@ -2,13 +2,28 @@
 function provideDissonanceClassBonuses(stats) {
   const isDissonanceClass = document.getElementById('class-select')?.value === 'dissonance';
 
-  const masteryElemEl = document.getElementById('mastery-elem-dmg-pct');
-  if (masteryElemEl) masteryElemEl.value = 0.00; // reset mastery element bonus (non mastery -> element class)
-
   let elemPct = 0;
   let finalLuckPct = 0;
   let matkPct = 0;
   let matk = 0;
+  let luckyCritIncrement = 0;
+  let luckyStaticCritDmg = 0;
+  let mainStatPct = 0;
+  let luckMult = 0;
+  let luckMultFinalPct = 0;
+  const classOtherMultipliersPct = [];
+
+
+  if(isDissonanceClass){
+    const masteryConversionFactor = 0.4;
+    const masteryElemBonus = stats.mastery * masteryConversionFactor;
+    const masteryElemPct = masteryElemBonus * 100;
+
+    const masteryElemEl = document.getElementById('mastery-elem-dmg-pct');
+    if (masteryElemEl) masteryElemEl.value = masteryElemPct.toFixed(3);
+
+    elemPct += masteryElemPct;
+  }
 
   if (isDissonanceClass && getChecked('in-rhapsody')) {
     elemPct += 10;
@@ -23,7 +38,7 @@ function provideDissonanceClassBonuses(stats) {
 
   const luckPct = stats.luck * (1 + finalLuckPct / 100);
 
-  let luckMult = 0;
+
   if (isDissonanceClass && getChecked('luck-multiplier') && getChecked('in-heroic-melody')) {
     luckMult += (luckPct * 100);
   } else if (isDissonanceClass && getChecked('luck-multiplier')){
@@ -37,230 +52,171 @@ function provideDissonanceClassBonuses(stats) {
     elemPct += 8;
   }
 
-  if(isDissonanceClass && getChecked('center-stage')) {
+  if(isDissonanceClass && getChecked('absolute-center-stage') && getChecked('in-center-stage')) {
+    luckMultFinalPct += 30;
+  }
+
+  if(isDissonanceClass && getChecked('in-center-stage')) {
     matkPct += 8;
     matk += 80;
   }
-
-  if(isDissonanceClass && getVal('s2-set-value', 0) >= 2 && getChecked('in-heroic-melody')){
-    elemPct += 5;
+  if(isDissonanceClass && getChecked('finale-command')) {
+    mainStatPct += 10;
   }
+
+  if (isDissonanceClass && getChecked('break-buff')) {
+    classOtherMultipliersPct.push({ label: 'Break Buff', pct: 15 });
+  }
+
+  if(isDissonanceClass && getVal('set-value', 0) >= 2 && getChecked('in-heroic-melody')){
+    luckyCritIncrement += 3;
+  }
+  if(isDissonanceClass && getVal('set-value', 0) >= 4 && getChecked('in-rhapsody')){
+    luckyStaticCritDmg = 180;
+  }
+
+  //if(isDissonanceClass && getVal('set-value', 0) >= 2 && getChecked('in-heroic-melody')){
+    //elemPct += 5;
+  //}
   console.log(`disso returning: ${elemPct}, ${finalLuckPct}, ${luckMult}, ${matkPct}, ${matk}`);
 
   return {
     classElemPct: elemPct,
     classFinalLuckPct: finalLuckPct,
     classLuckMult: luckMult,
+    classLuckyCritIncrement: luckyCritIncrement,
+    classLuckyStaticCritDmg: luckyStaticCritDmg,
     classMatkPct: matkPct,
     classMatk: matk,
+    classMainStatPct: mainStatPct,
+    classLuckMultFinalPct: luckMultFinalPct,
+    classOtherMultipliersPct,
   };
 }
 
 // Register provider for other modules to call
 window.CLASS_BONUS_PROVIDERS = window.CLASS_BONUS_PROVIDERS || {};
 
-function getDissonanceFactorValue(keyword) {
-  if (document.getElementById('psychoscope-tree')?.value === 'none') return 0;
-  const searchKeyword = keyword.toLowerCase().trim();
-  let totalValue = 0;
-
-  // Define keywords that require the checkbox to be checked
-  const checkboxRequiredKeywords = ["x10"]; 
-  const isCheckboxRequired = checkboxRequiredKeywords.includes(searchKeyword);
-
-  const escapedKeyword = searchKeyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedKeyword}\\b`);
-
-  [1, 2, 3].forEach(index => {
-    const nameInput = document.getElementById(`psychoscope-factor-class-${index}-name`);
-    const valueInput = document.getElementById(`psychoscope-factor-class-${index}-value`);
-    const applyCheckbox = document.getElementById(`psychoscope-factor-class-${index}-apply-imported`);
-    
-    const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = valueInput ? getVal(valueInput.id, 0) : 0;
-
-    if (regex.test(name) && value > 0) {
-      
-      // If the search requires the checkbox, check the box state.
-      const shouldInclude = isCheckboxRequired 
-        ? (applyCheckbox?.checked ?? false) 
-        : true;
-
-      if (shouldInclude) {
-        totalValue += value;
-      }
-    }
+function isDissoFactorSelected(key){
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return false;
+  const suggestions = provideDissonanceFactorSuggestions('class');
+  return [1, 2, 3].some(index => {
+    const name = document.getElementById(`psychoscope-factor-class-${index}-name`)?.value || '';
+    return getFactorSelectionKey(name, suggestions) === key;
   });
-
-  return totalValue;
 }
 
-function getDissonanceRealityFactorValue(keyword){
-  const searchKeyword = keyword.toLowerCase().trim();
-  let totalValue = 0;
-
-  const escapedKeyword = searchKeyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedKeyword}\\b`);
-
-  [1, 2, 3].forEach(index => {
-    const nameInput = document.getElementById(`psychoscope-factor-class-reality-${index}-name`);
-    const valueInput = document.getElementById(`psychoscope-factor-class-reality-${index}-value`);
-    
-    const name = String(nameInput?.value || '').trim().toLowerCase();
-    const value = valueInput ? getVal(valueInput.id, 0) : 0;
-
-    if (regex.test(name) && value > 0) {
-      totalValue += value;
-    }
-  });
-
-  return totalValue;
+function isDissoSingularitySelected(key){
+  if (document.getElementById('psychoscope-tree')?.value === 'none') return false;
+  const name = document.getElementById('psychoscope-factor-singularity-1-name')?.value || '';
+  const suggestions = provideDissonanceFactorSuggestions('singularity');
+  return getFactorSelectionKey(name, suggestions) === key;
 }
 
 function provideDissonanceFactorSuggestions(type = 'class') {
-  if (type !== 'class' && type !== 'class-reality') return [];
+  if (type !== 'class' && type !== 'singularity') return [];
   if(type === 'class'){
     return [
     {
       key: 'x1',
-      label: 'X1 (Amplified Beat)',
-      aliases: ['x1','amplified', 'beat'],
-      defaultValue: 70,
+      label: 'X1 Amplified Beat Encore String',
+      aliases: ['x1', 'amplified', 'encore', 'string'],
     },
     {
       key: 'x2',
-      label: 'X2 (Harmonic Anthem)',
-      aliases: ['x2','harmonic', 'anthem'],
-      defaultValue: 35,
-    },
-    {
-      key: 'x3',
-      label: 'X3 (Rhapsody)',
-      aliases: ['x3', 'rhapsody', 'flame'],
-      defaultValue: 23.3,
-    },
-    {
-      key: 'x4',
-      label: 'X4 (+MATK - Peaceful Tune)',
-      aliases: ['x4', 'MATK', 'peaceful', 'tune'],
-      defaultValue: 9,
-    },
-    {
-      key: 'x6',
-      label: 'X6 (Encore)',
-      aliases: ['x6', 'encore'],
-      defaultValue: 23.3,
-    },
-    {
-      key: 'x7',
-      label: 'X7 (Flame note)',
-      aliases: ['x7', 'flame', 'note'],
-      defaultValue: 17.5,
-    },
-    {
-      key: 'x8',
-      label: 'X8 (All element in Rhapsody)',
-      aliases: ['x8', 'all', 'element', 'rhapsody'],
-      defaultValue: 4.2,
-    },
-    {
-      key: 'x10',
-      label: 'X10 (Int above 80%)',
-      aliases: ['x10', 'int', '80%'],
-      defaultValue: 370,
-      showApplyCheckbox: true,
+      label: 'X2 Harmonic Anthem (scorch + luck final dmg)',
+      aliases: ['x2', 'harmonic', 'anthem', 'scorching impact', 'luck', 'final', 'damage'],
     }
-    ];
-  } else if (type === 'class-reality') {
+  ];
+  } else if (type === 'singularity') {
     return [
+      {
+        key: 'singularity-x1',
+        label: 'X1 (Center Stage Rhapsody)',
+        aliases: ['x1', 'center stage', 'rhapsody', 'haste', 'automatically'],
+      }
     ];
   }
 }
 
+function provideDissoFactorEffectSuggestions() {
+  return [
+    {
+      key: 'scorching-impact-seasonal-damage',
+      label: 'Scorching Impact Oath Damage',
+      aliases: ['Scorching Impact Seasonal Damage', 'Scorching Impact Oath Damage', 'Scorching Impact Oath DMG', 'Scorching Impact Seasonal DMG'],
+      unit: '%',
+    },
+  ];
+}
+
 // Returns simple bonus values for calc.js to consume.
 function provideDissonanceFactorBonuses() {
-  const isDissonanceClass = document.getElementById('class-select')?.value === 'dissonance';
-  if (!isDissonanceClass) return {};
-
-  const classFactorAllElementPct = getDissonanceFactorValue('x8');
-  const classFactorMatkPct = getDissonanceFactorValue('x4');
-  const classFactorMainStat = getDissonanceFactorValue('x10');
+  let classFactorLuckyFinalPct = 0;
+  if(isDissoFactorSelected('x2') && getChecked('in-center-stage')) {
+    classFactorLuckyFinalPct = 6;
+  }
 
   return {
-    classFactorAllElementPct,
-    classFactorMatkPct,
-    classFactorMainStat,
+    classFactorLuckyFinalPct: classFactorLuckyFinalPct,
   };
 }
 
 function getAmplifiedBeatEffects(){
   const effects = [
     ["generic","-20"],
-    ["generic","50"]
+    ["generic","20"]
   ];
-  const x1Value = getDissonanceFactorValue('x1');
-  const s1set = getVal('s1-set-value', 0);
-  if (x1Value > 0) {
-    effects.push(["dreamDmg", String(x1Value)]);
-  }
-  if(s1set >= 2){
-    effects.push(["generic","12"]);
-  }
   return effects;
 }
 
 function getHarmonicAnthemEffects(){
   const effects = [
-    ["generic","25"]
+    ["generic","10"]
   ];
-  const x2Value = getDissonanceFactorValue('x2');
-  const s1set = getVal('s1-set-value', 0);
-  if (x2Value > 0) {
-    effects.push(["dreamDmg", String(x2Value)]);
-  }
-  if(s1set >= 2){
-    effects.push(["generic","12"]);
-  }
   return effects;
 }
 
 function getRhapsodyEffects(){
   const effects = [];
-  const x3Value = getDissonanceFactorValue('x3');
-  if (x3Value > 0) {
-    effects.push(["dreamDmg", String(x3Value)]);
-  }
   return effects;
 }
 
 function getEncoreEffects(){
   const effects = [];
-  const x6Value = getDissonanceFactorValue('x6');
-  if (x6Value > 0) {
-    effects.push(["dreamDmg", String(x6Value)]);
-  }
   return effects;
 }
 
 function getFlameNoteEffects(){
   const effects = [];
-  const x7Value = getDissonanceFactorValue('x7');
-  if (x7Value > 0) {
-    effects.push(["dreamDmg", String(x7Value)]);
+  return effects;
+}
+
+function getScorchingImpactEffects(){
+  const effects = [
+    ["generic","600"] // 800 = 50 stacks, 600 = 37.5 stacks
+  ];
+  const socketSeasonalDamage = window.getFactorSocketEffectTotal?.('class:dissonance:scorching-impact-seasonal-damage') || 0;
+  if (socketSeasonalDamage !== 0) {
+    effects.push(['dreamDmg', String(socketSeasonalDamage)]);
+  }
+  const x2 = isDissoFactorSelected('x2');
+  if (x2 && getChecked('in-center-stage')) {
+    effects.push(['finalDamage', '35']);
   }
   return effects;
 }
 
 function provideDissonanceSkills() {
-  return [
+  const skills = [
     [
       "none",
       350,
       0,
       false,
-      "Sound Blaze - Scorching Impact (average of ~41 soundwave energy)",
-      [["generic","656"]],
-      109,
+      "Sound Blaze - Scorching Impact (average of ~37.5 soundwave energy, Generic = 800 for 50 stacks)",
+      getScorchingImpactEffects(),
+      133,
       0
     ],
     [
@@ -270,7 +226,7 @@ function provideDissonanceSkills() {
       true,
       "Rhapsody of Flame - Shape 3",
       getRhapsodyEffects(),
-      159,
+      130,
       0
     ],
     [
@@ -280,7 +236,7 @@ function provideDissonanceSkills() {
       false,
       "Flame Note Damage",
       getFlameNoteEffects(),
-      171,
+      133,
       0
     ],
     [
@@ -288,19 +244,9 @@ function provideDissonanceSkills() {
       210,
       900,
       true,
-      "Harmonic Anthem - Stage 4 (Encore persistence roughly implemented (25%))",
+      "Harmonic Anthem - Stage 4 (Encore persistence roughly implemented (10%))",
       getHarmonicAnthemEffects(),
-      152,
-      0
-    ],
-    [
-      "none",
-      350,
-      0,
-      true,
-      "Rhapsody of Flame - Flame's Rampage",
-      [],
-      105,
+      120,
       0
     ],
     [
@@ -308,9 +254,9 @@ function provideDissonanceSkills() {
       112,
       480,
       true,
-      "Amplified Beat (Concerto talent + Encore Persistence)",
+      "Amplified Beat (Concerto talent + Encore Persistence basically cancel each other out)",
       getAmplifiedBeatEffects(),
-      117,
+      259,
       0
     ],
     [
@@ -320,7 +266,7 @@ function provideDissonanceSkills() {
       true,
       "Passive Effect Encore Damage",
       getEncoreEffects(),
-      729,
+      619,
       0
     ],
     [
@@ -330,7 +276,7 @@ function provideDissonanceSkills() {
       true,
       "Encore Damage",
       getEncoreEffects(),
-      730,
+      619,
       0
     ],
     [
@@ -338,12 +284,27 @@ function provideDissonanceSkills() {
       420,
       1800,
       true,
-      "Fierce Strike (Not 100% sure, i don't have skill upgraded)",
+      "Fierce Strike",
       [],
-      21,
+      8,
       0
     ],
   ];
+
+  if (getChecked('flames-rampage')) {
+    skills.push([
+      "none",
+      350,
+      0,
+      true,
+      "Rhapsody of Flame - Flame's Rampage",
+      [],
+      117,
+      0
+    ]);
+  }
+
+  return skills;
 }
 
 
@@ -354,7 +315,6 @@ function provideDissonanceFormulaParts(kind = 'elem') {
     const parts = [];
     if (getChecked('in-rhapsody')) parts.push(`in-rhapsody ${(0.10*100).toFixed(2)}%`);
     if (getChecked('fire-day') && ['elite', 'boss', 'elite-seasonal', 'boss-seasonal'].includes(document.getElementById('target-type')?.value)) parts.push(`Fire Day ${(0.08*100).toFixed(2)}%`);
-    if (getChecked('s2-2-set') && getChecked('in-heroic-melody')) parts.push(`S2 2-piece ${(0.05*100).toFixed(2)}%`);
     if (getChecked('tree-x8') && getChecked('in-rhapsody')) {
       const x8Value = getVal('tree-x8-value', 0);
       parts.push(`X8 Factor ${x8Value.toFixed(2)}%`);
@@ -377,11 +337,14 @@ const DISSONANCE_OPTIONS_HTML = `
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="in-rhapsody" style="width:14px;height:14px;" checked onchange="calc()"><label for="in-rhapsody">In Rhapsody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">User is inside ground rhapsody.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="in-heroic-melody" style="width:14px;height:14px;" checked onchange="calc()"><label for="in-heroic-melody">Heroic Melody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles Luck Multiplier conversion.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="trio-rhapsody" style="width:14px;height:14px;" checked onchange="calc()"><label for="trio-rhapsody">Trio Rhapsody</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">MATK increases by Haste % * 0.6.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-multiplier" style="width:14px;height:14px;" checked onchange="calc()"><label for="luck-multiplier">Luck Multiplier Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Every 1% luck -> 0.5% Lucky Strike DMG Multiplier.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-multiplier" style="width:14px;height:14px;" checked onchange="calc()"><label for="luck-multiplier">Luck Multiplier Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Every 1% luck -> 0.5% Lucky Strike DMG Multiplier. This is doubled to 1% if you are in Heroic Melody.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="fire-day" style="width:14px;height:14px;" checked onchange="calc()"><label for="fire-day">Fire Day Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% Elite+ Fire damage.</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="center-stage" style="width:14px;height:14px;" onchange="calc()"><label for="center-stage">Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% MATK + 80 (15s) </span></span></div>
-    <div class="cb-row" style="gap:6px;"><label>S1 Set (Void Corruption)</label><input type="number" id="s1-set-value" min="0" max="4" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon">i</span><span class="tip-box"> 2 Set: Harmonic Anthem + Amplified Beat +12% dmg<br>4 Set: Trigger speed of fierce strike +30% </span></span></div>
-    <div class="cb-row" style="gap:6px;"><label>S2 Set (Phantom)</label><input type="number" id="s2-set-value" min="0" max="4" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon orange">i</span><span class="tip-box"> 2 Set: In Heroic Melody, Fire Bonus +5%.<br><span class="hl-orange">4 Set: Amplified Beat +1 hit.<br>(Not implemented, manually update hits per parse).</span></span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="absolute-center-stage" style="width:14px;height:14px;" onchange="calc()"><label for="absolute-center-stage">Absolute Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">While in center stage,\nLucky strike damage multiplier +30%.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="in-center-stage" style="width:14px;height:14px;" onchange="updateClassSkills(); calc()"><label for="in-center-stage">Center Stage</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">8% MATK + 80 (15s) </span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="finale-command" style="width:14px;height:14px;" onchange="calc()"><label for="finale-command">Finale Command</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% main stat to allies (and self) for 10 seconds</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="flames-rampage" style="width:14px;height:14px;" onchange="updateClassSkills(); calc()"><label for="flames-rampage">Flame's Rampage</label><span class="tip"><span class="tip-icon gold">i</span><span class="tip-box">When Heroic Melody is active, Rhapsody erupts every 3s (scales with haste)\n<span class="hl-gold">This is not taken in most s4 builds.</span></span></div></div>
+    <div class="cb-row" style="gap:6px;"><label>Set Bonus</label><input type="number" id="set-value" min="0" max="4" step="1" value="0" style="width:50px;" onInput="updateClassSkills(); clamp(this); calc()"><span class="tip"><span class="tip-icon gold">i</span><span class="tip-box">2 Set:In Heroic Melody, if Lucky Strike fails to trigger a crit, crit rate increases by 3% each time, then resets after triggering crit<br>4 Set: Fierce Strike trigger speed +30%; Amplified Beat +1 hit (manually update hits per parse).</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="break-buff" style="width:14px;height:14px;" onchange="calc()"><label for="break-buff">Break Buff</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Dissonance passive talent.\nGrants 15% damage to enemies when they are broken.</span></span></div>
   </div>
 `;
 
@@ -424,6 +387,7 @@ window.CLASS_MODULES.dissonance = {
   onSelected: onDissonanceSelected,
   provideClassBonuses: provideDissonanceClassBonuses,
   provideFactorSuggestions: provideDissonanceFactorSuggestions,
+  provideFactorEffectSuggestions: provideDissoFactorEffectSuggestions,
   provideFactorBonuses: provideDissonanceFactorBonuses,
   provideFormulaParts: provideDissonanceFormulaParts,
   provideSkills: provideDissonanceSkills,
@@ -432,5 +396,3 @@ window.CLASS_MODULES.dissonance = {
   mainStatModifier: mainStatModifier,
   mainStatModifierTalent: mainStatModifierTalent,
 };
-
-

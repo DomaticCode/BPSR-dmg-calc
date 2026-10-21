@@ -6,7 +6,7 @@ const CLASS_BASES = {
 };
 
 const STAT_SCALER = 200050;
-const VERS_SCALER = 112200;
+const VERS_SCALER = 112000;
 const ALL_ELEMENTAL_DMG_SCALER = 18000;
 
 // Module data
@@ -153,9 +153,12 @@ const CLASS_FIELD_IDS = {
     'trio-rhapsody',
     'luck-multiplier',
     'fire-day',
-    'center-stage',
-    's1-set-value',
-    's2-set-value',
+    'absolute-center-stage',
+    'in-center-stage',
+    'finale-command',
+    'flames-rampage',
+    'set-value',
+    'break-buff',
   ],
   stormblade: [
     // no fields

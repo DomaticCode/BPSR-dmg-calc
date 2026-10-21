@@ -6,6 +6,28 @@ function getVal(id, fallback = 0) {
   return isNaN(v) ? fallback : v;
 }
 
+function avgCrit(baseCrit, increment = 0.03) {
+
+  console.log('Calculating average crit with baseCrit:', baseCrit, 'and increment:', increment);
+  let p = Number.isFinite(baseCrit) ? Math.max(0, Math.min(1, baseCrit)) : 0;
+  const critIncrement = Number.isFinite(increment) ? Math.max(0, increment) : 0;
+  if (critIncrement === 0) return p;
+
+  let expectedAttacks = 0;
+  let failStreak = 1;
+
+  while (true) {
+    expectedAttacks += failStreak;
+    if (p >= 1) break;
+    failStreak *= 1 - p;
+    p = Math.min(1, p + critIncrement);
+  }
+
+  console.log('Expected attacks to crit:', expectedAttacks, 'Final crit chance:', p);
+
+  return 1 / expectedAttacks;
+}
+
 function getChecked(id) {
   const el = document.getElementById(id);
   return el ? el.checked : false;

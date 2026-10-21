@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
 <script>
-  const APP_VERSION = 'v2.1.0';
+  const APP_VERSION = 'v2.2.0';
   document.write(`<link rel="stylesheet" href="styles.css?v=${APP_VERSION}">`);
 </script>
 <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
@@ -830,8 +830,16 @@
     return CLASS_BASES[cls] || CLASS_BASES.none;
   }
 
+  let previousClassSelection = document.getElementById('class-select')?.value || 'none';
+
   function onClassChange() {
     const cls = document.getElementById('class-select').value;
+    if (previousClassSelection === 'smite' && cls !== 'smite') {
+      const inspiration = document.getElementById('inspiration');
+      if (inspiration) inspiration.value = '0';
+    }
+    previousClassSelection = cls;
+
     const module = window.CLASS_MODULES && window.CLASS_MODULES[cls];
     const container = document.getElementById('class-options');
 
