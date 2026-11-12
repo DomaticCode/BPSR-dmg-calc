@@ -125,22 +125,47 @@ function calc() {
   const baseVersStat = getVal('vers-dmg-pct');
 
   const critStat    = ((baseCritStat + (psych.factorCritStat || 0)) * importedOptimizerFactor.crit) + imagineCritStat;
-  const critRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonusStatsPct + imagineCritPct;
+  const baseCritRatePct = (critStat > 0 ? critStat / (critStat + STAT_SCALER) : 0) + baseCrit + inspirationBonusStatsPct + imagineCritPct;
 
   const versStat    = ((baseVersStat + (psych.factorVersatilityStat || 0)) * importedOptimizerFactor.vers) + imagineVersatilityStat;
-  const versPct     = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct ;
-  const versDmgPct  = versPct * 0.35;
-  console.log ('baseVersStat = ' + baseVersStat + ', imagineVersatilityStat = ' + imagineVersatilityStat + ', versStat = ' + versStat + ', versPct = ' + versPct + ', versDmgPct = ' + versDmgPct);
-  console.log('vers stat = ' + versStat + ', vers pct = ' + versPct + ', vers dmg pct = ' + versDmgPct);
+  const baseVersPct = (versStat > 0 ? versStat / (versStat + VERS_SCALER) : 0) + baseVers + inspirationBonusStatsPct + imagineVersatilityPct;
 
   const luckStat        = ((baseLuckStat + (psych.factorLuckStat || 0)) * importedOptimizerFactor.luck) + imagineLuckStat;
-  const luckChancePct   = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct + imagineLuckPct;
+  const baseLuckChancePct = (luckStat > 0 ? luckStat / (luckStat + STAT_SCALER) : 0) + baseLuck + inspirationBonusStatsPct + imagineLuckPct;
 
   const masteryStat  = ((baseMasteryStat + (psych.factorMasteryStat || 0)) * importedOptimizerFactor.mastery) + imagineMasteryStat;
-  const masteryPct   = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonusStatsPct + imagineMasteryPct;
+  const baseMasteryPct = (masteryStat > 0 ? masteryStat / (masteryStat + STAT_SCALER) : 0) + baseMastery + inspirationBonusStatsPct + imagineMasteryPct;
 
   const hasteStat    = ((baseHasteStat + (psych.factorHasteStat || 0)) * importedOptimizerFactor.haste) + imagineHasteStat;
-  const hastePct     = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonusStatsPct + imagineHastePct;
+  const baseHastePct = (hasteStat > 0 ? hasteStat / (hasteStat + STAT_SCALER) : 0) + baseHaste + inspirationBonusStatsPct + imagineHastePct;
+
+  const statAwareImagineBonuses = (typeof getImagineBonuses === 'function')
+    ? getImagineBonuses({
+        critStat,
+        hasteStat,
+        luckStat,
+        masteryStat,
+        versStat,
+        crit: baseCritRatePct,
+        haste: baseHastePct,
+        luck: baseLuckChancePct,
+        mastery: baseMasteryPct,
+        vers: baseVersPct
+      })
+    : {};
+
+  const imagineStatHastePct = (statAwareImagineBonuses.hastePct || 0) - (imagineStats.hastePct || 0);
+  const imagineStatMasteryPct = (statAwareImagineBonuses.masteryPct || 0) - (imagineStats.masteryPct || 0);
+  const imagineStatLuckPct = (statAwareImagineBonuses.luckPct || 0) - (imagineStats.luckPct || 0);
+  const imagineStatVersatilityPct = (statAwareImagineBonuses.versatilityPct || 0) - (imagineStats.versatilityPct || 0);
+  const imagineStatCritPct = (statAwareImagineBonuses.critPct || 0) - (imagineStats.critPct || 0);
+
+  const critRatePct = baseCritRatePct + imagineStatCritPct / 100;
+  const versPct = baseVersPct + imagineStatVersatilityPct / 100;
+  const versDmgPct = versPct * 0.35;
+  const luckChancePct = baseLuckChancePct + imagineStatLuckPct / 100;
+  const masteryPct = baseMasteryPct + imagineStatMasteryPct / 100;
+  const hastePct = baseHastePct + imagineStatHastePct / 100;
 
   document.getElementById('sub-crit-pct').textContent    = (critRatePct * 100).toFixed(2) + '%';
   document.getElementById('sub-vers-pct').textContent    = (versPct * 100).toFixed(2) + '%';
@@ -413,10 +438,11 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
   } catch (e) {
     console.warn('imagine bonus provider error', e);
   }
-
   const imagineMainStatPct = (imagineBonuses.mainStatPct || 0) / 100;
   const imagineMatkPct  = (imagineBonuses.matkPct || 0) / 100;
   const imagineGenDamagePct = (imagineBonuses.genDamagePct || 0) / 100;
+  const imagineClassSkillDmgPct = (imagineBonuses.classSkillDmg || 0) / 100;
+  console.log('imagine class skill dmg pct: ' + imagineClassSkillDmgPct);
   const imagineCritDmgPct = (imagineBonuses.critDmgPct || 0) / 100;
 
   const imagineElemPct = (imagineBonuses.elemPct || 0) / 100;
@@ -518,9 +544,17 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     (psychoscopeFactorMainStatPct > 0 ? `  <span style="color:#ff79c6">[Psychoscope Main Stat: +${(psychoscopeFactorMainStatPct * 100).toFixed(3)}%]</span>` : '') +
     `  <span style="color:var(--accent)">${matkPctSummary}</span>`;
 
-  const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus;
+  const finalizedImagineBonuses = getImagineBonuses?.({
+    haste: finalHastePct,
+    mastery: finalMasteryPct,
+    effectiveAtk
+  }) || {};
+  const imagineAllElementATK = finalizedImagineBonuses.allElementATK || 0;
+  const elementalAtk = getVal('elemental-atk') + moduleElementalAtkBonus + imagineAllElementATK;
   const classElementalAtk = getVal('class-elemental-atk') + (psych.factorClassElementalAtk || 0);
   const totalElementalAtk = elementalAtk + classElementalAtk;
+
+  console.log('imaigine element atk: ' + imagineAllElementATK);
 
   // Sum all element raw stats together, get pct from that, then add with pct sources of all element for final all element pct.
   const sumAllElement = elemPowerBonus + moduleElementalDmgStatBonus;
@@ -712,6 +746,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     _moduleAllDmg: moduleAllDmgBonus / 100,
     _moduleEliteDmg: moduleEliteDmgPct,
     _moduleSpecialAttackElem: moduleSpecialAttackElemBonus,
+    _classSkillDmgPct: imagineClassSkillDmgPct,
     _finalAllElementPct: finalAllElementPct,
     _moduleAllElementalDmgStat: moduleElementalDmgStatBonus,
     thornsPct: classThornsPct,
@@ -786,11 +821,12 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     if (c._damageType === 'magical' && c._moduleMagicDmg) ps.push(`modules-magic ${(c._moduleMagicDmg*100).toFixed(3)}%`);
     if (c._damageType === 'physical' && c._modulePhysicalDmg) ps.push(`modules-phys ${(c._modulePhysicalDmg*100).toFixed(3)}%`);
     if (typePct)      ps.push(`${typeLabel} ${(typePct*100).toFixed(3)}%`);
+    if (options.classSkillDmgPct) ps.push(`class skill ${(options.classSkillDmgPct*100).toFixed(3)}%`);
     const classGenParts = getClassFormulaParts('gen');
     if (classGenParts) ps.push(classGenParts);
     const imagineGenParts = getImagineFormulaParts('gen');
     if (imagineGenParts) ps.push(imagineGenParts);
-    const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (typePct||0);
+    const total = c._totalGenDmgPct + (c._foodDmgBonusPct||0) + (typePct||0) + (options.classSkillDmgPct||0);
     return ps.length ? ps.join(' + ') + ` = ${(total*100).toFixed(3)}%` : `${(total*100).toFixed(3)}%`;
   }
   function buildDreamStr(c) {

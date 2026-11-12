@@ -24,6 +24,9 @@ function calcSkill(id) {
   const typeMap   = { expertise: 'type-dmg-expertise', special: 'type-dmg-special', basic: 'type-dmg-basic', ultimate: 'type-dmg-ultimate' };
   const typeLabel = { expertise: 'Expertise', special: 'Special', basic: 'Basic', ultimate: 'Ultimate', imagine: 'Imagine', 'imagine(passive)': 'Imagine (passive)', psychoscope: 'Psychoscope' };
   const isImagineType = skillType === 'imagine' || skillType === 'imagine(passive)';
+  const classSkillDmgPct = ['basic', 'special', 'ultimate', 'expertise', 'class'].includes(skillType)
+    ? (c._classSkillDmgPct || 0)
+    : 0;
   let typeDmgPct = typeMap[skillType] ? getVal(typeMap[skillType]) / 100 : 0;
   let wlExpMagPct = 0;
   if(skillType === 'expertise'){
@@ -198,7 +201,7 @@ function calcSkill(id) {
   effectCritChance += psychoscopeTargetCritPct;
   effectCritChance = Math.max(effectCritChance, -c.critRatePct); // Don't allow negative crit rate
 
-  const preDeductionGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + effectGen + luckEffectBonus;
+  const preDeductionGen = c.genDmgPct + c._foodDmgBonusPct + typeDmgPct + classSkillDmgPct + effectGen + luckEffectBonus;
   const specialAttackElemBonus = (skillType === 'special') ? (c._moduleSpecialAttackElem || 0) : 0;
   const originalGen = preDeductionGen;
   const originalElem = c.elemDmgPct + effectElem + specialAttackElemBonus;
@@ -307,7 +310,7 @@ function calcSkill(id) {
   if (formulaEl && showFormula) {
     const typeName = skillType !== 'none' ? typeLabel[skillType] : 'Skill';
     const skipWl = effectNoWlAtk || effectNoWlMagic;
-    const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName, { skipWl }) : `${(totalGen*100).toFixed(3)}%`;
+    const baseGenStr = window._buildGenStr ? window._buildGenStr(c, typeDmgPct, typeName, { skipWl, classSkillDmgPct }) : `${(totalGen*100).toFixed(3)}%`;
     const baseElemStr = window._buildElemStr ? window._buildElemStr(c, specialAttackElemBonus, { skipSources: effectNoElem && isImagineType }) : `${((c.elemDmgPct + specialAttackElemBonus)*100).toFixed(3)}%`;
     const baseDreamStr =  window._buildDreamStr ? window._buildDreamStr(c) : `${(c._dreamDmgPct*100).toFixed(3)}%`;
 

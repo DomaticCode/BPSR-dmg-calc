@@ -192,9 +192,10 @@ function provideSmiteFactorBonuses() {
 function getInfusionEffects(){
   const effects = [];
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
+  const thorns = !!document.getElementById('thorn')?.checked;
   const socketSeasonalDamage = window.getFactorSocketEffectTotal?.('class:smite:infusion-seasonal-damage') || 0;
   //const s1set = getVal('s1-set-value');
-  if (thornbreaker) {
+  if (thornbreaker && thorns) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
   if (socketSeasonalDamage !== 0) {
@@ -209,7 +210,8 @@ function getInfusionEffects(){
 function getStagChargeEffects(){
   const effects = [];
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
-  if (thornbreaker) {
+  const thorns = !!document.getElementById('thorn')?.checked;
+  if (thornbreaker && thorns) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
   if(isSmiteFactorSelected('x2')){
@@ -368,9 +370,9 @@ const SMITE_OPTIONS_HTML = `
   <div class="checkbox-group" style="margin:0; gap:6px;">
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="luck-dmg-talent" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="luck-dmg-talent">Luck Damage Talent</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">5% Lucky DMG Multiplier + 1.2% per 1% Luck.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="flowers-ascension" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="flowers-ascension">Flowers Ascension</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">10% Forest dmg on spending buds. (8 seconds)</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thorn" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thorn">Thorn</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">20% Forest dmg to targets with thorn (Regen Pulse is bugged for this).</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thorn" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thorn">Thorn</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">20% Forest dmg to targets with thorn</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="wide-area-thorns" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="wide-area-thorns">Wide-area Thorns</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hidden 8% Elite Forest DMG (always up).</span></span></div>
-    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="arcane-of-green" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="arcane-of-green">Arcane of Green</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Balance Patch (full) only, MATK boost by Mastery % * Luck %.</span></span></div>
+    <div class="cb-row" style="gap:6px;"><input type="checkbox" id="arcane-of-green" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="arcane-of-green">Arcane of Green</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">MATK boost by Mastery % * Luck %.</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="thornbreaker" style="width:14px;height:14px;" checked onchange="updateClassSkills(); calc()"><label for="thornbreaker">Thornbreaker</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Increased damage done by infusion and stag charge by 100% + Mastery % * 4 (final)</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="pulse-echo" style="width:14px;height:14px;" onchange="updateClassSkills(); calc()"><label for="pulse-echo">Pulse Echo</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Hitting with infusion boosts damage of Regen Pulse (up to 100%).</span></span></div>
     <div class="cb-row" style="gap:6px;"><input type="checkbox" id="bloomheal" style="width:14px;height:14px;" onchange="onSmiteInspirationToggle()"><label for="bloomheal">Bloomheal</label><span class="tip"><span class="tip-icon">i</span><span class="tip-box">Doubles inspiration bonus at the cost of 10% final damage.</span></span></div>

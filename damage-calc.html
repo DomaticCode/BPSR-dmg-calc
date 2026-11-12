@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BP:SR Damage Simulator</title>
 <script>
-  const APP_VERSION = 'v2.2.0';
+  const APP_VERSION = 'v2.2.1';
   document.write(`<link rel="stylesheet" href="styles.css?v=${APP_VERSION}">`);
 </script>
 <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
@@ -462,6 +462,7 @@
                         <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                         <div class="module-option" data-value="dorothy">Dorothy</div>
                         <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="erosion-bloom-afterimage">Erosion Bloom Afterimage</div>
                         <div class="module-option" data-value="fafala">Fafala</div>
                         <div class="module-option" data-value="flamehorn">Flamehorn</div>
                         <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
@@ -490,6 +491,7 @@
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
                         <div class="module-option" data-value="void-watcher">Void Watcher</div>
                         <div class="module-option" data-value="wandering-traveler">Wandering Traveler</div>
+                        <div class="module-option" data-value="withered-bloomshard">Withered Bloomshard</div>
                         <!-- <div class="module-option" data-value="brigand-leader">Brigand Leader</div> not ready yet, was here for testing -->
                       </div>
                     </div>
@@ -535,6 +537,7 @@
                         <div class="module-option" data-value="celestial-flier">Celestial Flier</div>
                         <div class="module-option" data-value="dorothy">Dorothy</div>
                         <div class="module-option" data-value="emerald-caprahorn">Emerald Caprahorn</div>
+                        <div class="module-option" data-value="erosion-bloom-afterimage">Erosion Bloom Afterimage</div>
                         <div class="module-option" data-value="fafala">Fafala</div>
                         <div class="module-option" data-value="flamehorn">Flamehorn</div>
                         <div class="module-option" data-value="goblin-chief">Goblin Chief</div>
@@ -563,6 +566,7 @@
                         <div class="module-option" data-value="void-bzzar">Void Bzzar</div>
                         <div class="module-option" data-value="void-watcher">Void Watcher</div>
                         <div class="module-option" data-value="wandering-traveler">Wandering Traveler</div>
+                        <div class="module-option" data-value="withered-bloomshard">Withered Bloomshard</div>
                       </div>
                     </div>
                   </div>
@@ -609,7 +613,7 @@
                 <div id="imagine-note-jungle-goblin-warrior" style="display:none;"><span class="hl">Jungle Goblin Warrior:</span> <span class="highlight-purple">Assumes STR class.</span> If you imported stats with this imagine equipped, remove the passive main stat % from  <span class="highlight-purple">Main Stat % bonus</span></div>
                 <div id="imagine-note-goblin-king" style="display:none;"><span class="hl">Goblin King:</span> <span class="highlight-purple">Passive Versatility only.</span> If you imported stats with this imagine equipped, remove the versatility stat given from  <span class="highlight-purple">Versatility substat</span></div>
                 <div id="imagine-note-storm-goblin-king" style="display:none;"><span class="hl">Storm Goblin King:</span><span class="highlight-purple">Tier 5 SGK's passive luck imagine skills are T5 for purple, T0 for BL.</span> Hit counts are estimates, classes like Disso likely gets slightly more hits per parse, smite slightly less.</div>
-                <div id="imagine-note-sunfire-moonstrike" style="display:none;"><span class="hl">Sunfire & Moonstrike:</span> Passive heal stacks give lucky strike multiplier<br>Active Crit Reduction stacks: 0 = just casted imagine, 3 = 90 luck effect hits after casting. <br>Passive hit count assumes 80% of lucky strikes trigger it, you can update this manually.</div>
+                <div id="imagine-note-sunfire-moonstrike" style="display:none;"><span class="hl">Sunfire & Moonstrike:</span> Passive heal stacks give lucky strike multiplier<br>Active Crit Reduction stacks: 0 = just casted imagine, 3 = 90 luck effect hits after casting. <br>Passive hit count assumes ~45-57% (depends on spec) of lucky strikes trigger it, you can update this manually.</div>
               </div>
             </div>
           </div>
@@ -793,6 +797,8 @@
     'imagines/lucy.js',
     'imagines/sunfire-moonstrike.js',
     'imagines/natsu.js',
+    'imagines/withered-bloomshard.js',
+    'imagines/erosion-bloom-afterimage.js',
     'psychoscope/psychoscope-tree.js',
     'psychoscope/boilerplate.js',
     'psychoscope/stat-symphony.js',
@@ -880,7 +886,7 @@
 
     const activePassiveImagines = ['muku-scout', 'muku-chief', 'muku-warrior', 'rorola', 'celestial-flier', 'phantom-arachnocrab', 'blackfire-foxen', 'emerald-caprahorn', 'bluespine-lizard', 
     'shadow-captain', 'boarrier-tyrant', 'inferno-goblin-mage', 'brigand-scout-leader', 'jungle-goblin-warrior', 'lizardman-hunter', 'goblin-warrior', 'storm-goblin-king', 'goblin-chief', 
-    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-traveler', 'void-watcher', 'predator-spider', 'igoreus', 'shell-gathering-cultist', 'kartgriff', 'sunfire-moonstrike'];
+    'bloodthirsty-furball', 'boyce', 'flamehorn', 'goblin-king', 'wandering-traveler', 'void-watcher', 'predator-spider', 'igoreus', 'shell-gathering-cultist', 'kartgriff', 'sunfire-moonstrike', 'withered-bloomshard', 'erosion-bloom-afterimage'];
     // Show mode for imagines that have active/passive modes
     modeField.style.display = activePassiveImagines.includes(val) ? '' : 'none';
     // Show stack inputs only for imagines that use them
@@ -998,7 +1004,7 @@
     };
   }
 
-  // Collect and combine bonuses from all imagines
+  // Collect and combine bonuses across all selected imagines
   function getImagineBonuses(stats = {}) {
     const out = {};
 
@@ -1018,7 +1024,6 @@
       const module = window.IMAGINES?.[state.imagine];
 
       try {
-        // Pass extendedState to provideBonuses
         const bonuses = module?.provideBonuses?.(extendedState) || {};
 
         for (const [key, value] of Object.entries(bonuses)) {
