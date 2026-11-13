@@ -156,6 +156,12 @@ function provideSmiteFactorEffectSuggestions() {
       aliases: ['Infusion Seasonal Damage', 'Infusion Oath Damage', 'Infusion Oath DMG', 'Infusion Seasonal DMG'],
       unit: '%',
     },
+    {
+      key: 'stag-charge-seasonal-damage',
+      label: 'Stag Charge Seasonal Damage',
+      aliases: ['Stag Charge Seasonal Damage', 'Stag Charge Oath Damage', 'Stag Charge Oath DMG', 'Stag Charge Seasonal DMG'],
+      unit: '%',
+    },
   ];
 }
 
@@ -211,11 +217,18 @@ function getStagChargeEffects(){
   const effects = [];
   const thornbreaker = !!document.getElementById('thornbreaker')?.checked;
   const thorns = !!document.getElementById('thorn')?.checked;
+  const socketSeasonalDamage = window.getFactorSocketEffectTotal?.('class:smite:stag-charge-seasonal-damage') || 0;
+  const x2 = isSmiteFactorSelected('x2');
   if (thornbreaker && thorns) {
     effects.push(['finalDamage', '100 + (sub-mastery-pct * 4)']);
   }
-  if(isSmiteFactorSelected('x2')){
-    effects.push(['dreamDmg', 'sub-luck-pct'])
+  if (x2 || socketSeasonalDamage !== 0) {
+    const dreamDamage = x2
+      ? `sub-luck-pct + ${socketSeasonalDamage}`
+      : String(socketSeasonalDamage);
+    effects.push(['dreamDmg', dreamDamage]);
+  }
+  if (x2) {
     effects.push(['critChance', '100'])
   }
   return effects;

@@ -839,7 +839,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     if (classDreamParts) ps.push(classDreamParts);
     const imagineDreamParts = getImagineFormulaParts('dream');
     if (imagineDreamParts) ps.push(imagineDreamParts);
-    if (c._classFactorSeasonDmgPct) ps.push(`factors ${(c._classFactorSeasonDmgPct*100).toFixed(3)} `)
+    if (c._classFactorSeasonDmgPct) ps.push(`factors ${(c._classFactorSeasonDmgPct*100).toFixed(3)}`)
     return ps.length ? ps.join(' + ') + ` = ${(c._dreamDmgPct*100).toFixed(3)}%` : `${(c._dreamDmgPct*100).toFixed(3)}%`;
   }
   function buildFinalStr(c) {
@@ -893,7 +893,7 @@ const moduleResults = window.computeModuleBonusesFromDOM?.({
     const imagineDreamLuckyParts = getImagineFormulaParts('dreamLucky');
     if (imagineDreamLuckyParts) ps.push(imagineDreamLuckyParts);
     if (c._factorLuckySeasonDmgPct) ps.push(`factor sockets ${(c._factorLuckySeasonDmgPct*100).toFixed(3)}%`);
-    if (c._classFactorSeasonDmgPct) ps.push(`factors ${(c._classFactorSeasonDmgPct*100).toFixed(3)} `)
+    if (c._classFactorSeasonDmgPct) ps.push(`factors ${(c._classFactorSeasonDmgPct*100).toFixed(3)}`)
     const total = dreamDmgPctLucky;
     return ps.length ? ps.join(' + ') + ` = ${(total*100).toFixed(3)}%` : `${(total*100).toFixed(3)}%`;
   }

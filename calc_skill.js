@@ -389,9 +389,9 @@ function calcSkill(id) {
       let result = baseDreamStr;
       if (effectDream !== 0) {
         if (result.includes('=')) {
-          result = result.replace(/= \d+\.\d+%$/, '') + ` + seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
+          result = result.replace(/= \d+\.\d+%$/, '') + `+ seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
         } else {
-          result = `${result} + seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
+          result = `${result}+ seasonal ${(effectDream*100).toFixed(3)}% = ${(originalDream*100).toFixed(3)}%`;
         }
       }
       if (effectNoDream) {
